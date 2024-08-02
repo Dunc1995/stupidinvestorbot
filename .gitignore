@@ -186,3 +186,6 @@ bundles/
 vendor/pkg/
 pyenv
 Vagrantfile
+
+investorbot/.chalice/deployments/
+investorbot/.chalice/venv/
