@@ -1,11 +1,23 @@
-from chalice import Chalice
+from chalice import Chalice, Rate
 
 app = Chalice(app_name="investorbot")
 
 
+def check_coins(event):
+    print(event)
+
+
 @app.route("/")
 def index():
-    return {"hello": "world"}
+
+    check_coins("testing")
+
+    return {"hello": "world!"}
+
+
+@app.schedule(Rate(1, unit=Rate.MINUTES))
+def coin_check_routine(event):
+    check_coins(event)
 
 
 # The view function above will return {"hello": "world"}

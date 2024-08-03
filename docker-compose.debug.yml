@@ -16,7 +16,8 @@ services:
       context: .
       dockerfile: ./Dockerfile
     ports:
-      - "8080:8080"
+      - 8080:8080
+      - 5678:5678
     depends_on:
       - "dynamodb-local"
     links:
@@ -29,5 +30,5 @@ services:
       [
         "sh",
         "-c",
-        "chalice local --host 0.0.0.0 --port 8080 --no-autoreload"
+        "pip install debugpy -t /tmp && python /tmp/debugpy --wait-for-client --listen 0.0.0.0:5678 /usr/local/bin/chalice local --host 0.0.0.0 --port 8080 --no-autoreload"
       ]
