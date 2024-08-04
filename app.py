@@ -1,9 +1,17 @@
 from decimal import Decimal
+import os
 from chalice import Chalice, Rate
 import boto3
-from trade.state import TradeState
+from chalicelib.http.crypto import CryptoHttpClient
+from chalicelib.trade.state import TradeMetaData
 import uuid
 
+CRYPTO_KEY = os.environ.get("CRYPTO_KEY")
+CRYPTO_SECRET_KEY = os.environ.get("CRYPTO_SECRET_KEY")
+
+INVESTMENT_INCREMENTS = 50.0
+
+crypto = CryptoHttpClient(CRYPTO_KEY, CRYPTO_SECRET_KEY)
 app = Chalice(app_name="investorbot")
 
 
@@ -12,10 +20,17 @@ def check_coins(event):
     table = dynamodb.Table("TradeStates")
 
     response = table.put_item(
-        Item=TradeState(
+        Item=TradeMetaData(
             str(uuid.uuid4()), False, False, Decimal(1.0), Decimal(1.0), False, False
         ).__dict__
     )
+
+    return response
+
+
+@app.route("/user-balance")
+def get_user_balance():
+    response = crypto.user.get_balance()
 
     return response
 

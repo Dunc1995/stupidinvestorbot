@@ -1,4 +1,8 @@
+
 FROM python:3.12
+
+ARG CRYPTO_KEY
+ARG CRYPTO_SECRET_KEY
 
 # Create app directory
 WORKDIR /app

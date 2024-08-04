@@ -189,3 +189,5 @@ Vagrantfile
 
 .chalice/deployments/
 .chalice/venv/
+
+docker/dynamodb

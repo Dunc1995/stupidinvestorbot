@@ -1,6 +1,6 @@
 import uuid
 import boto3
-from trade.state import TradeState
+from chalicelib.trade.state import TradeState
 from boto3.dynamodb.types import TypeSerializer
 from typing import TypeVar, Generic
 

@@ -26,6 +26,8 @@ services:
     environment:
       AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
       AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'
+      CRYPTO_KEY: ${CRYPTO_KEY}
+      CRYPTO_SECRET_KEY: ${CRYPTO_SECRET_KEY}
       REGION: 'eu-west-1'
     command:
       [
