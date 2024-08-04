@@ -17,6 +17,8 @@ services:
       dockerfile: ./Dockerfile
     ports:
       - "8080:8080"
+    volumes:
+      - $HOME/.aws/credentials:/app/.aws/credentials:ro
     depends_on:
       - "dynamodb-local"
     links:

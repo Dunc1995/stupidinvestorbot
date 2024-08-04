@@ -3,6 +3,8 @@ FROM python:3.12
 # Create app directory
 WORKDIR /app
 
+ENV AWS_DEFAULT_REGION=eu-west-1
+
 # Install app dependencies
 COPY ./requirements.txt ./
 

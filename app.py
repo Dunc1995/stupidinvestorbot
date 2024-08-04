@@ -1,18 +1,31 @@
+from decimal import Decimal
 from chalice import Chalice, Rate
+import boto3
+from trade.state import TradeState
+import uuid
 
 app = Chalice(app_name="investorbot")
 
 
 def check_coins(event):
-    print(event)
+    dynamodb = boto3.resource("dynamodb", endpoint_url="http://dynamodb-local:8000")
+    table = dynamodb.Table("TradeStates")
+
+    response = table.put_item(
+        Item=TradeState(
+            str(uuid.uuid4()), False, False, Decimal(1.0), Decimal(1.0), False, False
+        ).__dict__
+    )
+
+    return response
 
 
 @app.route("/")
 def index():
 
-    check_coins("testing")
+    response = check_coins("testing")
 
-    return {"hello": "world!"}
+    return print(response)
 
 
 @app.schedule(Rate(1, unit=Rate.MINUTES))
