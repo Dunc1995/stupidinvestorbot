@@ -1,7 +1,11 @@
+from enum import Enum
 from chalicelib.models.app import CoinSummary, TradingStatus
 
 
-class CoinSelection:
+class CoinSelectionStrategies(Enum):
+    CONSERVATIVE = "conservative"
+    HIGH_GAIN = "high_gain"
+    ALL_GUNS_BLAZING = "all_guns_blazing"
 
     @staticmethod
     def conservative(summary: CoinSummary) -> bool:
@@ -19,7 +23,8 @@ class CoinSelection:
     @staticmethod
     def high_gain(summary: CoinSummary) -> bool:
         """Selects a coin that is within its standard 24h deviation but
-        experiences high gain.
+        experiences high gain. Empirically this selection criteria tends
+        to yield decent returns.
 
         Args:
             summary (CoinSummary): Coin data to analyse.
@@ -35,26 +40,12 @@ class CoinSelection:
         )
 
     @staticmethod
-    def all_guns_blazing(summary: CoinSummary) -> bool:
+    def all_guns_blazing(
+        summary: CoinSummary,
+    ) -> bool:  # ! This is almost certainly stupid.
         return (
             summary.percentage_change_24h > 0.20 and summary.percentage_std_24h > 0.05
         )
-
-    @staticmethod
-    def should_select_coin(summary: CoinSummary, strategy: str):
-        select_coin = False
-
-        match strategy:
-            case "high_gain":
-                select_coin = CoinSelection.high_gain(summary)
-            case "conservative":
-                select_coin = CoinSelection.conservative(summary)
-            case "all_guns_blazing":
-                select_coin = CoinSelection.all_guns_blazing(summary)
-            case _:
-                select_coin = False
-
-        return select_coin
 
 
 class SellPrice:
@@ -63,11 +54,11 @@ class SellPrice:
         percentage_increase = None
 
         match status.sell_strategy:
-            case "high_gain":
+            case CoinSelectionStrategies.HIGH_GAIN:
                 percentage_increase = 1.01
-            case "conservative":
+            case CoinSelectionStrategies.CONSERVATIVE:
                 percentage_increase = 1.01
-            case "all_guns_blazing":
+            case CoinSelectionStrategies.ALL_GUNS_BLAZING:
                 percentage_increase = 0.9
             case _:
                 percentage_increase = 1.01
