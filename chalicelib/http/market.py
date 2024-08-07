@@ -23,7 +23,9 @@ class MarketHttpClient(HttpClient):
             if str(obj["i"]).endswith("_USD") and float(obj["vv"]) > 200_000.0
         ]
 
-        result = sorted(data, key=lambda x: tuple(x.percentage_change_24h))
+        result = sorted(
+            data, key=lambda x: tuple(x.percentage_change_24h)
+        )  # TODO write test for sorting behaviour - this is pretty implicit
         result.reverse()
 
         return result

@@ -1,6 +1,14 @@
-from typing import Dict
+from typing import Dict, List
+import uuid
 from chalicelib.http.base import AuthenticatedHttpClient
-from chalicelib.models.crypto import Order, OrderDetail
+from chalicelib.models.app import CoinSummary
+from chalicelib.models.crypto import (
+    ListResponse,
+    Order,
+    OrderDetail,
+    PositionBalance,
+    UserBalance,
+)
 
 
 class UserHttpClient(AuthenticatedHttpClient):
@@ -14,10 +22,38 @@ class UserHttpClient(AuthenticatedHttpClient):
             id_incr=1, api_key=api_key, api_secret_key=api_secret_key, api_url=api_url
         )
 
-    def get_balance(self) -> Dict:
-        return self.post_request("user-balance")[
+    def get_balance(self) -> UserBalance:
+        user_balance = self.post_request("user-balance")[
             0
         ]  # ! zero index assumes only one wallet - may break
+
+        user_balance_obj = UserBalance(**user_balance)
+
+        position_balances = [
+            PositionBalance(**position_balance)
+            for position_balance in user_balance_obj.position_balances
+        ]
+
+        user_balance_obj.position_balances = position_balances
+
+        return user_balance_obj
+
+    def get_create_order_params(
+        self,
+        instrument_name: str,
+        instrument_price_usd: str,
+        quantity: str,
+        side: str,
+    ) -> Dict:
+        return {
+            "client_oid": str(uuid.uuid4()),
+            "instrument_name": instrument_name,
+            "side": side,
+            "type": "LIMIT",
+            "price": f"{instrument_price_usd}",
+            "quantity": f"{quantity}",
+            "time_in_force": "GOOD_TILL_CANCEL",
+        }
 
     def create_order(
         self,
@@ -39,14 +75,9 @@ class UserHttpClient(AuthenticatedHttpClient):
             Dict: response from the buy or sell order.
         """
 
-        params = {
-            "instrument_name": instrument_name,
-            "side": side,
-            "type": "LIMIT",
-            "price": f"{instrument_price_usd}",
-            "quantity": f"{quantity}",
-            "time_in_force": "GOOD_TILL_CANCEL",
-        }
+        params = self.get_create_order_params(
+            instrument_name, instrument_price_usd, quantity, side
+        )
 
         result = self.post_request("create-order", params)
 

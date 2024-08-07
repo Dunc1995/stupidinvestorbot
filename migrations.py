@@ -1,6 +1,6 @@
 import uuid
 import boto3
-from chalicelib.trade.state import TradeState
+from chalicelib.models.crypto import Order
 from boto3.dynamodb.types import TypeSerializer
 from typing import TypeVar, Generic
 
@@ -16,7 +16,7 @@ def get_table_id_field(data_schema: Generic[T]):
     class_name = data_schema.__class__.__name__
 
     for k, v in data_schema.__dict__.items():
-        if str(k).endswith("_id"):
+        if str(k).endswith("_oid"):
             serializer = TypeSerializer()
             attribute_definitions = [
                 {
@@ -29,7 +29,7 @@ def get_table_id_field(data_schema: Generic[T]):
 
     if key_schema is None:
         raise NotImplementedError(
-            f"Migration script expects one property name of the {class_name} class to end with '_id' to assume the role of primary key."
+            f"Migration script expects one property name of the {class_name} class to end with '_oid' to assume the role of primary key."
         )
 
     return attribute_definitions, key_schema
@@ -57,6 +57,6 @@ def create_table(data_class: Generic[T]):
 
 
 if __name__ == "__main__":
-    state = TradeState(str(uuid.uuid4()), False, False, 1, 1, False, False)
+    state = Order(0, "")
 
     print(create_table(state))

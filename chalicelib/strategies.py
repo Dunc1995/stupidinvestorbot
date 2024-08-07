@@ -1,5 +1,5 @@
 from enum import Enum
-from chalicelib.models.app import CoinSummary, TradingStatus
+from chalicelib.models.app import CoinSummary
 
 
 class CoinSelectionStrategies(Enum):
@@ -48,19 +48,19 @@ class CoinSelectionStrategies(Enum):
         )
 
 
-class SellPrice:
-    @staticmethod
-    def get_percentage_increase(status: TradingStatus):
-        percentage_increase = None
+# class SellPrice:
+#     @staticmethod
+#     def get_percentage_increase(status: TradingStatus):
+#         percentage_increase = None
 
-        match status.sell_strategy:
-            case CoinSelectionStrategies.HIGH_GAIN:
-                percentage_increase = 1.01
-            case CoinSelectionStrategies.CONSERVATIVE:
-                percentage_increase = 1.01
-            case CoinSelectionStrategies.ALL_GUNS_BLAZING:
-                percentage_increase = 0.9
-            case _:
-                percentage_increase = 1.01
+#         match status.sell_strategy:
+#             case CoinSelectionStrategies.HIGH_GAIN:
+#                 percentage_increase = 1.01
+#             case CoinSelectionStrategies.CONSERVATIVE:
+#                 percentage_increase = 1.01
+#             case CoinSelectionStrategies.ALL_GUNS_BLAZING:
+#                 percentage_increase = 0.9
+#             case _:
+#                 percentage_increase = 1.01
 
-        return percentage_increase
+#         return percentage_increase

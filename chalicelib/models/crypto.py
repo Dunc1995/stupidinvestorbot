@@ -35,7 +35,7 @@ class UserBalance:
     total_borrow: float
     position_limit: float
     used_position_limit: float
-    position_balances: list[PositionBalance]
+    position_balances: List[PositionBalance]
     has_risk: bool
     terminatable: bool
     margin_score: float
@@ -111,3 +111,8 @@ class OrderDetail:
             bool: Returns True if the order has been fulfilled completely.
         """
         return self.status == "FILLED"
+
+
+@dataclass
+class ListResponse:
+    list_id: str

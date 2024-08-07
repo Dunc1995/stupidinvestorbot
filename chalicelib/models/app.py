@@ -1,8 +1,7 @@
 from dataclasses import dataclass
-import time
+from decimal import Decimal
 
 from pandas import Series
-from chalicelib.models.crypto import Order
 
 
 @dataclass
@@ -43,6 +42,7 @@ class CoinSummary:
 
     name: str
     latest_trade: float
+    quantity_tick_size: float
     mean_24h: float
     modes_24h: Series
     std_24h: float
@@ -50,6 +50,7 @@ class CoinSummary:
     percentage_std_24h: float
     is_greater_than_mean: bool
     is_greater_than_std: bool
+    __coin_quantity: float = -1.0  # TODO numerical types here are a bit muddled.
 
     @property
     def has_few_modes(self) -> bool:
@@ -81,99 +82,25 @@ class CoinSummary:
         """
         return self.percentage_change_24h < 0.03 and self.percentage_change_24h > -0.03
 
+    def __get_coin_quantity_divisible_by_tick_size(
+        self, investment_total_usd: str
+    ) -> Decimal:
 
-@dataclass
-class TradingStatus(Order):
-    coin_name: str
-    per_coin_price: float
-    is_running: bool
-    sell_strategy: str
-    _quantity: float = None
-    _buy_order_created: bool = False
-    _buy_order_fulfilled: bool = False
-    _sell_order_created: bool = False
-    _sell_order_fulfilled: bool = False
-    _timestamp: int = None
-    _initial_quantity: float = None
+        _instrument_price_usd = Decimal(self.latest_trade)
 
-    @property
-    def buy_order_created(self) -> bool:
-        return self._buy_order_created
+        absolute_coin_quantity = Decimal(investment_total_usd) / _instrument_price_usd
+
+        amount = Decimal(str(absolute_coin_quantity))
+        tick = Decimal(str(self.quantity_tick_size))
+
+        remainder = amount % tick
+
+        return amount - remainder
 
     @property
-    def buy_order_fulfilled(self) -> bool:
-        return self._buy_order_fulfilled
+    def coin_quantity(self) -> float:
+        return self.__coin_quantity
 
-    @property
-    def sell_order_created(self) -> bool:
-        return self._sell_order_created
-
-    @property
-    def sell_order_fulfilled(self) -> bool:
-        return self._sell_order_fulfilled
-
-    @buy_order_created.setter
-    def buy_order_created(self, x) -> bool:
-        self._buy_order_created = x
-
-    @buy_order_fulfilled.setter
-    def buy_order_fulfilled(self, x) -> bool:
-        if x is True:
-            self._buy_order_created = x
-
-        self._buy_order_fulfilled = x
-
-    @sell_order_created.setter
-    def sell_order_created(self, x) -> bool:
-        if x is True:
-            self._buy_order_created = x
-            self._buy_order_fulfilled = x
-
-        self._sell_order_created = x
-
-    @sell_order_fulfilled.setter
-    def sell_order_fulfilled(self, x) -> bool:
-        if x is True:
-            self._buy_order_created = x
-            self._buy_order_fulfilled = x
-            self._sell_order_created = x
-
-        self._sell_order_fulfilled = x
-
-    @property
-    def is_resumable(self):
-        # TODO this criteria doesn't cover all edge cases in which it's possible to resume the trade
-        return (
-            self._buy_order_created
-            and self._buy_order_fulfilled
-            and not self.sell_order_created
-        )
-
-    @property
-    def quantity(self):
-        if self._quantity is None:
-            raise ValueError("Quantity has not been set.")
-
-        return self._quantity
-
-    @property
-    def initial_quantity(self):
-        return self._initial_quantity
-
-    @quantity.setter
-    def quantity(self, x):
-        if self._initial_quantity is None:
-            self._initial_quantity = x
-
-        self._quantity = x
-
-    @property
-    def total_usd(self):
-        return float(self.quantity) * float(self.per_coin_price)
-
-    @property
-    def timestamp(self) -> int:
-        if self._timestamp is None:
-            self._timestamp = int(time.time())
-
-        return self._timestamp
+    @coin_quantity.setter
+    def coin_quantity(self, x) -> float:
+        self.__coin_quantity = self.__get_coin_quantity_divisible_by_tick_size(str(x))

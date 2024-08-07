@@ -1,94 +1,69 @@
-from decimal import Decimal
+import logging
+import math
 import os
 from chalice import Chalice, Rate
 import boto3
 from chalicelib.repo import CryptoRepo
 from chalicelib.strategies import CoinSelectionStrategies
-from chalicelib.trade.state import TradeMetaData
-import uuid
 
 CRYPTO_KEY = os.environ.get("CRYPTO_KEY")
 CRYPTO_SECRET_KEY = os.environ.get("CRYPTO_SECRET_KEY")
 
-INVESTMENT_INCREMENTS = 50.0
+INVESTMENT_INCREMENTS = 5.0
+MAX_COINS = 2
+
+logging.basicConfig(level=logging.INFO)
+app = Chalice(app_name="investorbot")
 
 repo = CryptoRepo(CRYPTO_KEY, CRYPTO_SECRET_KEY)
-app = Chalice(app_name="investorbot")
+dynamodb = boto3.resource("dynamodb", endpoint_url="http://dynamodb-local:8000")
+order_table = dynamodb.Table("Orders")
 
 
 def buy_coin_routine():
-    # dynamodb = boto3.resource("dynamodb", endpoint_url="http://dynamodb-local:8000")
-    # table = dynamodb.Table("TradeStates")
 
-    # response = table.put_item(
-    #     Item=TradeMetaData(
-    #         str(uuid.uuid4()), False, False, Decimal(1.0), Decimal(1.0), False, False
-    #     ).__dict__
-    # )
+    user_balance = repo.get_wallet_balance()
 
-    coin_selection = repo.select_coins_of_interest(CoinSelectionStrategies.HIGH_GAIN)
+    number_of_coins_to_invest = math.floor(float(user_balance) / INVESTMENT_INCREMENTS)
 
-    # instrument = next(x for x in repo.instruments if x.symbol == coin.name)
+    if number_of_coins_to_invest == 0:
+        return  # No action to take if no coins can be selected based on current balance.
+    elif number_of_coins_to_invest > MAX_COINS:
+        number_of_coins_to_invest = MAX_COINS
 
-    # ticker_data = repo.market.get_ticker(coin.name)
-    # latest_trade = Decimal(ticker_data.latest_trade)
+    coin_selection = repo.select_coins_of_interest(
+        CoinSelectionStrategies.HIGH_GAIN,
+        number_of_coins_to_invest,
+        INVESTMENT_INCREMENTS,  #! Not sure I like the investment increments variable being passed here.
+    )
 
-    # percentage_change = latest_trade / Decimal(str(coin.latest_trade))
+    for order in repo.place_coin_orders(coin_selection):
+        response = order_table.put_item(Item=order.__dict__)
 
-    # if percentage_change > 1.01:
-    #     print(
-    #         f"Skipping purchase of {coin.name} as value has increased since initial analysis."
-    #     )
-    # else:
-    #     coin.latest_trade = latest_trade
-
-    #     order_summary = purchase_coin(coin, instrument, strategy)
-
-    return [coin.__dict__ for coin in coin_selection]
+    return coin_selection
 
 
-@app.route("/user-balance")
-def get_user_balance():
-    return repo.user.get_balance()
+def check_order_routine():
+    response = order_table.scan()
+    data = response["Items"]
 
-
-@app.route("/get-usd-coins")
-def get_usd_coins():
-    return [ticker.__dict__ for ticker in repo.market.get_usd_coins()]
-
-
-@app.route("/get-instruments")
-def get_instruments():
-    return [instrument.__dict__ for instrument in repo.market.get_instruments()]
+    return data
 
 
 @app.route("/")
 def index():
     response = buy_coin_routine()
-    return print(response)
+
+    return str(response)
+
+
+@app.route("/check-orders")
+def check_orders():
+    response = check_order_routine()
+
+    return str(response)
 
 
 @app.schedule(Rate(1, unit=Rate.MINUTES))
 def coin_check_routine(event):
     buy_coin_routine()
-
-
-# The view function above will return {"hello": "world"}
-# whenever you make an HTTP GET request to '/'.
-#
-# Here are a few more examples:
-#
-# @app.route('/hello/{name}')
-# def hello_name(name):
-#    # '/hello/james' -> {"hello": "james"}
-#    return {'hello': name}
-#
-# @app.route('/users', methods=['POST'])
-# def create_user():
-#     # This is the JSON body the user sent in their POST request.
-#     user_as_json = app.current_request.json_body
-#     # We'll echo the json body back to the user in a 'user' key.
-#     return {'user': user_as_json}
-#
-# See the README documentation for more examples.
-#
