@@ -91,23 +91,6 @@ class CryptoRepo:
 
         return coin_summary
 
-    # def get_coin_balance(self, coin_name: str) -> PositionBalance | None:
-    #     name = coin_name.split("_")[0]
-    #     balance_dict = self.user.get_balance()
-
-    #     balance = UserBalance(**balance_dict)
-
-    #     coin_balance = next(
-    #         (
-    #             PositionBalance(**ub)
-    #             for ub in balance.position_balances
-    #             if PositionBalance(**ub).instrument_name == name
-    #         ),
-    #         None,
-    #     )
-
-    #     return coin_balance
-
     def get_coin_balance(self, instrument_name: str) -> PositionBalance:
         if self.__wallet_balance is None:
             self.__wallet_balance = self.user.get_balance()
