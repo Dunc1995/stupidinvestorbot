@@ -4,7 +4,7 @@ import pandas as pd
 from decimal import *
 import logging
 
-from chalicelib.models.crypto import Instrument, Order
+from chalicelib.models.crypto import Instrument, Order, PositionBalance
 from chalicelib.strategies import CoinSelectionStrategies
 from chalicelib.http.market import MarketHttpClient
 from chalicelib.http.user import UserHttpClient
@@ -23,6 +23,7 @@ class CryptoRepo:
         self.market = MarketHttpClient()
         self.user = UserHttpClient(api_key, api_secret_key)
         self.__instruments = None
+        self.__wallet_balance = None
 
     @property
     def instruments(self):
@@ -107,12 +108,22 @@ class CryptoRepo:
 
     #     return coin_balance
 
-    def get_wallet_balance(self):
-        wallet_balance = self.user.get_balance()
+    def get_coin_balance(self, instrument_name: str) -> PositionBalance:
+        if self.__wallet_balance is None:
+            self.__wallet_balance = self.user.get_balance()
 
-        usd_balance = next(
-            x for x in wallet_balance.position_balances if x.instrument_name == "USD"
+        wallet_balance = self.__wallet_balance
+
+        balance = next(
+            x
+            for x in wallet_balance.position_balances
+            if x.instrument_name == instrument_name
         )
+
+        return balance
+
+    def get_usd_balance(self):
+        usd_balance = self.get_coin_balance("USD").market_value
 
         return usd_balance.quantity
 
