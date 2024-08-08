@@ -116,15 +116,15 @@ class CryptoRepo:
         coin_summaries = []
 
         for coin in self.market.get_usd_coins():
-            logger.info(f"Fetching latest 24hr dataset for {coin.instrument_name}.")
+            logger.debug(f"Fetching latest 24hr dataset for {coin.instrument_name}.")
 
             summary = self.__get_coin_summary(coin, investment_per_coin_usd)
 
             if self.__should_select_coin(summary, strategy):
-                logger.info(f"Selecting the following coin: {summary}")
+                logger.debug(f"Selecting the following coin: {summary}")
                 coin_summaries.append(summary)
             else:
-                logger.info(f"Rejecting the following: {summary}")
+                logger.debug(f"Rejecting the following: {summary}")
 
         if number_of_coins < len(coin_summaries):
             selected_coins = coin_summaries[:number_of_coins]
@@ -137,8 +137,12 @@ class CryptoRepo:
     ) -> Generator[Order, Any, None]:
 
         for coin in coin_summaries:
+            # string formatting removes any trailing zeros or dodgy rounding.
+            coin_quantity_string = f"{coin.coin_quantity:g}"
+            latest_trade_string = f"{coin.latest_trade:g}"
+
             yield self.user.create_order(
-                coin.name, coin.latest_trade, coin.coin_quantity, "BUY"
+                coin.name, latest_trade_string, coin_quantity_string, "BUY"
             )
 
     def place_coin_sell_order(self, sell_order: SellOrder):

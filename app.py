@@ -13,9 +13,11 @@ CRYPTO_SECRET_KEY = os.environ.get("CRYPTO_SECRET_KEY")
 CRYPTO_APP_ENVIRONMENT = os.environ.get("CRYPTO_APP_ENVIRONMENT")
 
 INVESTMENT_INCREMENTS = 20.0
-MAX_COINS = 2
+MAX_COINS = 4
 
-logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger()
+logger.setLevel("INFO")
+
 app = Chalice(app_name="investorbot")
 
 repo = CryptoRepo(CRYPTO_KEY, CRYPTO_SECRET_KEY)
@@ -32,6 +34,8 @@ order_table = dynamodb.Table("Orders")
 def buy_coin_routine():
     user_balance = repo.get_usd_balance()
 
+    logger.info(f"Your balance is ${user_balance}")
+
     number_of_coins_to_invest = math.floor(float(user_balance) / INVESTMENT_INCREMENTS)
 
     if number_of_coins_to_invest == 0:
@@ -39,11 +43,18 @@ def buy_coin_routine():
     elif number_of_coins_to_invest > MAX_COINS:
         number_of_coins_to_invest = MAX_COINS
 
+    logger.info(
+        f"Searching for {number_of_coins_to_invest} coins to invest in at ${INVESTMENT_INCREMENTS} each"
+    )
+
     coin_selection = repo.select_coins_of_interest(
         CoinSelectionStrategies.HIGH_GAIN,
         number_of_coins_to_invest,
         INVESTMENT_INCREMENTS,  #! Not sure I like the investment increments variable being passed here.
     )
+
+    for coin in coin_selection:
+        logger.info(f"Selected {coin.name}")
 
     for order in repo.place_coin_buy_orders(coin_selection):
         order_table.put_item(Item=order.__dict__)
@@ -63,11 +74,24 @@ def sell_coin_routine():
         sell_order = SellOrder(coin_balance, order_detail)
 
         if sell_order.value_ratio > 1.01 and sell_order.coin_quantity_can_be_sold:
+            logger.info(f"Placing sell order for order {sell_order.buy_order_id}.")
+
             repo.place_coin_sell_order(sell_order)
             order_ids_for_deletion.append(sell_order.buy_order_id)
+        elif sell_order.coin_quantity_can_be_sold:
+            logger.info(
+                f"Sell order for {sell_order.buy_order_id} is currently pending. Value ratio is insufficient at {sell_order.value_ratio}."
+            )
+        else:
+            logger.info(
+                f"Ignoring order id {sell_order.buy_order_id} for the time being."
+            )
 
     with order_table.batch_writer() as batch:
         for order_id in order_ids_for_deletion:
+            logger.info(
+                f"Removing order {order_id} from database as the order is now being sold."
+            )
             batch.delete_item(Key={"client_oid": order_id})
 
 
@@ -76,6 +100,6 @@ def buy_coin_routine_schedule(event):
     buy_coin_routine()
 
 
-@app.schedule(Rate(15, unit=Rate.MINUTES))
+@app.schedule(Rate(5, unit=Rate.MINUTES))
 def sell_coin_routine_schedule(event):
     sell_coin_routine()

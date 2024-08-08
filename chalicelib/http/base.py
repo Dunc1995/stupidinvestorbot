@@ -86,7 +86,7 @@ class AuthenticatedHttpClient(HttpClient):
             "nonce": int(time.time() * 1000),
         }
 
-        logger.info(json.dumps(req, indent=4))
+        logger.debug(json.dumps(req, indent=4))
 
         req["sig"] = self.__get_signature(req)
 
@@ -99,7 +99,7 @@ class AuthenticatedHttpClient(HttpClient):
 
         self.id_incr += 1
 
-        logger.info(result.text)
+        logger.debug(result.text)
 
         data_dict = json.loads(result.text)["result"]
 
