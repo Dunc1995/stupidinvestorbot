@@ -20,6 +20,7 @@ services:
       - 5678:5678
     volumes:
       - $HOME/.aws/credentials:/app/.aws/credentials:ro
+      - $HOME/repos/stupidinvestorbot/nextjs:/app/nextjs
     depends_on:
       - "dynamodb-local"
     links:
@@ -29,6 +30,7 @@ services:
       AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'
       CRYPTO_KEY: ${CRYPTO_KEY}
       CRYPTO_SECRET_KEY: ${CRYPTO_SECRET_KEY}
+      CRYPTO_APP_ENVIRONMENT: Development
       REGION: 'eu-west-1'
     command:
       [

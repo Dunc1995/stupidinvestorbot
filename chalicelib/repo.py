@@ -156,16 +156,16 @@ class CryptoRepo:
         instrument = self.get_instrument(
             sell_order.coin_name
         )  #! TODO find a better way to store instrument data.
-        quantity_remainder = sell_order.quantity_after_fee % float(
+        quantity_remainder = sell_order.sellable_quantity % float(
             instrument.qty_tick_size
         )
 
         adjusted_sell_quantity = (
-            sell_order.quantity_after_fee - quantity_remainder
+            sell_order.sellable_quantity - quantity_remainder
         )  # remainder needs deducting because Crypto.com fees don't respect their own quantity tick size requirement.
 
         sellable_vs_absolute_quantity_ratio = (
-            adjusted_sell_quantity / sell_order.quantity_after_fee
+            adjusted_sell_quantity / sell_order.sellable_quantity
         )  # used to adjust final sell price after negating the quantity remainder
 
         adjusted_sell_price = (
@@ -175,6 +175,15 @@ class CryptoRepo:
         )  # sell price adjusted after negating quantity remainder.
 
         # string formatting removes any trailing zeros or dodgy rounding.
+
+        if sell_order.market_value_rounding > 0:
+            adjusted_sell_price = round(
+                adjusted_sell_price, sell_order.market_value_rounding
+            )
+            logger.info(
+                f"Rounding sell value to {sell_order.market_value_rounding} decimal places."
+            )
+
         adjusted_sell_quantity_string = f"{adjusted_sell_quantity:g}"
         adjusted_sell_price_string = f"{adjusted_sell_price:g}"
 

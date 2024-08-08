@@ -1,3 +1,5 @@
+import json
+import logging
 from typing import Dict, List
 import uuid
 from chalicelib.http.base import AuthenticatedHttpClient
@@ -8,6 +10,8 @@ from chalicelib.models.crypto import (
     PositionBalance,
     UserBalance,
 )
+
+logger = logging.getLogger()
 
 
 class UserHttpClient(AuthenticatedHttpClient):
@@ -77,6 +81,8 @@ class UserHttpClient(AuthenticatedHttpClient):
         params = self.get_create_order_params(
             instrument_name, instrument_price_usd, quantity, side
         )
+
+        logger.info(json.dumps(params, indent=4))
 
         result = self.post_request("create-order", params)
 

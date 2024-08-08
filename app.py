@@ -1,8 +1,10 @@
+import time
 import logging
 import math
 import os
 from chalice import Chalice, Rate
 import boto3
+from requests.exceptions import HTTPError
 from chalicelib.models.app import SellOrder
 from chalicelib.models.crypto import Order
 from chalicelib.repo import CryptoRepo
@@ -23,7 +25,7 @@ app = Chalice(app_name="investorbot")
 repo = CryptoRepo(CRYPTO_KEY, CRYPTO_SECRET_KEY)
 
 dynamodb = (
-    boto3.resource("dynamodb", endpoint_url="http://localhost:8000")
+    boto3.resource("dynamodb", endpoint_url="http://dynamodb-local:8000")
     if CRYPTO_APP_ENVIRONMENT == "Development"
     else boto3.resource("dynamodb")
 )
@@ -61,6 +63,7 @@ def buy_coin_routine():
 
 
 def sell_coin_routine():
+    time_now = int(time.time() * 1000)
     response = order_table.scan()
     data = response["Items"]
 
@@ -71,17 +74,43 @@ def sell_coin_routine():
         order_detail = repo.user.get_order_detail(order.client_oid)
         coin_balance = repo.get_coin_balance(order_detail.fee_instrument_name)
 
+        time_of_order = int(order_detail.create_time)
+        milliseconds_since_order = time_now - time_of_order
+        hours_since_order = milliseconds_since_order / (1000 * 60 * 60)
+
+        logger.info(
+            f"It has been {hours_since_order:g} hours since buy order was placed for order {order.client_oid}."
+        )
+        logger.info(f"Order status: {order_detail.status}")
+
+        value_ratio = (
+            1.01 if hours_since_order < 3.0 else 1.0
+        )  # Just try to get money back if holding onto a coin for more than 3 hours.
+
+        logger.info(f"Desired value ratio: {value_ratio}")
+
         sell_order = SellOrder(coin_balance, order_detail)
 
-        if sell_order.value_ratio > 1.01 and sell_order.coin_quantity_can_be_sold:
-            logger.info(f"Placing sell order for order {sell_order.buy_order_id}.")
+        logger.info(sell_order.__dict__)
 
-            repo.place_coin_sell_order(sell_order)
+        if sell_order.coin_quantity_can_be_sold:
+            if sell_order.value_ratio > value_ratio:
+                logger.info(f"Placing sell order for order {sell_order.buy_order_id}.")
+
+                try:
+                    repo.place_coin_sell_order(sell_order)
+                    order_ids_for_deletion.append(sell_order.buy_order_id)
+                except HTTPError as error:
+                    logger.warn(
+                        "WARNING HTTP ERROR - continuing with script to ensure database consistency."
+                    )
+                    logger.warn(error.args[0])
+            else:
+                logger.info(
+                    f"Sell order for {sell_order.buy_order_id} is currently pending. Value ratio is insufficient at {sell_order.value_ratio}."
+                )
+        elif sell_order.buy_order_status == "CANCELED":
             order_ids_for_deletion.append(sell_order.buy_order_id)
-        elif sell_order.coin_quantity_can_be_sold:
-            logger.info(
-                f"Sell order for {sell_order.buy_order_id} is currently pending. Value ratio is insufficient at {sell_order.value_ratio}."
-            )
         else:
             logger.info(
                 f"Ignoring order id {sell_order.buy_order_id} for the time being."
@@ -102,4 +131,14 @@ def buy_coin_routine_schedule(event):
 
 @app.schedule(Rate(5, unit=Rate.MINUTES))
 def sell_coin_routine_schedule(event):
+    sell_coin_routine()
+
+
+@app.route("/buy-test")
+def buy_coin_routine_schedule_test():
+    buy_coin_routine()
+
+
+@app.route("/sell-test")
+def sell_coin_routine_schedule_test():
     sell_coin_routine()

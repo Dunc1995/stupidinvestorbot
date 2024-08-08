@@ -108,29 +108,39 @@ class CoinSummary:
 
 @dataclass(init=False)
 class SellOrder:
+    buy_order_status: str
     buy_order_id: str
     coin_name: str
     value_ratio: float
     original_order_value: float
     current_market_value: float
-    quantity_before_fee: float
-    quantity_after_fee: float
+    order_quantity: float
+    wallet_quantity: float
+    sellable_quantity: float
+    market_value_rounding: int
     coin_quantity_can_be_sold = True
 
     def __init__(self, coin_wallet_balance: PositionBalance, order_detail: OrderDetail):
+        self.buy_order_status = order_detail.status
         self.buy_order_id = order_detail.client_oid
         self.coin_name = order_detail.instrument_name
-        self.quantity_after_fee = float(coin_wallet_balance.quantity)
-        self.quantity_before_fee = float(order_detail.quantity)
+        self.wallet_quantity = float(coin_wallet_balance.quantity)
+        self.order_quantity = float(order_detail.quantity)
         self.original_order_value = float(order_detail.order_value)
+        self.sellable_quantity = self.wallet_quantity
+        self.market_value_rounding = (
+            len(order_detail.order_value.split(".")[1])
+            if "." in order_detail.order_value
+            else 0
+        )
 
         current_market_value = float(coin_wallet_balance.market_value)
-        quantity_ratio = self.quantity_before_fee / self.quantity_after_fee
+        quantity_ratio = self.order_quantity / self.wallet_quantity
 
         self.current_market_value = current_market_value
 
         if (
-            self.quantity_after_fee < self.quantity_before_fee * 0.995
+            self.wallet_quantity < self.order_quantity * 0.995
             or not order_detail.successful
         ):  # 0.995 should account for any fee deductions
             self.coin_quantity_can_be_sold = False
@@ -139,7 +149,8 @@ class SellOrder:
         # then the initial buy order doesn't account for the total coin
         # quantity in the user's wallet and shouldn't attempt to sell
         # the total quantity available.
-        if self.quantity_after_fee > self.quantity_before_fee:
+        if self.wallet_quantity > self.order_quantity:
             self.current_market_value = current_market_value * quantity_ratio
+            self.sellable_quantity = self.order_quantity
 
         self.value_ratio = self.current_market_value / self.original_order_value
