@@ -1,3 +1,4 @@
+import os
 import uuid
 import boto3
 from chalicelib.models.crypto import Order
@@ -6,7 +7,14 @@ from typing import TypeVar, Generic
 
 T = TypeVar("T")
 
-dynamodb = boto3.client("dynamodb", endpoint_url="http://localhost:8000")
+CRYPTO_APP_ENVIRONMENT = os.environ.get("CRYPTO_APP_ENVIRONMENT")
+
+
+dynamodb = (
+    boto3.resource("dynamodb", endpoint_url="http://localhost:8000")
+    if CRYPTO_APP_ENVIRONMENT == "Development"
+    else boto3.resource("dynamodb")
+)
 
 
 def get_table_id_field(data_schema: Generic[T]):

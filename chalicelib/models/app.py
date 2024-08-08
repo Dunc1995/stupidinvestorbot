@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from decimal import Decimal
-
 from pandas import Series
+from chalicelib.models.crypto import PositionBalance, OrderDetail
 
 
 @dataclass
@@ -104,3 +104,42 @@ class CoinSummary:
     @coin_quantity.setter
     def coin_quantity(self, x) -> float:
         self.__coin_quantity = self.__get_coin_quantity_divisible_by_tick_size(str(x))
+
+
+@dataclass(init=False)
+class SellOrder:
+    buy_order_id: str
+    coin_name: str
+    value_ratio: float
+    original_order_value: float
+    current_market_value: float
+    quantity_before_fee: float
+    quantity_after_fee: float
+    coin_quantity_can_be_sold = True
+
+    def __init__(self, coin_wallet_balance: PositionBalance, order_detail: OrderDetail):
+        self.buy_order_id = order_detail.client_oid
+        self.coin_name = order_detail.instrument_name
+        self.quantity_after_fee = float(coin_wallet_balance.quantity)
+        self.quantity_before_fee = float(order_detail.quantity)
+        self.original_order_value = float(order_detail.order_value)
+
+        current_market_value = float(coin_wallet_balance.market_value)
+        quantity_ratio = self.quantity_before_fee / self.quantity_after_fee
+
+        self.current_market_value = current_market_value
+
+        if (
+            self.quantity_after_fee < self.quantity_before_fee * 0.995
+            or not order_detail.successful
+        ):  # 0.995 should account for any fee deductions
+            self.coin_quantity_can_be_sold = False
+
+        # if quantity after fee is larger than quantity before, then
+        # then the initial buy order doesn't account for the total coin
+        # quantity in the user's wallet and shouldn't attempt to sell
+        # the total quantity available.
+        if self.quantity_after_fee > self.quantity_before_fee:
+            self.current_market_value = current_market_value * quantity_ratio
+
+        self.value_ratio = self.current_market_value / self.original_order_value

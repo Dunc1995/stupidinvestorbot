@@ -8,7 +8,7 @@ from chalicelib.models.crypto import Instrument, Order, PositionBalance
 from chalicelib.strategies import CoinSelectionStrategies
 from chalicelib.http.market import MarketHttpClient
 from chalicelib.http.user import UserHttpClient
-from chalicelib.models.app import CoinSummary, Ticker
+from chalicelib.models.app import CoinSummary, SellOrder, Ticker
 
 # from chalicelib.models.crypto import PositionBalance, UserBalance
 
@@ -108,7 +108,7 @@ class CryptoRepo:
     def get_usd_balance(self):
         usd_balance = self.get_coin_balance("USD").market_value
 
-        return usd_balance.quantity
+        return usd_balance
 
     def select_coins_of_interest(
         self, strategy: str, number_of_coins: int, investment_per_coin_usd: float
@@ -132,7 +132,7 @@ class CryptoRepo:
 
         return coin_summaries
 
-    def place_coin_orders(
+    def place_coin_buy_orders(
         self, coin_summaries: List[CoinSummary]
     ) -> Generator[Order, Any, None]:
 
@@ -140,3 +140,43 @@ class CryptoRepo:
             yield self.user.create_order(
                 coin.name, coin.latest_trade, coin.coin_quantity, "BUY"
             )
+
+    def place_coin_sell_order(self, sell_order: SellOrder):
+        """Places order for the input coin, accounting for discrepancies in coin quantity
+        following any fee deductions. For example if 1.8 of a particular coin has been
+        purchased, Crypto.com will deduct a fee from the coin quantity resulting in you
+        actually receiving 1.795 of said coin. This fee may not necessarily respect the
+        quantity tick size of the coin - e.g. you may have 1.795 of the coin, but only
+        1.79 of the coin is actually sellable, because the quantity tick size is 0.01.
+        """
+        instrument = self.get_instrument(
+            sell_order.coin_name
+        )  #! TODO find a better way to store instrument data.
+        quantity_remainder = sell_order.quantity_after_fee % float(
+            instrument.qty_tick_size
+        )
+
+        adjusted_sell_quantity = (
+            sell_order.quantity_after_fee - quantity_remainder
+        )  # remainder needs deducting because Crypto.com fees don't respect their own quantity tick size requirement.
+
+        sellable_vs_absolute_quantity_ratio = (
+            adjusted_sell_quantity / sell_order.quantity_after_fee
+        )  # used to adjust final sell price after negating the quantity remainder
+
+        adjusted_sell_price = (
+            sellable_vs_absolute_quantity_ratio * sell_order.current_market_value
+        ) / (
+            adjusted_sell_quantity
+        )  # sell price adjusted after negating quantity remainder.
+
+        # string formatting removes any trailing zeros or dodgy rounding.
+        adjusted_sell_quantity_string = f"{adjusted_sell_quantity:g}"
+        adjusted_sell_price_string = f"{adjusted_sell_price:g}"
+
+        self.user.create_order(
+            sell_order.coin_name,
+            adjusted_sell_price_string,
+            adjusted_sell_quantity_string,
+            "SELL",
+        )

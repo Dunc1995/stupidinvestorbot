@@ -111,8 +111,3 @@ class OrderDetail:
             bool: Returns True if the order has been fulfilled completely.
         """
         return self.status == "FILLED"
-
-
-@dataclass
-class ListResponse:
-    list_id: str

@@ -3,7 +3,6 @@ import uuid
 from chalicelib.http.base import AuthenticatedHttpClient
 from chalicelib.models.app import CoinSummary
 from chalicelib.models.crypto import (
-    ListResponse,
     Order,
     OrderDetail,
     PositionBalance,
