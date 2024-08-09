@@ -23,7 +23,6 @@ class CryptoRepo:
         self.market = MarketHttpClient()
         self.user = UserHttpClient(api_key, api_secret_key)
         self.__instruments = None
-        self.__wallet_balance = None
 
     @property
     def instruments(self):
@@ -92,10 +91,7 @@ class CryptoRepo:
         return coin_summary
 
     def get_coin_balance(self, instrument_name: str) -> PositionBalance:
-        if self.__wallet_balance is None:
-            self.__wallet_balance = self.user.get_balance()
-
-        wallet_balance = self.__wallet_balance
+        wallet_balance = self.user.get_balance()
 
         balance = next(
             x

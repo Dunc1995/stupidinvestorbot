@@ -72,11 +72,18 @@ def sell_coin_routine():
 
     for order in orders:
         order_detail = repo.user.get_order_detail(order.client_oid)
-        coin_balance = repo.get_coin_balance(order_detail.fee_instrument_name)
 
         time_of_order = int(order_detail.create_time)
         milliseconds_since_order = time_now - time_of_order
         hours_since_order = milliseconds_since_order / (1000 * 60 * 60)
+
+        if order_detail.status == "ACTIVE":
+            # float(order_detail.cumulative_quantity) < 0.01 * float(
+            #     order_detail.quantity
+            # )
+            continue
+
+        coin_balance = repo.get_coin_balance(order_detail.fee_instrument_name)
 
         logger.info(
             f"It has been {hours_since_order:g} hours since buy order was placed for order {order.client_oid}."
