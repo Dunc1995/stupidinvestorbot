@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from decimal import Decimal
 from pandas import Series
-from chalicelib.models.crypto import PositionBalance, OrderDetail
+from investorbot.models.crypto import PositionBalance, OrderDetail
 
 
 @dataclass

@@ -2,9 +2,9 @@ import json
 import logging
 from typing import Dict, List
 import uuid
-from chalicelib.http.base import AuthenticatedHttpClient
-from chalicelib.models.app import CoinSummary
-from chalicelib.models.crypto import (
+from investorbot.http.base import AuthenticatedHttpClient
+from investorbot.models.app import CoinSummary
+from investorbot.models.crypto import (
     Order,
     OrderDetail,
     PositionBalance,

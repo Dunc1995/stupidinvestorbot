@@ -1,5 +1,5 @@
 from enum import Enum
-from chalicelib.models.app import CoinSummary
+from investorbot.models.app import CoinSummary
 
 
 class CoinSelectionStrategies(Enum):

@@ -4,11 +4,11 @@ import pandas as pd
 from decimal import *
 import logging
 
-from chalicelib.models.crypto import Instrument, Order, PositionBalance
-from chalicelib.strategies import CoinSelectionStrategies
-from chalicelib.http.market import MarketHttpClient
-from chalicelib.http.user import UserHttpClient
-from chalicelib.models.app import CoinSummary, SellOrder, Ticker
+from investorbot.models.crypto import Instrument, Order, PositionBalance
+from investorbot.strategies import CoinSelectionStrategies
+from investorbot.http.market import MarketHttpClient
+from investorbot.http.user import UserHttpClient
+from investorbot.models.app import CoinSummary, SellOrder, Ticker
 
 # from chalicelib.models.crypto import PositionBalance, UserBalance
 

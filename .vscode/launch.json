@@ -5,18 +5,21 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python Debugger: Remote Attach",
+            "name": "Buy Coin Routine",
             "type": "debugpy",
-            "request": "attach",
-            "connect": {
-                "host": "localhost",
-                "port": 5678
-            },
-            "pathMappings": [
-                {
-                    "localRoot": "${workspaceFolder}",
-                    "remoteRoot": "."
-                }
+            "request": "launch",
+            "module": "investorbot",
+            "args": [
+                "buy-coin-routine"
+            ]
+        },
+        {
+            "name": "Sell Coin Routine",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "investorbot",
+            "args": [
+                "sell-coin-routine"
             ]
         }
     ]

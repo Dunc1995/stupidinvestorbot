@@ -186,8 +186,3 @@ bundles/
 vendor/pkg/
 pyenv
 Vagrantfile
-
-.chalice/deployments/
-.chalice/venv/
-
-docker/dynamodb

@@ -1,8 +1,8 @@
 import logging
 from typing import List
-from chalicelib.http.base import HttpClient
-from chalicelib.models.app import Ticker
-from chalicelib.models.crypto import Instrument
+from investorbot.http.base import HttpClient
+from investorbot.models.app import Ticker
+from investorbot.models.crypto import Instrument
 
 logger = logging.getLogger("client")
 

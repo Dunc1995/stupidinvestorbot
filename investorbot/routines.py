@@ -2,35 +2,25 @@ import time
 import logging
 import math
 import os
-from chalice import Chalice, Rate
 import boto3
 from requests.exceptions import HTTPError
-from chalicelib.models.app import SellOrder
-from chalicelib.models.crypto import Order
-from chalicelib.repo import CryptoRepo
-from chalicelib.strategies import CoinSelectionStrategies
-
-CRYPTO_KEY = os.environ.get("CRYPTO_KEY")
-CRYPTO_SECRET_KEY = os.environ.get("CRYPTO_SECRET_KEY")
-CRYPTO_APP_ENVIRONMENT = os.environ.get("CRYPTO_APP_ENVIRONMENT")
-
-INVESTMENT_INCREMENTS = 20.0
-MAX_COINS = 4
+from sqlalchemy.orm import Session
+from investorbot import (
+    CRYPTO_KEY,
+    CRYPTO_SECRET_KEY,
+    INVESTMENT_INCREMENTS,
+    MAX_COINS,
+    engine,
+)
+from investorbot.models.app import SellOrder
+from investorbot.models.crypto import Order
+from investorbot.repo import CryptoRepo
+from investorbot.strategies import CoinSelectionStrategies
 
 logger = logging.getLogger()
 logger.setLevel("INFO")
 
-app = Chalice(app_name="investorbot")
-
 repo = CryptoRepo(CRYPTO_KEY, CRYPTO_SECRET_KEY)
-
-dynamodb = (
-    boto3.resource("dynamodb", endpoint_url="http://dynamodb-local:8000")
-    if CRYPTO_APP_ENVIRONMENT == "Development"
-    else boto3.resource("dynamodb")
-)
-
-order_table = dynamodb.Table("Orders")
 
 
 def buy_coin_routine():
@@ -58,8 +48,9 @@ def buy_coin_routine():
     for coin in coin_selection:
         logger.info(f"Selected {coin.name}")
 
-    for order in repo.place_coin_buy_orders(coin_selection):
-        order_table.put_item(Item=order.__dict__)
+    # with Session(engine) as session:
+    #     for order in repo.place_coin_buy_orders(coin_selection):
+    #         order_table.put_item(Item=order.__dict__)
 
 
 def sell_coin_routine():
@@ -121,29 +112,9 @@ def sell_coin_routine():
                 f"Ignoring order id {sell_order.buy_order_id} for the time being."
             )
 
-    with order_table.batch_writer() as batch:
-        for order_id in order_ids_for_deletion:
-            logger.info(
-                f"Removing order {order_id} from database as the order is now being sold."
-            )
-            batch.delete_item(Key={"client_oid": order_id})
-
-
-@app.schedule(Rate(15, unit=Rate.MINUTES))
-def buy_coin_routine_schedule(event):
-    buy_coin_routine()
-
-
-@app.schedule(Rate(5, unit=Rate.MINUTES))
-def sell_coin_routine_schedule(event):
-    sell_coin_routine()
-
-
-# @app.route("/buy-test")
-# def buy_coin_routine_schedule_test():
-#     buy_coin_routine()
-
-
-# @app.route("/sell-test")
-# def sell_coin_routine_schedule_test():
-#     sell_coin_routine()
+    # with order_table.batch_writer() as batch:
+    #     for order_id in order_ids_for_deletion:
+    #         logger.info(
+    #             f"Removing order {order_id} from database as the order is now being sold."
+    #         )
+    #         batch.delete_item(Key={"client_oid": order_id})
