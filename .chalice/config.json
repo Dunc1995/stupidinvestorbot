@@ -2,8 +2,20 @@
   "version": "2.0",
   "app_name": "investorbot",
   "stages": {
-    "dev": {
-      "api_gateway_stage": "api"
+    "uat": {
+      "environment_variables": {
+        "CRYPTO_KEY": "redacted",
+        "CRYPTO_SECRET_KEY": "redacted",
+        "CRYPTO_APP_ENVIRONMENT": "UAT"
+      },
+      "api_gateway_endpoint_type": "PRIVATE",
+      "api_gateway_endpoint_vpce": "vpc-09d74de093e38e638",
+      "subnet_ids": [
+        "subnet-0248ed39ae3307365"
+      ],
+      "security_group_ids": [
+        "sg-02de777bbedc156c2"
+      ]
     }
   }
 }

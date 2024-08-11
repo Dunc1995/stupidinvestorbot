@@ -90,9 +90,7 @@ def sell_coin_routine():
         )
         logger.info(f"Order status: {order_detail.status}")
 
-        value_ratio = (
-            1.01 if hours_since_order < 3.0 else 1.0
-        )  # Just try to get money back if holding onto a coin for more than 3 hours.
+        value_ratio = 0.98 + 0.03 ** ((0.01 * hours_since_order) + 1.0)
 
         logger.info(f"Desired value ratio: {value_ratio}")
 
@@ -141,11 +139,11 @@ def sell_coin_routine_schedule(event):
     sell_coin_routine()
 
 
-@app.route("/buy-test")
-def buy_coin_routine_schedule_test():
-    buy_coin_routine()
+# @app.route("/buy-test")
+# def buy_coin_routine_schedule_test():
+#     buy_coin_routine()
 
 
-@app.route("/sell-test")
-def sell_coin_routine_schedule_test():
-    sell_coin_routine()
+# @app.route("/sell-test")
+# def sell_coin_routine_schedule_test():
+#     sell_coin_routine()

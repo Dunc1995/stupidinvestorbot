@@ -1,0 +1,32 @@
+{
+  "resources": [
+    {
+      "name": "default-role",
+      "resource_type": "iam_role",
+      "role_arn": "arn:aws:iam::720716653529:role/investorbot-uat",
+      "role_name": "investorbot-uat"
+    },
+    {
+      "name": "buy_coin_routine_schedule",
+      "resource_type": "lambda_function",
+      "lambda_arn": "arn:aws:lambda:eu-west-1:720716653529:function:investorbot-uat-buy_coin_routine_schedule"
+    },
+    {
+      "name": "buy_coin_routine_schedule-event",
+      "resource_type": "cloudwatch_event",
+      "rule_name": "investorbot-uat-buy_coin_routine_schedule-event"
+    },
+    {
+      "name": "sell_coin_routine_schedule",
+      "resource_type": "lambda_function",
+      "lambda_arn": "arn:aws:lambda:eu-west-1:720716653529:function:investorbot-uat-sell_coin_routine_schedule"
+    },
+    {
+      "name": "sell_coin_routine_schedule-event",
+      "resource_type": "cloudwatch_event",
+      "rule_name": "investorbot-uat-sell_coin_routine_schedule-event"
+    }
+  ],
+  "schema_version": "2.0",
+  "backend": "api"
+}

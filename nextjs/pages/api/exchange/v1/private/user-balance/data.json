@@ -1,0 +1,122 @@
+{
+    "id": 6,
+    "method": "private/user-balance",
+    "code": 0,
+    "result": {
+        "data": [
+            {
+                "total_available_balance": "119.37519384",
+                "total_margin_balance": "145.14553075",
+                "total_initial_margin": "25.77033692",
+                "total_haircut": "25.77033692",
+                "total_position_im": "0",
+                "total_maintenance_margin": "12.88516846",
+                "total_position_cost": "0",
+                "total_cash_balance": "145.32541645",
+                "total_collateral_value": "119.37519382",
+                "total_session_unrealized_pnl": "0",
+                "instrument_name": "USD",
+                "total_session_realized_pnl": "0",
+                "position_balances": [
+                    {
+                        "quantity": "1.7946",
+                        "reserved_qty": "0",
+                        "collateral_amount": "31.1470776",
+                        "haircut": "0.2",
+                        "collateral_eligible": true,
+                        "market_value": "38.933847",
+                        "max_withdrawal_balance": "1.7946",
+                        "instrument_name": "AVAX",
+                        "hourly_interest_rate": "0"
+                    },
+                    {
+                        "quantity": "1.39",
+                        "reserved_qty": "0",
+                        "collateral_amount": "68.1378",
+                        "haircut": "0.2",
+                        "collateral_eligible": true,
+                        "market_value": "85.17225",
+                        "max_withdrawal_balance": "1.39",
+                        "instrument_name": "LTC",
+                        "hourly_interest_rate": "0"
+                    },
+                    {
+                        "quantity": "11.83205318725",
+                        "reserved_qty": "0",
+                        "collateral_amount": "11.83205318",
+                        "haircut": "0",
+                        "collateral_eligible": true,
+                        "market_value": "11.83205318",
+                        "max_withdrawal_balance": "11.83205318",
+                        "instrument_name": "USD",
+                        "hourly_interest_rate": "0"
+                    },
+                    {
+                        "quantity": "0.005225",
+                        "reserved_qty": "0",
+                        "collateral_amount": "0.00878204",
+                        "haircut": "0.75",
+                        "collateral_eligible": true,
+                        "market_value": "0.03512819",
+                        "max_withdrawal_balance": "0.005225",
+                        "instrument_name": "TON",
+                        "hourly_interest_rate": "0"
+                    },
+                    {
+                        "quantity": "1.82",
+                        "reserved_qty": "0",
+                        "collateral_amount": "0",
+                        "haircut": "0",
+                        "collateral_eligible": false,
+                        "market_value": "0.00850103",
+                        "max_withdrawal_balance": "1.82",
+                        "instrument_name": "MANEKI",
+                        "hourly_interest_rate": "0"
+                    },
+                    {
+                        "quantity": "1960.25",
+                        "reserved_qty": "0",
+                        "collateral_amount": "0",
+                        "haircut": "0",
+                        "collateral_eligible": false,
+                        "market_value": "0.17138465",
+                        "max_withdrawal_balance": "1960.25",
+                        "instrument_name": "WEN",
+                        "hourly_interest_rate": "0"
+                    },
+                    {
+                        "quantity": "0.0001498875",
+                        "reserved_qty": "0",
+                        "collateral_amount": "8.24254834",
+                        "haircut": "0.1",
+                        "collateral_eligible": true,
+                        "market_value": "9.15838705",
+                        "max_withdrawal_balance": "0.00014988",
+                        "instrument_name": "BTC",
+                        "hourly_interest_rate": "0"
+                    },
+                    {
+                        "quantity": "0.14697181054651321",
+                        "reserved_qty": "0",
+                        "collateral_amount": "0.00693266",
+                        "haircut": "0.5",
+                        "collateral_eligible": true,
+                        "market_value": "0.01386532",
+                        "max_withdrawal_balance": "0.14697181",
+                        "instrument_name": "CRO",
+                        "hourly_interest_rate": "0"
+                    }
+                ],
+                "credit_limits": [],
+                "total_effective_leverage": "0.918481",
+                "position_limit": "2902.91061519",
+                "used_position_limit": "133.31347758",
+                "total_borrow": "0",
+                "margin_score": "0",
+                "is_liquidating": false,
+                "has_risk": false,
+                "terminatable": true
+            }
+        ]
+    }
+}
