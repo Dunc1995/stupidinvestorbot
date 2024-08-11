@@ -1,14 +1,20 @@
 import datetime as dt
+import json
 from typing import Any, Generator, List
 import pandas as pd
 from decimal import *
 import logging
+
+import sqlalchemy
+from sqlalchemy import Engine
+from sqlalchemy.orm import Session
 
 from investorbot.models.crypto import Instrument, Order, PositionBalance
 from investorbot.strategies import CoinSelectionStrategies
 from investorbot.http.market import MarketHttpClient
 from investorbot.http.user import UserHttpClient
 from investorbot.models.app import CoinSummary, SellOrder, Ticker
+from investorbot.tables import Base, BuyOrder
 
 # from chalicelib.models.crypto import PositionBalance, UserBalance
 
@@ -130,16 +136,18 @@ class CryptoRepo:
 
     def place_coin_buy_orders(
         self, coin_summaries: List[CoinSummary]
-    ) -> Generator[Order, Any, None]:
+    ) -> Generator[BuyOrder, Any, None]:
 
         for coin in coin_summaries:
             # string formatting removes any trailing zeros or dodgy rounding.
             coin_quantity_string = f"{coin.coin_quantity:g}"
             latest_trade_string = f"{coin.latest_trade:g}"
 
-            yield self.user.create_order(
+            order = self.user.create_order(
                 coin.name, latest_trade_string, coin_quantity_string, "BUY"
             )
+
+            yield BuyOrder(buy_order_id=order.client_oid, coin_name=coin.name)
 
     def place_coin_sell_order(self, sell_order: SellOrder):
         """Places order for the input coin, accounting for discrepancies in coin quantity
@@ -189,3 +197,30 @@ class CryptoRepo:
             adjusted_sell_quantity_string,
             "SELL",
         )
+
+
+class InvestorBotRepo:
+    __engine: Engine
+
+    def __init__(
+        self,
+        connection_string="sqlite:////Users/duncanbailey/repos/stupidinvestorbot/app.db",
+    ):
+        self.__engine = sqlalchemy.create_engine(connection_string)
+
+    def add_item(self, db_object: Base):
+        with Session(self.__engine) as session:
+            session.add(db_object)
+            session.commit()
+
+    def add_items(self, db_objects: List[Base]):
+        with Session(self.__engine) as session:
+            session.add_all(db_objects)
+            session.commit()
+
+    def get_all_buy_orders(self):
+        session = Session(self.__engine)
+
+        query = sqlalchemy.select(BuyOrder)
+        for buy_order in session.scalars(query):
+            print(json.dumps(buy_order.__dict__, indent=4))

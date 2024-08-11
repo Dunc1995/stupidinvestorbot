@@ -30,7 +30,6 @@ class BuyOrder(Base):
 
     buy_order_id: Mapped[str] = mapped_column(primary_key=True)
     coin_name: Mapped[str] = mapped_column(String(30))
-    quantity_tick_size: Mapped[str] = mapped_column(String(30))
 
     coin_properties_id: Mapped[Optional[str]] = mapped_column(
         ForeignKey("coin_properties.coin_name"), init=False
