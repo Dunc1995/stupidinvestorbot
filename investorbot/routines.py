@@ -5,24 +5,18 @@ import os
 import boto3
 from requests.exceptions import HTTPError
 from sqlalchemy.orm import Session
-from investorbot import (
-    CRYPTO_KEY,
-    CRYPTO_SECRET_KEY,
-    INVESTMENT_INCREMENTS,
-    MAX_COINS,
-    engine,
-)
+from investorbot import engine
+from investorbot.constants import INVESTMENT_INCREMENTS, MAX_COINS
+from investorbot import repo, app_context
 from investorbot.models.app import SellOrder
 from investorbot.models.crypto import Order
-from investorbot.repo import CryptoRepo, InvestorBotRepo
 from investorbot.strategies import CoinSelectionStrategies
-from investorbot.tables import BuyOrder
+from investorbot.tables import Base, CoinProperties
+import investorbot.transforms as transforms
+
 
 logger = logging.getLogger()
 logger.setLevel("INFO")
-
-repo = CryptoRepo(CRYPTO_KEY, CRYPTO_SECRET_KEY)
-app_context = InvestorBotRepo()
 
 
 def buy_coin_routine():
@@ -42,9 +36,7 @@ def buy_coin_routine():
     )
 
     coin_selection = repo.select_coins_of_interest(
-        CoinSelectionStrategies.HIGH_GAIN,
-        number_of_coins_to_invest,
-        INVESTMENT_INCREMENTS,  #! Not sure I like the investment increments variable being passed here.
+        CoinSelectionStrategies.HIGH_GAIN, number_of_coins_to_invest
     )
 
     for coin in coin_selection:
@@ -120,3 +112,13 @@ def sell_coin_routine():
     #             f"Removing order {order_id} from database as the order is now being sold."
     #         )
     #         batch.delete_item(Key={"client_oid": order_id})
+
+
+def init_db():
+    app_context.run_migration()
+
+    instruments = repo.market.get_instruments()
+
+    coin_properties = transforms.get_coin_properties_from_instruments(instruments)
+
+    app_context.add_items(coin_properties)

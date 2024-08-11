@@ -2,6 +2,7 @@ import json
 import logging
 from typing import Dict, List
 import uuid
+from investorbot.constants import CRYPTO_USER_URL
 from investorbot.http.base import AuthenticatedHttpClient
 from investorbot.models.app import CoinSummary
 from investorbot.models.crypto import (
@@ -19,7 +20,7 @@ class UserHttpClient(AuthenticatedHttpClient):
         self,
         api_key,
         api_secret_key,
-        api_url="https://api.crypto.com/exchange/v1/private/",
+        api_url=CRYPTO_USER_URL,
     ):
         super().__init__(
             id_incr=1, api_key=api_key, api_secret_key=api_secret_key, api_url=api_url

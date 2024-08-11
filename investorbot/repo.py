@@ -9,6 +9,13 @@ import sqlalchemy
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session
 
+from investorbot.constants import (
+    INVESTMENT_INCREMENTS,
+    CRYPTO_KEY,
+    CRYPTO_SECRET_KEY,
+    INVESTOR_APP_DB_CONNECTION,
+    INVESTOR_APP_PATH,
+)
 from investorbot.models.crypto import Instrument, Order, PositionBalance
 from investorbot.strategies import CoinSelectionStrategies
 from investorbot.http.market import MarketHttpClient
@@ -25,9 +32,9 @@ class CryptoRepo:
     market: MarketHttpClient
     user: UserHttpClient
 
-    def __init__(self, api_key, api_secret_key):
+    def __init__(self):
         self.market = MarketHttpClient()
-        self.user = UserHttpClient(api_key, api_secret_key)
+        self.user = UserHttpClient(CRYPTO_KEY, CRYPTO_SECRET_KEY)
         self.__instruments = None
 
     @property
@@ -56,7 +63,7 @@ class CryptoRepo:
 
         return select_coin
 
-    def __get_coin_summary(self, coin: Ticker, investment_per_coin_usd) -> CoinSummary:
+    def __get_coin_summary(self, coin: Ticker) -> CoinSummary:
         """Fetches time-series data for the coin of interest and summarizes basic statistical properties via
         the CoinSummary object. Used for determining which coins to invest in.
 
@@ -92,7 +99,7 @@ class CryptoRepo:
             is_greater_than_std=bool(float(coin.latest_trade) - (mean + std) > 0),
         )
 
-        coin_summary.coin_quantity = investment_per_coin_usd
+        coin_summary.coin_quantity = INVESTMENT_INCREMENTS
 
         return coin_summary
 
@@ -113,14 +120,14 @@ class CryptoRepo:
         return usd_balance
 
     def select_coins_of_interest(
-        self, strategy: str, number_of_coins: int, investment_per_coin_usd: float
+        self, strategy: str, number_of_coins: int
     ) -> List[CoinSummary] | None:
         coin_summaries = []
 
         for coin in self.market.get_usd_coins():
             logger.debug(f"Fetching latest 24hr dataset for {coin.instrument_name}.")
 
-            summary = self.__get_coin_summary(coin, investment_per_coin_usd)
+            summary = self.__get_coin_summary(coin)
 
             if self.__should_select_coin(summary, strategy):
                 logger.debug(f"Selecting the following coin: {summary}")
@@ -204,7 +211,7 @@ class InvestorBotRepo:
 
     def __init__(
         self,
-        connection_string="sqlite:////Users/duncanbailey/repos/stupidinvestorbot/app.db",
+        connection_string=INVESTOR_APP_DB_CONNECTION + "app.db",
     ):
         self.__engine = sqlalchemy.create_engine(connection_string)
 
@@ -218,9 +225,19 @@ class InvestorBotRepo:
             session.add_all(db_objects)
             session.commit()
 
-    def get_all_buy_orders(self):
+    def get_buy_order(self, buy_order_id: str) -> BuyOrder | None:
+        session = Session(self.__engine)
+
+        query = sqlalchemy.select(BuyOrder).where(BuyOrder.buy_order_id == buy_order_id)
+        return session.scalar(query)
+
+    def get_all_buy_orders(self) -> List[BuyOrder]:
+        buy_orders: List[BuyOrder] = []
         session = Session(self.__engine)
 
         query = sqlalchemy.select(BuyOrder)
         for buy_order in session.scalars(query):
-            print(json.dumps(buy_order.__dict__, indent=4))
+            buy_orders.append(buy_order)
+
+    def run_migration(self):
+        Base.metadata.create_all(self.__engine)

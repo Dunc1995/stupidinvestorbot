@@ -1,5 +1,6 @@
 import logging
 from typing import List
+from investorbot.constants import CRYPTO_MARKET_URL
 from investorbot.http.base import HttpClient
 from investorbot.models.app import Ticker
 from investorbot.models.crypto import Instrument
@@ -10,7 +11,7 @@ logger = logging.getLogger("client")
 class MarketHttpClient(HttpClient):
     def __init__(
         self,
-        api_url="https://api.crypto.com/exchange/v1/public/",
+        api_url=CRYPTO_MARKET_URL,
     ):
         super().__init__(api_url=api_url, id_incr=1)
 

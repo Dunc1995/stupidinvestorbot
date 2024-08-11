@@ -10,8 +10,7 @@ import requests
 from os import path
 from pathlib import Path
 from urllib.parse import urlparse
-
-CRYPTO_APP_ENVIRONMENT = os.environ.get("CRYPTO_APP_ENVIRONMENT")
+from investorbot.constants import INVESTOR_APP_ENVIRONMENT
 
 logger = logging.getLogger("client")
 
@@ -21,22 +20,24 @@ class HttpClient:
     api_url: str
     id_incr: int
 
-    def write_request_to_file(self, uri_string: str, response_text: str):
+    def __write_request_to_file(
+        self, uri_string: str, response_text: str, response_code: str
+    ):
 
-        if CRYPTO_APP_ENVIRONMENT != "Development":
+        if INVESTOR_APP_ENVIRONMENT != "Development":
             return
 
         # from urlparse import urlparse  # Python 2
         parsed_uri = urlparse(uri_string)
 
-        result = "./nextjs/pages/api{uri.path}".format(uri=parsed_uri)
+        result = "./api{uri.path}".format(uri=parsed_uri)
         directory_path_components = result.split("/")
 
         directory_path = path.join(*directory_path_components)
         logger.info(directory_path)
 
         Path(directory_path).mkdir(parents=True, exist_ok=True)
-        file_path = path.join(directory_path, "data.json")
+        file_path = path.join(directory_path, f"status_{response_code}_response.json")
 
         response_dict = json.loads(response_text)
         response_formatted = json.dumps(response_dict, indent=4)
@@ -50,7 +51,9 @@ class HttpClient:
         if response.status_code != 200:
             response.raise_for_status()
 
-        self.write_request_to_file(f"{self.api_url}{method}", response.text)
+        self.__write_request_to_file(
+            f"{self.api_url}{method}", response.text, response.status_code
+        )
 
         return json.loads(response.text)
 
@@ -124,7 +127,9 @@ class AuthenticatedHttpClient(HttpClient):
         if result.status_code != 200:
             result.raise_for_status()
 
-        self.write_request_to_file(f"{self.api_url}{method}", result.text)
+        self.__write_request_to_file(
+            f"{self.api_url}{method}", result.text, result.status_code
+        )
 
         self.id_incr += 1
 
