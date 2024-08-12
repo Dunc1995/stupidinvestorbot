@@ -11,5 +11,7 @@ CRYPTO_USER_URL = f"{CRYPTO_BASE_URL}private/"
 CRYPTO_KEY = os.environ.get("CRYPTO_KEY")
 CRYPTO_SECRET_KEY = os.environ.get("CRYPTO_SECRET_KEY")
 
+DEFAULT_LOGS_NAME = "investor_bot_client"
+
 INVESTMENT_INCREMENTS = 5
 MAX_COINS = 4

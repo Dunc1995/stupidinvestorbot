@@ -1,6 +1,6 @@
+import logging
 from typing import Any, Generator, List
 from decimal import *
-import logging
 
 import sqlalchemy
 from sqlalchemy import Engine
@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from investorbot.constants import (
     CRYPTO_KEY,
     CRYPTO_SECRET_KEY,
+    DEFAULT_LOGS_NAME,
     INVESTOR_APP_DB_CONNECTION,
 )
 from investorbot.structs.ingress import (
@@ -20,8 +21,7 @@ from investorbot.structs.internal import OrderDetail, SellOrder
 from investorbot.models import Base, BuyOrder, TimeSeriesSummary
 
 # from chalicelib.models.crypto import PositionBalance, UserBalance
-
-logger = logging.getLogger("client")
+logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
 
 class CryptoContext:
@@ -146,6 +146,9 @@ class AppContext:
     ):
         self.__engine = sqlalchemy.create_engine(connection_string)
 
+    def run_migration(self):
+        Base.metadata.create_all(self.__engine)
+
     def add_item(self, db_object: Base):
         with Session(self.__engine) as session:
             session.add(db_object)
@@ -156,6 +159,16 @@ class AppContext:
             session.add_all(db_objects)
             session.commit()
 
+    def get_all_items(self, type: Base) -> List[Base]:
+        items_list = []
+        session = Session(self.__engine)
+
+        query = sqlalchemy.select(type)
+        for item in session.scalars(query):
+            items_list.append(item)
+
+        return items_list
+
     def get_buy_order(self, buy_order_id: str) -> BuyOrder | None:
         session = Session(self.__engine)
 
@@ -163,12 +176,21 @@ class AppContext:
         return session.scalar(query)
 
     def get_all_buy_orders(self) -> List[BuyOrder]:
-        buy_orders: List[BuyOrder] = []
+        return self.get_all_items(BuyOrder)
+
+    def get_time_series_with_coin_name(
+        self, coin_name: str
+    ) -> List[TimeSeriesSummary] | None:
+        ts_data = []
         session = Session(self.__engine)
 
-        query = sqlalchemy.select(BuyOrder)
-        for buy_order in session.scalars(query):
-            buy_orders.append(buy_order)
+        query = sqlalchemy.select(TimeSeriesSummary).where(
+            TimeSeriesSummary.coin_name == coin_name
+        )
+        for item in session.scalars(query):
+            ts_data.append(item)
 
-    def run_migration(self):
-        Base.metadata.create_all(self.__engine)
+        return ts_data
+
+    def get_all_time_series_summaries(self) -> List[TimeSeriesSummary]:
+        return self.get_all_items(TimeSeriesSummary)

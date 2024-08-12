@@ -3,18 +3,17 @@ import logging
 import math
 from typing import List
 from requests.exceptions import HTTPError
-from investorbot.constants import INVESTMENT_INCREMENTS, MAX_COINS
+from investorbot.constants import INVESTMENT_INCREMENTS, MAX_COINS, DEFAULT_LOGS_NAME
 from investorbot import crypto_context, app_context
 from investorbot.models import CoinProperties
 from investorbot.structs.internal import SellOrder
 import investorbot.timeseries as timeseries
 
+logger = logging.getLogger(DEFAULT_LOGS_NAME)
+logging.basicConfig(level=logging.INFO)
 
-logger = logging.getLogger()
-logger.setLevel("INFO")
 
-
-def get_coin_data_routine():
+def fetch_time_series_summaries_routine():
     ts_summaries = []
 
     for coin in crypto_context.market.get_usd_coins():

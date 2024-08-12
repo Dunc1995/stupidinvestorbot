@@ -5,7 +5,12 @@ import uuid
 
 from investorbot.structs.ingress import InstrumentJson
 from investorbot.contexts import AppContext
-from investorbot.models import BuyOrder, CoinProperties
+from investorbot.models import (
+    BuyOrder,
+    CoinProperties,
+    TimeSeriesMode,
+    TimeSeriesSummary,
+)
 
 
 class TestInvestorBotRepo(unittest.TestCase):
@@ -23,7 +28,7 @@ class TestInvestorBotRepo(unittest.TestCase):
 
         self.test_context.add_items(coin_properties)
 
-    def test_get_buy_order_will_return_none(self):
+    def test_get_buy_order_will_return_none_when_not_found(self):
         result = self.test_context.get_buy_order("123")
 
         self.assertIsNone(result, "Buy order query result is not None.")
@@ -56,6 +61,35 @@ class TestInvestorBotRepo(unittest.TestCase):
             db_buy_order.coin_properties.quantity_tick_size,
             float,
             "Tick size must be a float.",
+        )
+
+    def test_time_series_summary_is_retrievable_with_modes(self):
+
+        coin_name = "TON_USD"
+
+        ts_summary = TimeSeriesSummary(
+            coin_name,
+            12.0,
+            0.5,
+            0.001,
+            12434134,
+            [TimeSeriesMode(11.0), TimeSeriesMode(12.0), TimeSeriesMode(13.0)],
+        )
+
+        self.test_context.add_item(ts_summary)
+
+        retrieved_ts_summary = self.test_context.get_time_series_with_coin_name(
+            coin_name
+        )
+
+        count = len(retrieved_ts_summary)
+        data = retrieved_ts_summary[0]
+
+        self.assertTrue(count > 0, "Time series data was not returned.")
+        self.assertIsNotNone(data.modes, "Modes were found to be None.")
+        self.assertTrue(
+            len(data.modes) == 3,
+            "Number of modes doesn't match what was inserted into db.",
         )
 
 

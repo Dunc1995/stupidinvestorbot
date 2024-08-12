@@ -1,8 +1,8 @@
 import json
 import logging
-from typing import Dict, List
+from typing import Dict
 import uuid
-from investorbot.constants import CRYPTO_USER_URL
+from investorbot.constants import CRYPTO_USER_URL, DEFAULT_LOGS_NAME
 from investorbot.http.base import AuthenticatedHttpClient
 from investorbot.structs.ingress import (
     OrderJson,
@@ -11,7 +11,7 @@ from investorbot.structs.ingress import (
     UserBalanceJson,
 )
 
-logger = logging.getLogger()
+logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
 
 class UserHttpClient(AuthenticatedHttpClient):

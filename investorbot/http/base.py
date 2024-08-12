@@ -10,9 +10,9 @@ import requests
 from os import path
 from pathlib import Path
 from urllib.parse import urlparse
-from investorbot.constants import INVESTOR_APP_ENVIRONMENT
+from investorbot.constants import DEFAULT_LOGS_NAME, INVESTOR_APP_ENVIRONMENT
 
-logger = logging.getLogger("client")
+logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
 
 @dataclass
