@@ -1,5 +1,12 @@
 import argh
-from investorbot.routines import buy_coin_routine, init_db, sell_coin_routine
+from investorbot.routines import (
+    buy_coin_routine,
+    sell_coin_routine,
+    get_coin_data_routine,
+    init_db,
+)
 
 if __name__ == "__main__":
-    argh.dispatch_commands([buy_coin_routine, sell_coin_routine, init_db])
+    argh.dispatch_commands(
+        [buy_coin_routine, sell_coin_routine, get_coin_data_routine, init_db]
+    )

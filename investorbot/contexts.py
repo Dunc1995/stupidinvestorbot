@@ -14,19 +14,17 @@ from investorbot.constants import (
 from investorbot.structs.ingress import (
     PositionBalanceJson,
 )
-from investorbot.strategies import CoinSelectionStrategies
 from investorbot.http.market import MarketHttpClient
 from investorbot.http.user import UserHttpClient
-from investorbot.structs.ingress import TickerJson
-from investorbot.structs.internal import TimeSeriesSummary, OrderDetail, SellOrder
-from investorbot.models import Base, BuyOrder
+from investorbot.structs.internal import OrderDetail, SellOrder
+from investorbot.models import Base, BuyOrder, TimeSeriesSummary
 
 # from chalicelib.models.crypto import PositionBalance, UserBalance
 
 logger = logging.getLogger("client")
 
 
-class CryptoRepo:
+class CryptoContext:
     market: MarketHttpClient
     user: UserHttpClient
 
@@ -34,21 +32,21 @@ class CryptoRepo:
         self.market = MarketHttpClient()
         self.user = UserHttpClient(CRYPTO_KEY, CRYPTO_SECRET_KEY)
 
-    @staticmethod
-    def __should_select_coin(summary: TimeSeriesSummary, strategy: str) -> bool:
-        select_coin = False
+    # @staticmethod
+    # def __should_select_coin(summary: TimeSeriesSummary, strategy: str) -> bool:
+    #     select_coin = False
 
-        match strategy:
-            case CoinSelectionStrategies.HIGH_GAIN:
-                select_coin = CoinSelectionStrategies.high_gain(summary)
-            case CoinSelectionStrategies.CONSERVATIVE:
-                select_coin = CoinSelectionStrategies.conservative(summary)
-            case CoinSelectionStrategies.ALL_GUNS_BLAZING:
-                select_coin = CoinSelectionStrategies.all_guns_blazing(summary)
-            case _:
-                select_coin = False
+    #     match strategy:
+    #         case CoinSelectionStrategies.HIGH_GAIN:
+    #             select_coin = CoinSelectionStrategies.high_gain(summary)
+    #         case CoinSelectionStrategies.CONSERVATIVE:
+    #             select_coin = CoinSelectionStrategies.conservative(summary)
+    #         case CoinSelectionStrategies.ALL_GUNS_BLAZING:
+    #             select_coin = CoinSelectionStrategies.all_guns_blazing(summary)
+    #         case _:
+    #             select_coin = False
 
-        return select_coin
+    #     return select_coin
 
     def get_coin_time_series_data(self, coin_name: str) -> dict:
         return self.market.get_valuation(coin_name, "mark_price")
@@ -139,7 +137,7 @@ class CryptoRepo:
         )
 
 
-class InvestorBotRepo:
+class AppContext:
     __engine: Engine
 
     def __init__(

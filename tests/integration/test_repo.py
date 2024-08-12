@@ -4,7 +4,7 @@ import unittest
 import uuid
 
 from investorbot.structs.ingress import InstrumentJson
-from investorbot.repo import InvestorBotRepo
+from investorbot.contexts import AppContext
 from investorbot.models import BuyOrder, CoinProperties
 
 
@@ -12,7 +12,7 @@ class TestInvestorBotRepo(unittest.TestCase):
     def setUp(self):
         instrument_data = None
 
-        self.test_context = InvestorBotRepo("sqlite:///:memory:")
+        self.test_context = AppContext("sqlite:///:memory:")
         self.test_context.run_migration()
 
         with open("./tests/integration/fixtures/get-instruments.json", "r") as f:

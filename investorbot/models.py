@@ -1,4 +1,5 @@
 from typing import List, Optional
+from pandas import Series
 from sqlalchemy import ForeignKey, String, Integer, Float
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import DeclarativeBase
@@ -41,4 +42,41 @@ class BuyOrder(Base):
     coin_name: Mapped[str] = mapped_column(ForeignKey("coin_properties.coin_name"))
     coin_properties: Mapped[Optional[CoinProperties]] = relationship(
         init=False, back_populates="buy_orders"
+    )
+
+
+class TimeSeriesSummary(Base):
+    """Data container for storing basic statistical properties after
+    analyzing valuation data for a particular coin.
+    """
+
+    __tablename__ = "time_series_data"
+
+    summary_id: Mapped[int] = mapped_column(
+        primary_key=True, autoincrement=True, init=False
+    )
+    coin_name: Mapped[str] = mapped_column(String())
+    mean: Mapped[float] = mapped_column(Float())
+    std: Mapped[float] = mapped_column(Float())
+    percentage_std: Mapped[float] = mapped_column(Float())
+    creation_time_ms: Mapped[int] = mapped_column(Integer())
+
+    modes: Mapped[List["TimeSeriesMode"]] = relationship(
+        back_populates="summary",
+        cascade="all, delete-orphan",
+    )
+
+
+class TimeSeriesMode(Base):
+    __tablename__ = "time_series_data_modes"
+
+    mode_id: Mapped[int] = mapped_column(
+        primary_key=True, autoincrement=True, init=False
+    )
+    summary_id: Mapped[int] = mapped_column(
+        ForeignKey("time_series_data.summary_id"), init=False
+    )
+    mode: Mapped[float] = mapped_column(Float())
+    summary: Mapped[Optional[TimeSeriesSummary]] = relationship(
+        back_populates="modes", init=False
     )

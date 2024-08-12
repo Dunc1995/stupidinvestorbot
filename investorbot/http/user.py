@@ -4,7 +4,6 @@ from typing import Dict, List
 import uuid
 from investorbot.constants import CRYPTO_USER_URL
 from investorbot.http.base import AuthenticatedHttpClient
-from investorbot.structs.internal import TimeSeriesSummary
 from investorbot.structs.ingress import (
     OrderJson,
     OrderDetailJson,

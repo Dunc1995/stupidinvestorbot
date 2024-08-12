@@ -5,20 +5,6 @@ from pandas import Series
 from investorbot.structs.ingress import PositionBalanceJson, OrderDetailJson
 
 
-@dataclass
-class TimeSeriesSummary:
-    """Data container for storing basic statistical properties after
-    analyzing valuation data for a particular coin.
-    """
-
-    coin_name: str
-    mean: float
-    modes: Series
-    std: float
-    percentage_std: float
-    creation_time_ms: int
-
-
 @dataclass(init=False)
 class SellOrder:
     buy_order_status: str

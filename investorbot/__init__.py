@@ -1,4 +1,4 @@
-from investorbot.repo import CryptoRepo, InvestorBotRepo
+from investorbot.contexts import CryptoContext, AppContext
 
-crypto_context = CryptoRepo()
-app_context = InvestorBotRepo()
+crypto_context = CryptoContext()
+app_context = AppContext()
