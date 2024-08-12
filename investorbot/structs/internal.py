@@ -1,37 +1,7 @@
 from dataclasses import dataclass
 from decimal import Decimal
 from pandas import Series
-from investorbot.models.crypto import PositionBalance, OrderDetail
-
-
-@dataclass
-class Ticker:
-    """Maps abbreviated property names from public/get-tickers query to human readable properties."""
-
-    instrument_name: str
-    highest_trade_24h: str
-    lowest_trade_24h: str
-    latest_trade: str
-    total_traded_volume_24h: str
-    total_traded_volume_usd_24h: str
-    percentage_change_24h: str
-    best_bid_price: str
-    best_ask_price: str
-    open_interest: str
-    timestamp: int
-
-    def __init__(self, obj):
-        self.instrument_name = obj["i"]
-        self.highest_trade_24h = obj["h"]
-        self.lowest_trade_24h = obj["l"]
-        self.latest_trade = obj["a"]
-        self.total_traded_volume_24h = obj["v"]
-        self.total_traded_volume_usd_24h = obj["vv"]
-        self.percentage_change_24h = obj["c"]
-        self.best_bid_price = obj["b"]
-        self.best_ask_price = obj["k"]
-        self.open_interest = obj["oi"]
-        self.timestamp = obj["t"]
+from investorbot.structs.ingress import PositionBalanceJson, OrderDetailJson
 
 
 @dataclass
@@ -120,7 +90,9 @@ class SellOrder:
     market_value_rounding: int
     coin_quantity_can_be_sold = True
 
-    def __init__(self, coin_wallet_balance: PositionBalance, order_detail: OrderDetail):
+    def __init__(
+        self, coin_wallet_balance: PositionBalanceJson, order_detail: OrderDetailJson
+    ):
         self.buy_order_status = order_detail.status
         self.buy_order_id = order_detail.client_oid
         self.coin_name = order_detail.instrument_name

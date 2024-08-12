@@ -1,6 +1,6 @@
 from typing import List
-from investorbot.models.crypto import Instrument
-from investorbot.tables import CoinProperties
+from investorbot.structs.ingress import InstrumentJson
+from investorbot.models import CoinProperties
 
 
 def get_value_ratio(hours_since_order: float) -> float:
@@ -8,7 +8,7 @@ def get_value_ratio(hours_since_order: float) -> float:
 
 
 def get_coin_properties_from_instruments(
-    instruments: List[Instrument],
+    instruments: List[InstrumentJson],
 ) -> List[CoinProperties]:
     return [
         CoinProperties(

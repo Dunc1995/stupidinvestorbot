@@ -16,12 +16,13 @@ from investorbot.constants import (
     INVESTOR_APP_DB_CONNECTION,
     INVESTOR_APP_PATH,
 )
-from investorbot.models.crypto import Instrument, Order, PositionBalance
+from investorbot.structs.ingress import InstrumentJson, OrderJson, PositionBalanceJson
 from investorbot.strategies import CoinSelectionStrategies
 from investorbot.http.market import MarketHttpClient
 from investorbot.http.user import UserHttpClient
-from investorbot.models.app import CoinSummary, SellOrder, Ticker
-from investorbot.tables import Base, BuyOrder
+from investorbot.structs.ingress import TickerJson
+from investorbot.structs.internal import CoinSummary, SellOrder
+from investorbot.models import Base, BuyOrder
 
 # from chalicelib.models.crypto import PositionBalance, UserBalance
 
@@ -44,7 +45,7 @@ class CryptoRepo:
 
         return self.__instruments
 
-    def get_instrument(self, instrument_name) -> Instrument:
+    def get_instrument(self, instrument_name) -> InstrumentJson:
         return next(x for x in self.instruments if x.symbol == instrument_name)
 
     @staticmethod
@@ -63,7 +64,7 @@ class CryptoRepo:
 
         return select_coin
 
-    def __get_coin_summary(self, coin: Ticker) -> CoinSummary:
+    def __get_coin_summary(self, coin: TickerJson) -> CoinSummary:
         """Fetches time-series data for the coin of interest and summarizes basic statistical properties via
         the CoinSummary object. Used for determining which coins to invest in.
 
@@ -103,7 +104,7 @@ class CryptoRepo:
 
         return coin_summary
 
-    def get_coin_balance(self, instrument_name: str) -> PositionBalance:
+    def get_coin_balance(self, instrument_name: str) -> PositionBalanceJson:
         wallet_balance = self.user.get_balance()
 
         balance = next(

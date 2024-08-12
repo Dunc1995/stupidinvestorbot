@@ -2,8 +2,7 @@ import logging
 from typing import List
 from investorbot.constants import CRYPTO_MARKET_URL
 from investorbot.http.base import HttpClient
-from investorbot.models.app import Ticker
-from investorbot.models.crypto import Instrument
+from investorbot.structs.ingress import InstrumentJson, TickerJson
 
 logger = logging.getLogger("client")
 
@@ -15,11 +14,11 @@ class MarketHttpClient(HttpClient):
     ):
         super().__init__(api_url=api_url, id_incr=1)
 
-    def get_usd_coins(self) -> list[Ticker]:
+    def get_usd_coins(self) -> list[TickerJson]:
         ticker_data = self.get_data("get-tickers")
 
         data = [
-            Ticker(obj)
+            TickerJson(obj)
             for obj in ticker_data
             if str(obj["i"]).endswith("_USD") and float(obj["vv"]) > 200_000.0
         ]
@@ -31,17 +30,17 @@ class MarketHttpClient(HttpClient):
 
         return result
 
-    def get_instruments(self) -> List[Instrument]:
+    def get_instruments(self) -> List[InstrumentJson]:
         instrument_data = self.get_data("get-instruments")
 
-        data = [Instrument(**obj) for obj in instrument_data]
+        data = [InstrumentJson(**obj) for obj in instrument_data]
 
         return data
 
-    def get_ticker(self, instrument_name: str) -> Ticker:
+    def get_ticker(self, instrument_name: str) -> TickerJson:
         ticker_data = self.get_data(f"get-tickers?instrument_name={instrument_name}")
 
-        data = [Ticker(obj) for obj in ticker_data]
+        data = [TickerJson(obj) for obj in ticker_data]
 
         return data[0]
 

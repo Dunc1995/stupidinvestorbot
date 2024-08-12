@@ -3,7 +3,7 @@ from typing import List
 
 
 @dataclass
-class PositionBalance:
+class PositionBalanceJson:
     instrument_name: str
     quantity: float
     market_value: float
@@ -16,7 +16,7 @@ class PositionBalance:
 
 
 @dataclass
-class UserBalance:
+class UserBalanceJson:
     total_available_balance: float
     total_margin_balance: float
     total_initial_margin: float
@@ -35,14 +35,14 @@ class UserBalance:
     total_borrow: float
     position_limit: float
     used_position_limit: float
-    position_balances: List[PositionBalance]
+    position_balances: List[PositionBalanceJson]
     has_risk: bool
     terminatable: bool
     margin_score: float
 
 
 @dataclass
-class Instrument:
+class InstrumentJson:
     """Expected parameters when calling public/get-instruments.
     At the moment I only really want qty_tick_size from these objects.
     Price tick size is probably also important."""
@@ -67,7 +67,7 @@ class Instrument:
 
 
 @dataclass
-class Order:
+class OrderJson:
     """Basic parameters that are returned when calling private/create-order"""
 
     order_id: int
@@ -75,7 +75,7 @@ class Order:
 
 
 @dataclass
-class OrderDetail:
+class OrderDetailJson:
     account_id: str
     order_id: int
     client_oid: int
@@ -111,3 +111,33 @@ class OrderDetail:
             bool: Returns True if the order has been fulfilled completely.
         """
         return self.status == "FILLED"
+
+
+@dataclass
+class TickerJson:
+    """Maps abbreviated property names from public/get-tickers query to human readable properties."""
+
+    instrument_name: str
+    highest_trade_24h: str
+    lowest_trade_24h: str
+    latest_trade: str
+    total_traded_volume_24h: str
+    total_traded_volume_usd_24h: str
+    percentage_change_24h: str
+    best_bid_price: str
+    best_ask_price: str
+    open_interest: str
+    timestamp: int
+
+    def __init__(self, obj):
+        self.instrument_name = obj["i"]
+        self.highest_trade_24h = obj["h"]
+        self.lowest_trade_24h = obj["l"]
+        self.latest_trade = obj["a"]
+        self.total_traded_volume_24h = obj["v"]
+        self.total_traded_volume_usd_24h = obj["vv"]
+        self.percentage_change_24h = obj["c"]
+        self.best_bid_price = obj["b"]
+        self.best_ask_price = obj["k"]
+        self.open_interest = obj["oi"]
+        self.timestamp = obj["t"]

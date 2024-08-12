@@ -4,12 +4,12 @@ from typing import Dict, List
 import uuid
 from investorbot.constants import CRYPTO_USER_URL
 from investorbot.http.base import AuthenticatedHttpClient
-from investorbot.models.app import CoinSummary
-from investorbot.models.crypto import (
-    Order,
-    OrderDetail,
-    PositionBalance,
-    UserBalance,
+from investorbot.structs.internal import CoinSummary
+from investorbot.structs.ingress import (
+    OrderJson,
+    OrderDetailJson,
+    PositionBalanceJson,
+    UserBalanceJson,
 )
 
 logger = logging.getLogger()
@@ -26,15 +26,15 @@ class UserHttpClient(AuthenticatedHttpClient):
             id_incr=1, api_key=api_key, api_secret_key=api_secret_key, api_url=api_url
         )
 
-    def get_balance(self) -> UserBalance:
+    def get_balance(self) -> UserBalanceJson:
         user_balance = self.post_request("user-balance")[
             0
         ]  # ! zero index assumes only one wallet - may break
 
-        user_balance_obj = UserBalance(**user_balance)
+        user_balance_obj = UserBalanceJson(**user_balance)
 
         position_balances = [
-            PositionBalance(**position_balance)
+            PositionBalanceJson(**position_balance)
             for position_balance in user_balance_obj.position_balances
         ]
 
@@ -65,7 +65,7 @@ class UserHttpClient(AuthenticatedHttpClient):
         instrument_price_usd: str,
         quantity: str,
         side: str,
-    ) -> Order:
+    ) -> OrderJson:
         """Creates a buy or sell order for a specific coin. Quantity has to be a multiple of the coin's
         quantity tick size.
 
@@ -87,10 +87,10 @@ class UserHttpClient(AuthenticatedHttpClient):
 
         result = self.post_request("create-order", params)
 
-        return Order(**result)
+        return OrderJson(**result)
 
-    def get_order_detail(self, client_oid: int) -> OrderDetail:
-        return OrderDetail(
+    def get_order_detail(self, client_oid: int) -> OrderDetailJson:
+        return OrderDetailJson(
             **self.post_request("get-order-detail", {"client_oid": str(client_oid)})
         )
 

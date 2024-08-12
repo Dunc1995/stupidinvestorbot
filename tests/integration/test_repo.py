@@ -3,10 +3,10 @@ import time
 import unittest
 import uuid
 
-from investorbot.models.crypto import Instrument
+from investorbot.structs.ingress import InstrumentJson
 from investorbot.repo import InvestorBotRepo
-from investorbot.tables import BuyOrder
-import investorbot.transforms as transforms
+from investorbot.models import BuyOrder
+import investorbot.structs.transforms as transforms
 
 
 class TestInvestorBotRepo(unittest.TestCase):
@@ -19,7 +19,7 @@ class TestInvestorBotRepo(unittest.TestCase):
         with open("./tests/integration/fixtures/get-instruments.json", "r") as f:
             instrument_data = json.loads(f.read())["result"]["data"]
 
-        instruments = [Instrument(**inst_data) for inst_data in instrument_data]
+        instruments = [InstrumentJson(**inst_data) for inst_data in instrument_data]
         coin_properties = transforms.get_coin_properties_from_instruments(instruments)
 
         self.test_context.add_items(coin_properties)

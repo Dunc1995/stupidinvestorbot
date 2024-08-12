@@ -1,5 +1,5 @@
 from enum import Enum
-from investorbot.models.app import CoinSummary
+from investorbot.structs.internal import CoinSummary
 
 
 class CoinSelectionStrategies(Enum):
