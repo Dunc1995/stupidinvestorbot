@@ -188,3 +188,5 @@ pyenv
 Vagrantfile
 api/
 tests/integration/fixtures/temp
+
+*.db
