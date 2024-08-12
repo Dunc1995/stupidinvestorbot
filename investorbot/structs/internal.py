@@ -129,7 +129,7 @@ class SellOrder:
         self.value_ratio = self.current_market_value / self.original_order_value
 
 
-@dataclass
+@dataclass(init=False)
 class OrderDetail:
     status: str
     order_id: str
@@ -137,6 +137,16 @@ class OrderDetail:
     quantity: float
     value_after_fee: float
     time_created_ms: int
+
+    def __init__(self, json_data: OrderDetailJson):
+        self.status = json_data.status
+        self.order_id = json_data.client_oid
+        self.coin_name = json_data.instrument_name
+        self.quantity = float(json_data.cumulative_quantity)
+        self.value_after_fee = float(json_data.cumulative_value) - float(
+            json_data.cumulative_fee
+        )
+        self.time_created_ms = int(json_data.create_time)
 
     @property
     def hours_since_order(self) -> float:

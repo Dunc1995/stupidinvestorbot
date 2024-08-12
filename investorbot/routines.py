@@ -4,10 +4,10 @@ import math
 from requests.exceptions import HTTPError
 from investorbot.constants import INVESTMENT_INCREMENTS, MAX_COINS
 from investorbot import crypto_context, app_context
+from investorbot.models import CoinProperties
 from investorbot.structs.internal import SellOrder
 from investorbot.structs.ingress import OrderJson
 from investorbot.strategies import CoinSelectionStrategies
-import investorbot.structs.transforms as transforms
 
 
 logger = logging.getLogger()
@@ -70,6 +70,4 @@ def init_db():
 
     instruments = crypto_context.market.get_instruments()
 
-    coin_properties = transforms.get_coin_properties_from_instruments(instruments)
-
-    app_context.add_items(coin_properties)
+    app_context.add_items([CoinProperties(instrument) for instrument in instruments])

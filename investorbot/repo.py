@@ -111,7 +111,7 @@ class CryptoRepo:
     def get_order_detail(self, order_id: str):
         order_detail_json = self.user.get_order_detail(order_id)
 
-        return OrderDetailJson.get_internal(order_detail_json)
+        return order_detail_json.translate()
 
     def get_coin_balance(self, instrument_name: str) -> PositionBalanceJson:
         wallet_balance = self.user.get_balance()

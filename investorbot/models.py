@@ -6,6 +6,8 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import MappedAsDataclass
 
+from investorbot.structs.ingress import InstrumentJson
+
 
 class Base(MappedAsDataclass, DeclarativeBase):
     pass
@@ -23,6 +25,13 @@ class CoinProperties(Base):
     buy_orders: Mapped[List["BuyOrder"]] = relationship(
         init=False, back_populates="coin_properties", cascade="all, delete-orphan"
     )
+
+    def __init__(self, json_data: InstrumentJson):
+        self.coin_name = json_data.symbol
+        self.quantity_tick_size = float(json_data.qty_tick_size)
+        self.quantity_decimals = int(json_data.quantity_decimals)
+        self.price_tick_size = float(json_data.price_tick_size)
+        self.price_decimals = int(json_data.quote_decimals)
 
 
 class BuyOrder(Base):

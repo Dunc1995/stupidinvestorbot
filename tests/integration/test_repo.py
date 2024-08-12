@@ -5,8 +5,7 @@ import uuid
 
 from investorbot.structs.ingress import InstrumentJson
 from investorbot.repo import InvestorBotRepo
-from investorbot.models import BuyOrder
-import investorbot.structs.transforms as transforms
+from investorbot.models import BuyOrder, CoinProperties
 
 
 class TestInvestorBotRepo(unittest.TestCase):
@@ -20,7 +19,7 @@ class TestInvestorBotRepo(unittest.TestCase):
             instrument_data = json.loads(f.read())["result"]["data"]
 
         instruments = [InstrumentJson(**inst_data) for inst_data in instrument_data]
-        coin_properties = transforms.get_coin_properties_from_instruments(instruments)
+        coin_properties = [CoinProperties(instrument) for instrument in instruments]
 
         self.test_context.add_items(coin_properties)
 
