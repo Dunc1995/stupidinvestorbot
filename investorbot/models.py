@@ -63,7 +63,7 @@ class TimeSeriesSummary(Base):
 
     modes: Mapped[List["TimeSeriesMode"]] = relationship(
         back_populates="summary",
-        cascade="all, delete-orphan",
+        cascade="all, delete",
     )
 
 
@@ -74,7 +74,7 @@ class TimeSeriesMode(Base):
         primary_key=True, autoincrement=True, init=False
     )
     summary_id: Mapped[int] = mapped_column(
-        ForeignKey("time_series_data.summary_id"), init=False
+        ForeignKey("time_series_data.summary_id", ondelete="CASCADE"), init=False
     )
     mode: Mapped[float] = mapped_column(Float())
     summary: Mapped[Optional[TimeSeriesSummary]] = relationship(

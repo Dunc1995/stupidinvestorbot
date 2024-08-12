@@ -1,10 +1,11 @@
 import logging
+import time
 from typing import Any, Generator, List
 from decimal import *
 
 import sqlalchemy
 from sqlalchemy import Engine
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from investorbot.constants import (
     CRYPTO_KEY,
@@ -146,22 +147,26 @@ class AppContext:
     ):
         self.__engine = sqlalchemy.create_engine(connection_string)
 
+    @property
+    def session(self) -> Session:
+        return Session(self.__engine)
+
     def run_migration(self):
         Base.metadata.create_all(self.__engine)
 
     def add_item(self, db_object: Base):
-        with Session(self.__engine) as session:
+        with self.session as session:
             session.add(db_object)
             session.commit()
 
     def add_items(self, db_objects: List[Base]):
-        with Session(self.__engine) as session:
+        with self.session as session:
             session.add_all(db_objects)
             session.commit()
 
     def get_all_items(self, type: Base) -> List[Base]:
         items_list = []
-        session = Session(self.__engine)
+        session = self.session
 
         query = sqlalchemy.select(type)
         for item in session.scalars(query):
@@ -170,7 +175,7 @@ class AppContext:
         return items_list
 
     def get_buy_order(self, buy_order_id: str) -> BuyOrder | None:
-        session = Session(self.__engine)
+        session = self.session
 
         query = sqlalchemy.select(BuyOrder).where(BuyOrder.buy_order_id == buy_order_id)
         return session.scalar(query)
@@ -182,7 +187,7 @@ class AppContext:
         self, coin_name: str
     ) -> List[TimeSeriesSummary] | None:
         ts_data = []
-        session = Session(self.__engine)
+        session = self.session
 
         query = sqlalchemy.select(TimeSeriesSummary).where(
             TimeSeriesSummary.coin_name == coin_name
@@ -194,3 +199,17 @@ class AppContext:
 
     def get_all_time_series_summaries(self) -> List[TimeSeriesSummary]:
         return self.get_all_items(TimeSeriesSummary)
+
+    def delete_existing_time_series(self):
+        with self.session as session:
+            time_now = int(time.time() * 1000)
+            query = (
+                session.query(TimeSeriesSummary)
+                .options(joinedload(TimeSeriesSummary.modes))
+                .where(TimeSeriesSummary.creation_time_ms < time_now)
+            )
+
+            for item in session.scalars(query):
+                session.delete(item)
+
+            session.commit()

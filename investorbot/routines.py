@@ -1,7 +1,5 @@
-import time
 import logging
 import math
-from typing import List
 from requests.exceptions import HTTPError
 from investorbot.constants import INVESTMENT_INCREMENTS, MAX_COINS, DEFAULT_LOGS_NAME
 from investorbot import crypto_context, app_context
@@ -13,8 +11,9 @@ logger = logging.getLogger(DEFAULT_LOGS_NAME)
 logging.basicConfig(level=logging.INFO)
 
 
-def fetch_time_series_summaries_routine():
+def update_time_series_summaries_routine():
     ts_summaries = []
+    app_context.delete_existing_time_series()
 
     for coin in crypto_context.market.get_usd_coins():
         logger.info(f"Fetching latest 24hr dataset for {coin.instrument_name}.")
