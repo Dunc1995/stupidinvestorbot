@@ -1,17 +1,35 @@
 import time
 import logging
 import math
+from typing import List
 from requests.exceptions import HTTPError
 from investorbot.constants import INVESTMENT_INCREMENTS, MAX_COINS
 from investorbot import crypto_context, app_context
 from investorbot.models import CoinProperties
-from investorbot.structs.internal import SellOrder
-from investorbot.structs.ingress import OrderJson
+from investorbot.structs.internal import SellOrder, TimeSeriesSummary
 from investorbot.strategies import CoinSelectionStrategies
+import investorbot.timeseries as timeseries
 
 
 logger = logging.getLogger()
 logger.setLevel("INFO")
+
+
+def get_coin_time_series_data_routine():
+    ts_summaries = []
+
+    for coin in crypto_context.market.get_usd_coins():
+        logger.debug(f"Fetching latest 24hr dataset for {coin.instrument_name}.")
+
+        time_series_data = crypto_context.get_coin_time_series_data(
+            coin.instrument_name
+        )
+
+        ts_summary = timeseries.get_coin_time_series_summary(time_series_data)
+
+        ts_summaries.append(ts_summary)
+
+    app_context.add_items(ts_summaries)
 
 
 def buy_coin_routine():

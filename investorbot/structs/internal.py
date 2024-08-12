@@ -6,75 +6,17 @@ from investorbot.structs.ingress import PositionBalanceJson, OrderDetailJson
 
 
 @dataclass
-class CoinSummary:
+class TimeSeriesSummary:
     """Data container for storing basic statistical properties after
     analyzing valuation data for a particular coin.
     """
 
-    name: str
-    latest_trade: float
-    quantity_tick_size: float
-    mean_24h: float
-    modes_24h: Series
-    std_24h: float
-    percentage_change_24h: float
-    percentage_std_24h: float
-    is_greater_than_mean: bool
-    is_greater_than_std: bool
-    __coin_quantity: float = -1.0  # TODO numerical types here are a bit muddled.
-
-    @property
-    def has_few_modes(self) -> bool:
-        """Potentially useful if a low number of modes signifies a fairly stable coin resembling
-        "white noise" variability.
-
-        Returns:
-            bool: True if low number of modes for the given dataset.
-        """
-        return len(self.modes_24h) < 5
-
-    @property
-    def has_high_std(self) -> bool:
-        """Useful to work out which coins are the most volatile at any point in time.
-
-        Returns:
-            bool: True if standard deviation is higher than the given threshold.
-        """
-        return self.percentage_std_24h > 0.04
-
-    @property
-    def has_low_change(self) -> bool:
-        """I'm assuming it's a safe assumption that a volatile coin at its mean or lower than average
-        will hopefully have a rebound back to a value above its mean. Use this property to invest at the
-        average price or lower.
-
-        Returns:
-            bool: True if percentage change is close to zero.
-        """
-        return self.percentage_change_24h < 0.03 and self.percentage_change_24h > -0.03
-
-    def __get_coin_quantity_divisible_by_tick_size(
-        self, investment_total_usd: str
-    ) -> Decimal:
-
-        _instrument_price_usd = Decimal(self.latest_trade)
-
-        absolute_coin_quantity = Decimal(investment_total_usd) / _instrument_price_usd
-
-        amount = Decimal(str(absolute_coin_quantity))
-        tick = Decimal(str(self.quantity_tick_size))
-
-        remainder = amount % tick
-
-        return amount - remainder
-
-    @property
-    def coin_quantity(self) -> float:
-        return self.__coin_quantity
-
-    @coin_quantity.setter
-    def coin_quantity(self, x) -> float:
-        self.__coin_quantity = self.__get_coin_quantity_divisible_by_tick_size(str(x))
+    coin_name: str
+    mean: float
+    modes: Series
+    std: float
+    percentage_std: float
+    creation_time_ms: int
 
 
 @dataclass(init=False)
