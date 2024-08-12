@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from decimal import Decimal
+import time
 from pandas import Series
 from investorbot.structs.ingress import PositionBalanceJson, OrderDetailJson
 
@@ -126,3 +127,25 @@ class SellOrder:
             self.sellable_quantity = self.order_quantity
 
         self.value_ratio = self.current_market_value / self.original_order_value
+
+
+@dataclass
+class OrderDetail:
+    status: str
+    order_id: str
+    coin_name: str
+    quantity: float
+    value_after_fee: float
+    time_created_ms: int
+
+    @property
+    def hours_since_order(self) -> float:
+        time_now = int(time.time() * 1000)
+
+        time_of_order = self.time_created_ms
+        milliseconds_since_order = time_now - time_of_order
+        return milliseconds_since_order / (1000 * 60 * 60)
+
+    @property
+    def minimum_acceptable_value_ratio(self) -> float:
+        return 0.98 + 0.03 ** ((0.01 * self.hours_since_order) + 1.0)

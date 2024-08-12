@@ -14,9 +14,13 @@ from investorbot.constants import (
     CRYPTO_KEY,
     CRYPTO_SECRET_KEY,
     INVESTOR_APP_DB_CONNECTION,
-    INVESTOR_APP_PATH,
 )
-from investorbot.structs.ingress import InstrumentJson, OrderJson, PositionBalanceJson
+from investorbot.structs.ingress import (
+    InstrumentJson,
+    OrderDetailJson,
+    OrderJson,
+    PositionBalanceJson,
+)
 from investorbot.strategies import CoinSelectionStrategies
 from investorbot.http.market import MarketHttpClient
 from investorbot.http.user import UserHttpClient
@@ -103,6 +107,11 @@ class CryptoRepo:
         coin_summary.coin_quantity = INVESTMENT_INCREMENTS
 
         return coin_summary
+
+    def get_order_detail(self, order_id: str):
+        order_detail_json = self.user.get_order_detail(order_id)
+
+        return OrderDetailJson.get_internal(order_detail_json)
 
     def get_coin_balance(self, instrument_name: str) -> PositionBalanceJson:
         wallet_balance = self.user.get_balance()

@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import List
 
+from investorbot.structs.internal import OrderDetail
+
 
 @dataclass
 class PositionBalanceJson:
@@ -104,13 +106,17 @@ class OrderDetailJson:
     taker_fee_rate: str = None
     ref_price_type: str = None
 
-    @property
-    def successful(self) -> bool:
-        """
-        Returns:
-            bool: Returns True if the order has been fulfilled completely.
-        """
-        return self.status == "FILLED"
+    @staticmethod
+    def get_internal(json_data: "OrderDetailJson") -> OrderDetail:
+        return OrderDetail(
+            status=json_data.status,
+            order_id=json_data.client_oid,
+            coin_name=json_data.instrument_name,
+            quantity=float(json_data.cumulative_quantity),
+            value_after_fee=float(json_data.cumulative_value)
+            - float(json_data.cumulative_fee),
+            time_created_ms=json_data.create_time,
+        )
 
 
 @dataclass

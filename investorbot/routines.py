@@ -42,57 +42,27 @@ def buy_coin_routine():
 
 
 def sell_coin_routine():
-    print("EGG")
-    time_now = int(time.time() * 1000)
-    response = order_table.scan()
-    data = response["Items"]
+    buy_orders = app_context.get_all_buy_orders()
 
-    orders = [OrderJson(**order_dict) for order_dict in data]
-    order_ids_for_deletion = []
-
-    for order in orders:
-        order_detail = crypto_context.user.get_order_detail(order.client_oid)
-
-        time_of_order = int(order_detail.create_time)
-        milliseconds_since_order = time_now - time_of_order
-        hours_since_order = milliseconds_since_order / (1000 * 60 * 60)
-
-        if order_detail.status == "ACTIVE":
-            # float(order_detail.cumulative_quantity) < 0.01 * float(
-            #     order_detail.quantity
-            # )
-            continue
+    for order in buy_orders:
+        order_detail = crypto_context.get_order_detail(order.client_oid)
 
         coin_balance = crypto_context.get_coin_balance(order_detail.fee_instrument_name)
-
-        logger.info(
-            f"It has been {hours_since_order:g} hours since buy order was placed for order {order.client_oid}."
-        )
-        logger.info(f"Order status: {order_detail.status}")
-
-        value_ratio = 0.98 + 0.03 ** ((0.01 * hours_since_order) + 1.0)
-
-        logger.info(f"Desired value ratio: {value_ratio}")
 
         sell_order = SellOrder(coin_balance, order_detail)
 
         logger.info(sell_order.__dict__)
 
-        if sell_order.value_ratio > value_ratio:
+        if sell_order.value_ratio >= order_detail.minimum_acceptable_value_ratio:
             logger.info(f"Placing sell order for order {sell_order.buy_order_id}.")
 
             try:
                 crypto_context.place_coin_sell_order(sell_order)
-                order_ids_for_deletion.append(sell_order.buy_order_id)
             except HTTPError as error:
                 logger.warn(
                     "WARNING HTTP ERROR - continuing with script to ensure database consistency."
                 )
                 logger.warn(error.args[0])
-        else:
-            logger.info(
-                f"Sell order for {sell_order.buy_order_id} is currently pending. Value ratio is insufficient at {sell_order.value_ratio}."
-            )
 
 
 def init_db():
