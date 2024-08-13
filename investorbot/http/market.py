@@ -11,7 +11,7 @@ class MarketHttpClient(HttpClient):
     ):
         super().__init__(api_url=api_url, id_incr=1)
 
-    def get_usd_coins(self) -> list[TickerJson]:
+    def get_usd_tickers(self) -> list[TickerJson]:
         ticker_data = self.get_data("get-tickers")
 
         data = [

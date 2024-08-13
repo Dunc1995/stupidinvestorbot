@@ -1,11 +1,12 @@
 import logging
-import math
 from requests.exceptions import HTTPError
-from investorbot.constants import INVESTMENT_INCREMENTS, MAX_COINS, DEFAULT_LOGS_NAME
+from investorbot.constants import INVESTMENT_INCREMENTS, DEFAULT_LOGS_NAME
 from investorbot import crypto_context, app_context
 from investorbot.models import CoinProperties
-from investorbot.structs.internal import SellOrder
+from investorbot.structs.internal import BuyOrderSpecification, SellOrder
+from investorbot.strategies import LatestTradeValidator, LatestTradeValidatorOptions
 import investorbot.timeseries as timeseries
+import investorbot.subroutines as subroutines
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
 logging.basicConfig(level=logging.INFO)
@@ -15,7 +16,7 @@ def update_time_series_summaries_routine():
     ts_summaries = []
     app_context.delete_existing_time_series()
 
-    for coin in crypto_context.market.get_usd_coins():
+    for coin in crypto_context.market.get_usd_tickers():
         logger.info(f"Fetching latest 24hr dataset for {coin.instrument_name}.")
 
         time_series_data = crypto_context.get_coin_time_series_data(
@@ -32,37 +33,43 @@ def update_time_series_summaries_routine():
 
 
 def buy_coin_routine():
-    user_balance = crypto_context.get_usd_balance()
-
-    logger.info(f"Your balance is ${user_balance}")
-
-    number_of_coins_to_invest = math.floor(float(user_balance) / INVESTMENT_INCREMENTS)
-
-    if number_of_coins_to_invest == 0:
-        return  # No action to take if no coins can be selected based on current balance.
-    elif number_of_coins_to_invest > MAX_COINS:
-        number_of_coins_to_invest = MAX_COINS
+    options = LatestTradeValidatorOptions(
+        trade_needs_to_be_within_mean_and_lower_bound=True
+    )
+    purchase_count = 0
+    coin_count = crypto_context.get_investable_coin_count()
 
     logger.info(
-        f"Searching for {number_of_coins_to_invest} coins to invest in at ${INVESTMENT_INCREMENTS} each"
+        f"Searching for {coin_count} coins to invest in at ${INVESTMENT_INCREMENTS} each"
     )
 
-    # coin_selection = crypto_context.select_coins_of_interest(
-    #     CoinSelectionStrategies.HIGH_GAIN, number_of_coins_to_invest
-    # )
+    for latest_trade, ts_summary in subroutines.get_latest_trade_stats():
+        if purchase_count == coin_count:
+            logger.info("Maximum number of coin investments reached.")
+            break
 
-    # for coin in coin_selection:
-    #     logger.info(f"Selected {coin.name}")
+        validator = LatestTradeValidator(latest_trade, ts_summary, options)
 
-    # for order in crypto_context.place_coin_buy_orders(coin_selection):
-    #     app_context.add_item(order)
+        if validator.is_valid_for_purchase():
+            coin_name = latest_trade.coin_name
+
+            logger.info(
+                f"{coin_name} can be purchased based on current selection criteria."
+            )
+
+            # spec = BuyOrderSpecification(coin_name, , latest_trade.price)
+
+            # buy_order = crypto_context.place_coin_buy_order(spec)
+            # app_context.add_item(buy_order)
+
+            purchase_count += 1
 
 
 def sell_coin_routine():
     buy_orders = app_context.get_all_buy_orders()
 
     for order in buy_orders:
-        order_detail = crypto_context.get_order_detail(order.client_oid)
+        order_detail = crypto_context.get_order_detail(order.buy_order_id)
 
         coin_balance = crypto_context.get_coin_balance(order_detail.fee_instrument_name)
 
@@ -80,11 +87,3 @@ def sell_coin_routine():
                     "WARNING HTTP ERROR - continuing with script to ensure database consistency."
                 )
                 logger.warn(error.args[0])
-
-
-def init_db():
-    app_context.run_migration()
-
-    instruments = crypto_context.market.get_instruments()
-
-    app_context.add_items([CoinProperties(instrument) for instrument in instruments])

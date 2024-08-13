@@ -1,68 +1,82 @@
+from dataclasses import dataclass
 from enum import Enum
-from investorbot.structs.internal import TimeSeriesSummary
+from investorbot.structs.internal import LatestTrade
+from investorbot.models import TimeSeriesSummary
 
 
-class CoinSelectionStrategies(Enum):
-    CONSERVATIVE = "conservative"
-    HIGH_GAIN = "high_gain"
-    ALL_GUNS_BLAZING = "all_guns_blazing"
+@dataclass
+class LatestTradeValidatorOptions:
+    trade_needs_to_be_within_mean_and_upper_bound: bool = False
+    trade_needs_to_be_within_mean_and_lower_bound: bool = False
+    data_gradient_24h_should_be_flat: bool = False
+    data_gradient_24h_should_be_rising: bool = False
+    data_gradient_24h_should_be_falling: bool = False
 
-    @staticmethod
-    def conservative(summary: TimeSeriesSummary) -> bool:
-        """Selects a coin that has near 0% change in the last 24 hours,
-        but with high volatility (standard deviation).
 
-        Args:
-            summary (CoinSummary): Coin data to analyse.
+@dataclass(init=False)
+class LatestTradeValidator:
+    latest_trade_price: float
+    mean: float
+    standard_deviation_upper_bound: float
+    standard_deviation_lower_bound: float
 
-        Returns:
-            bool: True if the coin is volatile but with 0% change in the most recent trade.
-        """
+    # TODO needs extra ts analysis here - use numpy to get line of best fit
+    is_24h_gradient_flat: bool
+    is_24h_gradient_rising: bool
+    is_24h_gradient_falling: bool
+
+    options: LatestTradeValidatorOptions
+
+    def __init__(
+        self,
+        latest_trade: LatestTrade,
+        time_series_summary: TimeSeriesSummary,
+        validator_options: LatestTradeValidatorOptions,
+    ):
+        self.latest_trade_price = latest_trade.price
+        mean = time_series_summary.mean
+        std = time_series_summary.std
+        self.mean = mean
+        self.standard_deviation_upper_bound = mean + std
+        self.standard_deviation_lower_bound = mean - std
+
+        # TODO implement this.
+        self.is_24h_gradient_flat = False
+        self.is_24h_gradient_rising = False
+        self.is_24h_gradient_falling = False
+
+        self.options = validator_options
+
+    @property
+    def is_within_lower_bound_and_mean(self) -> bool:
         return (
-            summary.percentage_std > 0.04
-            and summary.percentage_change < 0.03
-            and summary.percentage_change > -0.03
+            self.latest_trade_price < self.mean
+            and self.latest_trade_price >= self.standard_deviation_lower_bound
         )
 
-    @staticmethod
-    def high_gain(summary: TimeSeriesSummary) -> bool:
-        """Selects a coin that is within its standard 24h deviation but
-        experiences high gain. Empirically this selection criteria tends
-        to yield decent returns.
-
-        Args:
-            summary (CoinSummary): Coin data to analyse.
-
-        Returns:
-            bool: True if the coin is within standard deviation.
-        """
-        mean = float(summary.mean)
-        std = float(summary.std)
+    @property
+    def is_within_upper_bound_and_mean(self) -> bool:
         return (
-            bool(float(summary.latest_trade) - (mean + std) <= 0)
-            and summary.percentage_std > 0.03
+            self.latest_trade_price >= self.mean
+            and self.latest_trade_price <= self.standard_deviation_upper_bound
         )
 
-    @staticmethod
-    def all_guns_blazing(
-        summary: TimeSeriesSummary,
-    ) -> bool:  # ! This is almost certainly stupid.
-        return summary.percentage_change > 0.20 and summary.percentage_std > 0.05
+    def is_valid_for_purchase(self) -> bool:
+        criteria = []
 
+        if self.options.trade_needs_to_be_within_mean_and_lower_bound:
+            criteria.append(self.is_within_lower_bound_and_mean)
 
-# class SellPrice:
-#     @staticmethod
-#     def get_percentage_increase(status: TradingStatus):
-#         percentage_increase = None
+        if self.options.trade_needs_to_be_within_mean_and_upper_bound:
+            criteria.append(self.is_within_upper_bound_and_mean)
 
-#         match status.sell_strategy:
-#             case CoinSelectionStrategies.HIGH_GAIN:
-#                 percentage_increase = 1.01
-#             case CoinSelectionStrategies.CONSERVATIVE:
-#                 percentage_increase = 1.01
-#             case CoinSelectionStrategies.ALL_GUNS_BLAZING:
-#                 percentage_increase = 0.9
-#             case _:
-#                 percentage_increase = 1.01
+        if self.options.data_gradient_24h_should_be_falling:
+            criteria.append(self.is_24h_gradient_falling)
 
-#         return percentage_increase
+        if self.options.data_gradient_24h_should_be_flat:
+            criteria.append(self.is_24h_gradient_flat)
+
+        if self.options.data_gradient_24h_should_be_rising:
+            criteria.append(self.is_24h_gradient_rising)
+
+        return all(i for i in criteria)

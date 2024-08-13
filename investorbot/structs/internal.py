@@ -1,8 +1,6 @@
 from dataclasses import dataclass
-from decimal import Decimal
 import time
-from pandas import Series
-from investorbot.structs.ingress import PositionBalanceJson, OrderDetailJson
+from investorbot.structs.ingress import PositionBalanceJson, OrderDetailJson, TickerJson
 
 
 @dataclass(init=False)
@@ -55,6 +53,34 @@ class SellOrder:
             self.sellable_quantity = self.order_quantity
 
         self.value_ratio = self.current_market_value / self.original_order_value
+
+
+@dataclass(init=False)
+class LatestTrade:
+    coin_name: str
+    price: float
+
+    def __init__(self, ticker: TickerJson):
+        self.coin_name = ticker.instrument_name
+        self.price = float(ticker.latest_trade)
+
+
+@dataclass
+class BuyOrderSpecification:
+    coin_name: str
+    quantity: float
+    price_per_coin: float
+
+    def __format(self, value: float):
+        return f"{value:g}"
+
+    @property
+    def quantity_str(self) -> str:
+        self.__format(self.quantity)
+
+    @property
+    def price_per_coin_str(self) -> str:
+        self.__format(self.price_per_coin)
 
 
 @dataclass(init=False)

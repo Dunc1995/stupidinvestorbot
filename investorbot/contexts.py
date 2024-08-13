@@ -1,6 +1,7 @@
 import logging
+import math
 import time
-from typing import Any, Generator, List
+from typing import List
 from decimal import *
 
 import sqlalchemy
@@ -11,17 +12,23 @@ from investorbot.constants import (
     CRYPTO_KEY,
     CRYPTO_SECRET_KEY,
     DEFAULT_LOGS_NAME,
+    INVESTMENT_INCREMENTS,
     INVESTOR_APP_DB_CONNECTION,
+    MAX_COINS,
 )
 from investorbot.structs.ingress import (
     PositionBalanceJson,
 )
 from investorbot.http.market import MarketHttpClient
 from investorbot.http.user import UserHttpClient
-from investorbot.structs.internal import OrderDetail, SellOrder
-from investorbot.models import Base, BuyOrder, TimeSeriesSummary
+from investorbot.structs.internal import (
+    BuyOrderSpecification,
+    OrderDetail,
+    SellOrder,
+    LatestTrade,
+)
+from investorbot.models import Base, BuyOrder, CoinProperties, TimeSeriesSummary
 
-# from chalicelib.models.crypto import PositionBalance, UserBalance
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
 
@@ -32,30 +39,6 @@ class CryptoContext:
     def __init__(self):
         self.market = MarketHttpClient()
         self.user = UserHttpClient(CRYPTO_KEY, CRYPTO_SECRET_KEY)
-
-    # @staticmethod
-    # def __should_select_coin(summary: TimeSeriesSummary, strategy: str) -> bool:
-    #     select_coin = False
-
-    #     match strategy:
-    #         case CoinSelectionStrategies.HIGH_GAIN:
-    #             select_coin = CoinSelectionStrategies.high_gain(summary)
-    #         case CoinSelectionStrategies.CONSERVATIVE:
-    #             select_coin = CoinSelectionStrategies.conservative(summary)
-    #         case CoinSelectionStrategies.ALL_GUNS_BLAZING:
-    #             select_coin = CoinSelectionStrategies.all_guns_blazing(summary)
-    #         case _:
-    #             select_coin = False
-
-    #     return select_coin
-
-    def get_coin_time_series_data(self, coin_name: str) -> dict:
-        return self.market.get_valuation(coin_name, "mark_price")
-
-    def get_order_detail(self, order_id: str) -> OrderDetail:
-        order_detail_json = self.user.get_order_detail(order_id)
-
-        return OrderDetail(order_detail_json)
 
     def get_coin_balance(self, instrument_name: str) -> PositionBalanceJson:
         wallet_balance = self.user.get_balance()
@@ -69,25 +52,59 @@ class CryptoContext:
         return balance
 
     def get_usd_balance(self) -> float:
-        usd_balance = self.get_coin_balance("USD").market_value
+        usd_balance = float(self.get_coin_balance("USD").market_value)
+
+        logger.info(f"Your balance is ${usd_balance}")
 
         return usd_balance
 
-    def place_coin_buy_orders(
-        self, coin_summaries: List[TimeSeriesSummary]
-    ) -> Generator[BuyOrder, Any, None]:
+    def get_investable_coin_count(self) -> int:
+        user_balance = self.get_usd_balance()
 
-        for coin in coin_summaries:
-            # string formatting removes any trailing zeros or dodgy rounding.
-            coin_quantity_string = f"{coin.coin_quantity:g}"
-            latest_trade_string = f"{coin.latest_trade:g}"
+        number_of_coins_to_invest = math.floor(user_balance / INVESTMENT_INCREMENTS)
 
-            order = self.user.create_order(
-                coin.name, latest_trade_string, coin_quantity_string, "BUY"
-            )
+        if number_of_coins_to_invest > MAX_COINS:
+            number_of_coins_to_invest = MAX_COINS
 
-            yield BuyOrder(buy_order_id=order.client_oid, coin_name=coin.name)
+        return number_of_coins_to_invest
 
+    def get_latest_trade(self, coin_name: str) -> LatestTrade:
+        ticker_json = self.market.get_ticker(coin_name)
+
+        return LatestTrade(ticker_json)
+
+    def get_latest_trades(self) -> List[LatestTrade]:
+        tickers = self.market.get_usd_tickers()
+        trades = [LatestTrade(ticker) for ticker in tickers]
+
+        return trades
+
+    # TODO write class for valuation data
+    def get_coin_time_series_data(self, coin_name: str) -> dict:
+        return self.market.get_valuation(coin_name, "mark_price")
+
+    def get_order_detail(self, order_id: str) -> OrderDetail:
+        order_detail_json = self.user.get_order_detail(order_id)
+
+        return OrderDetail(order_detail_json)
+
+    def get_coin_properties(self) -> List[CoinProperties]:
+        instruments = self.market.get_instruments()
+
+        return [CoinProperties(instrument) for instrument in instruments]
+
+    def place_coin_buy_order(self, order_spec: BuyOrderSpecification) -> BuyOrder:
+
+        order = self.user.create_order(
+            order_spec.coin_name,
+            order_spec.price_per_coin_str,
+            order_spec.quantity_str,
+            "BUY",
+        )
+
+        return BuyOrder(buy_order_id=order.client_oid, coin_name=order_spec.coin_name)
+
+    # TODO this can be simplified
     def place_coin_sell_order(self, sell_order: SellOrder):
         """Places order for the input coin, accounting for discrepancies in coin quantity
         following any fee deductions. For example if 1.8 of a particular coin has been

@@ -20,7 +20,7 @@ class HttpClient:
     api_url: str
     id_incr: int
 
-    def __write_request_to_file(
+    def write_request_to_file(
         self, uri_string: str, response_text: str, response_code: str
     ):
 
@@ -34,7 +34,7 @@ class HttpClient:
         directory_path_components = result.split("/")
 
         directory_path = path.join(*directory_path_components)
-        logger.info(directory_path)
+        logger.debug(directory_path)
 
         Path(directory_path).mkdir(parents=True, exist_ok=True)
         file_path = path.join(directory_path, f"status_{response_code}_response.json")
@@ -51,7 +51,7 @@ class HttpClient:
         if response.status_code != 200:
             response.raise_for_status()
 
-        self.__write_request_to_file(
+        self.write_request_to_file(
             f"{self.api_url}{method}", response.text, response.status_code
         )
 
@@ -127,7 +127,7 @@ class AuthenticatedHttpClient(HttpClient):
         if result.status_code != 200:
             result.raise_for_status()
 
-        self.__write_request_to_file(
+        self.write_request_to_file(
             f"{self.api_url}{method}", result.text, result.status_code
         )
 

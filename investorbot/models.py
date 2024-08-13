@@ -1,5 +1,4 @@
 from typing import List, Optional
-from pandas import Series
 from sqlalchemy import ForeignKey, String, Integer, Float
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import DeclarativeBase

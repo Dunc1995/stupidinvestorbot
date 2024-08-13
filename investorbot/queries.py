@@ -2,6 +2,13 @@ import json
 from investorbot import app_context
 
 
+# TODO could probably get this to show something more informative.
+def show_investable_coin_count():
+    coin_count = app_context.get_investable_coin_count()
+
+    print(coin_count)
+
+
 def show_time_series_summaries():
     ts_data = app_context.get_all_time_series_summaries()
 
