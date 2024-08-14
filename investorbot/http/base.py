@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import uuid
 import hashlib
 import hmac
 import json
@@ -37,7 +38,9 @@ class HttpClient:
         logger.debug(directory_path)
 
         Path(directory_path).mkdir(parents=True, exist_ok=True)
-        file_path = path.join(directory_path, f"status_{response_code}_response.json")
+        file_path = path.join(
+            directory_path, f"status{response_code}{uuid.uuid4()}.json"
+        )
 
         response_dict = json.loads(response_text)
         response_formatted = json.dumps(response_dict, indent=4)
