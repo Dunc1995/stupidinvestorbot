@@ -13,7 +13,7 @@ from investorbot.models import (
 )
 
 
-class TestInvestorBotRepo(unittest.TestCase):
+class TestAppContext(unittest.TestCase):
     def setUp(self):
         instrument_data = None
 
@@ -73,6 +73,8 @@ class TestInvestorBotRepo(unittest.TestCase):
             0.5,
             0.001,
             12434134,
+            0.001,
+            4.5,
             [TimeSeriesMode(11.0), TimeSeriesMode(12.0), TimeSeriesMode(13.0)],
         )
 
