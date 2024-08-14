@@ -4,7 +4,7 @@ from investorbot.constants import INVESTMENT_INCREMENTS, DEFAULT_LOGS_NAME
 from investorbot import crypto_context, app_context
 from investorbot.models import CoinProperties
 from investorbot.structs.internal import BuyOrderSpecification, SellOrder
-from investorbot.strategies import LatestTradeValidator, LatestTradeValidatorOptions
+from investorbot.validators import LatestTradeValidator, LatestTradeValidatorOptions
 import investorbot.timeseries as timeseries
 import investorbot.subroutines as subroutines
 
@@ -34,7 +34,8 @@ def update_time_series_summaries_routine():
 
 def buy_coin_routine():
     options = LatestTradeValidatorOptions(
-        trade_needs_to_be_within_mean_and_lower_bound=True
+        data_gradient_24h_percentage_threshold=0.01,
+        data_gradient_24h_should_be_rising=True,
     )
     purchase_count = 0
     coin_count = crypto_context.get_investable_coin_count()
