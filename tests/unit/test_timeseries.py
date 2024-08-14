@@ -39,11 +39,11 @@ class TestTimeseries(unittest.TestCase):
     ):
         data = get_example_data(filename)
 
-        stats = timeseries.get_time_series_data_frame(data)
+        stats, _ = timeseries.get_time_series_data_frame(data)
 
         print(stats)
 
-        a, b = timeseries.get_line_of_best_fix(stats)
+        a, b = timeseries.get_line_of_best_fit(stats)
 
         gradient = round(float(a), t_grad_dec)
         offset = round(float(b), t_offset_dec)

@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import time
+from investorbot.timeseries import time_now
 from investorbot.structs.ingress import PositionBalanceJson, OrderDetailJson, TickerJson
 
 
@@ -104,7 +105,7 @@ class OrderDetail:
 
     @property
     def hours_since_order(self) -> float:
-        time_now = int(time.time() * 1000)
+        time_now = time_now()
 
         time_of_order = self.time_created_ms
         milliseconds_since_order = time_now - time_of_order

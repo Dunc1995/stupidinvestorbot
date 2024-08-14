@@ -1,9 +1,9 @@
 import logging
 import time
+from typing import Tuple
 import pandas as pd
 from pandas import DataFrame
 import numpy as np
-import datetime as dt
 
 from investorbot.constants import DEFAULT_LOGS_NAME
 from investorbot.models import TimeSeriesMode, TimeSeriesSummary
@@ -11,23 +11,35 @@ from investorbot.models import TimeSeriesMode, TimeSeriesSummary
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
 
-def get_time_series_data_frame(time_series_data: dict) -> DataFrame:
+def time_now():
+    return int(time.time() * 1000)
+
+
+def convert_ms_time_to_hours(value: int, offset=0):
+    result = (value - offset) / (1000 * 60 * 60)
+
+    return float(result)
+
+
+def get_time_series_data_frame(time_series_data: dict) -> Tuple[DataFrame, int]:
     df = pd.DataFrame.from_dict(time_series_data)
 
-    time_value_offset = df["t"].iat[-1]
+    time_value_offset = int(
+        df["t"].iat[-1]
+    )  # Relies on data ordered from most recent to x hours ago.
 
     df["t"] = df["t"].apply(
-        lambda x: (x - time_value_offset) / (1000 * 60 * 60)
+        lambda x: convert_ms_time_to_hours(x, time_value_offset)
     )  # Convert to hours.
     df["v"] = df["v"].astype(float)
 
     df = df[::-1]
     df.reset_index(inplace=True, drop=True)
 
-    return df
+    return df, time_value_offset
 
 
-def get_line_of_best_fix(df: DataFrame):
+def get_line_of_best_fit(df: DataFrame):
     time_array = df["t"].to_numpy()
     value_array = df["v"].to_numpy()
 
@@ -40,9 +52,9 @@ def get_coin_time_series_summary(
     coin_name: str, time_series_data: dict
 ) -> TimeSeriesSummary:
 
-    stats = get_time_series_data_frame(time_series_data)
+    stats, time_offset = get_time_series_data_frame(time_series_data)
 
-    a, b = get_line_of_best_fix(stats)
+    a, b = get_line_of_best_fit(stats)
 
     logger.debug(stats)
 
@@ -59,5 +71,6 @@ def get_coin_time_series_summary(
         percentage_std=percentage_std,
         line_of_best_fit_coefficient=a,
         line_of_best_fit_offset=b,
-        creation_time_ms=int(time.time() * 1000),
+        time_offset=time_offset,
+        creation_time_ms=time_now(),
     )

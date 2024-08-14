@@ -28,6 +28,7 @@ from investorbot.structs.internal import (
     LatestTrade,
 )
 from investorbot.models import Base, BuyOrder, CoinProperties, TimeSeriesSummary
+from investorbot.timeseries import time_now
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
@@ -219,11 +220,11 @@ class AppContext:
 
     def delete_existing_time_series(self):
         with self.session as session:
-            time_now = int(time.time() * 1000)
+            now = time_now()
             query = (
                 session.query(TimeSeriesSummary)
                 .options(joinedload(TimeSeriesSummary.modes))
-                .where(TimeSeriesSummary.creation_time_ms < time_now)
+                .where(TimeSeriesSummary.creation_time_ms < now)
             )
 
             for item in session.scalars(query):

@@ -60,6 +60,7 @@ class TimeSeriesSummary(Base):
     percentage_std: Mapped[float] = mapped_column(Float())
     line_of_best_fit_coefficient: Mapped[float] = mapped_column(Float())
     line_of_best_fit_offset: Mapped[float] = mapped_column(Float())
+    time_offset: Mapped[int] = mapped_column(Integer())
     creation_time_ms: Mapped[int] = mapped_column(Integer())
 
     modes: Mapped[List["TimeSeriesMode"]] = relationship(

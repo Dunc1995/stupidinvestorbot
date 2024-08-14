@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from investorbot.structs.internal import LatestTrade
 from investorbot.models import TimeSeriesSummary
+from investorbot.timeseries import convert_ms_time_to_hours
 
 
 @dataclass
