@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<h1>{% block title %}Time Series Data{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<table>
+    <tr>
+        <th>Summary ID</th>
+        <th>Coin Name</th>
+        <th>Creation Time</th>
+    </tr>
+    {% for ts_data in time_series_data %}
+    <tr>
+        <td>{{ts_data.summary_id}}</td>
+        <td>{{ts_data.coin_name}}</td>
+        <td>{{ts_data.creation_time_ms}}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

@@ -21,6 +21,15 @@
             "args": [
                 "sell-coin-routine"
             ]
+        },
+        {
+            "name": "Cancel Order Routine",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "investorbot",
+            "args": [
+                "cancel-orders-routine"
+            ]
         }
     ]
 }

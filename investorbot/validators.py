@@ -16,6 +16,7 @@ class LatestTradeValidatorOptions:
     trend_line_should_be_flat: bool = False
     trend_line_should_be_rising: bool = False
     trend_line_should_be_falling: bool = False
+    trend_line_should_be_flat_or_rising: bool = False
 
 
 @dataclass(init=False)
@@ -119,6 +120,9 @@ class LatestTradeValidator:
 
         if self.options.trend_line_should_be_rising:
             criteria.append(self.is_trend_line_rising)
+
+        if self.options.trend_line_should_be_flat_or_rising:
+            criteria.append(self.is_trend_line_flat or self.is_trend_line_rising)
 
         if self.options.standard_deviation_threshold_should_exceed_threshold:
             criteria.append(

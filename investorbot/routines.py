@@ -1,17 +1,45 @@
 import logging
 from requests.exceptions import HTTPError
-from investorbot.constants import INVESTMENT_INCREMENTS, DEFAULT_LOGS_NAME
+from investorbot.constants import (
+    INVESTMENT_INCREMENTS,
+    DEFAULT_LOGS_NAME,
+)
 from investorbot import crypto_context, app_context
 from investorbot.validators import (
     BuyOrderSpecification,
     LatestTradeValidator,
     LatestTradeValidatorOptions,
 )
+from investorbot.structs.internal import OrderStatuses
 import investorbot.timeseries as timeseries
 import investorbot.subroutines as subroutines
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
 logging.basicConfig(level=logging.INFO)
+
+
+def cancel_orders_routine():
+    orders = app_context.get_all_buy_orders()
+
+    for order in orders:
+        order_detail = crypto_context.get_order_detail(order.buy_order_id)
+
+        current_time = timeseries.time_now()
+        age = timeseries.convert_ms_time_to_hours(
+            current_time - order_detail.time_created_ms
+        )
+
+        if age > 0.15 and order_detail.status == OrderStatuses.ACTIVE.value:
+            logger.info(f"Cancelling order {order.buy_order_id}")
+            result = crypto_context.user.cancel_order(order.buy_order_id)
+            app_context.delete_buy_order(order.buy_order_id)
+
+            logger.info(str(result))
+        elif OrderStatuses.CANCELED.value == order_detail.status:
+            logger.info(
+                f"Removing order {order.buy_order_id} as it has been cancelled."
+            )
+            app_context.delete_buy_order(order.buy_order_id)
 
 
 def update_time_series_summaries_routine():
@@ -39,7 +67,7 @@ def buy_coin_routine():
         standard_deviation_threshold_should_exceed_threshold=True,
         standard_deviation_threshold=0.02,
         trend_line_percentage_threshold=0.01,
-        trend_line_should_be_flat=True,
+        trend_line_should_be_flat_or_rising=True,
         trade_needs_to_be_within_mean_and_lower_bound=True,
     )
     purchase_count = 0
@@ -82,6 +110,9 @@ def sell_coin_routine():
         order_detail = crypto_context.get_order_detail(order.buy_order_id)
 
         coin_balance = crypto_context.get_coin_balance(order_detail.coin_name)
+
+        print(order_detail.__dict__)
+        print(coin_balance.__dict__)
 
         # logger.info(sell_order.__dict__)
 

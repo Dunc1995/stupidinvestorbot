@@ -94,4 +94,4 @@ class UserHttpClient(AuthenticatedHttpClient):
         )
 
     def cancel_order(self, order_id: int):
-        return self.post_request("cancel-order", {"order_id": str(order_id)})
+        return self.post_request("cancel-order", {"client_oid": str(order_id)})

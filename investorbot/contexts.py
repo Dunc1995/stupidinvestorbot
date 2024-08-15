@@ -23,7 +23,6 @@ from investorbot.http.market import MarketHttpClient
 from investorbot.http.user import UserHttpClient
 from investorbot.structs.internal import (
     OrderDetail,
-    SellOrder,
     LatestTrade,
 )
 from investorbot.models import Base, BuyOrder, CoinProperties, TimeSeriesSummary
@@ -108,55 +107,8 @@ class CryptoContext:
             coin_name=order_spec.coin_properties.coin_name,
         )
 
-    # TODO this can be simplified
-    def place_coin_sell_order(self, sell_order: SellOrder):
-        """Places order for the input coin, accounting for discrepancies in coin quantity
-        following any fee deductions. For example if 1.8 of a particular coin has been
-        purchased, Crypto.com will deduct a fee from the coin quantity resulting in you
-        actually receiving 1.795 of said coin. This fee may not necessarily respect the
-        quantity tick size of the coin - e.g. you may have 1.795 of the coin, but only
-        1.79 of the coin is actually sellable, because the quantity tick size is 0.01.
-        """
-        instrument = self.get_instrument(
-            sell_order.coin_name
-        )  #! TODO find a better way to store instrument data.
-        quantity_remainder = sell_order.sellable_quantity % float(
-            instrument.qty_tick_size
-        )
-
-        adjusted_sell_quantity = (
-            sell_order.sellable_quantity - quantity_remainder
-        )  # remainder needs deducting because Crypto.com fees don't respect their own quantity tick size requirement.
-
-        sellable_vs_absolute_quantity_ratio = (
-            adjusted_sell_quantity / sell_order.sellable_quantity
-        )  # used to adjust final sell price after negating the quantity remainder
-
-        adjusted_sell_price = (
-            sellable_vs_absolute_quantity_ratio * sell_order.current_market_value
-        ) / (
-            adjusted_sell_quantity
-        )  # sell price adjusted after negating quantity remainder.
-
-        # string formatting removes any trailing zeros or dodgy rounding.
-
-        if sell_order.market_value_rounding > 0:
-            adjusted_sell_price = round(
-                adjusted_sell_price, sell_order.market_value_rounding
-            )
-            logger.info(
-                f"Rounding sell value to {sell_order.market_value_rounding} decimal places."
-            )
-
-        adjusted_sell_quantity_string = f"{adjusted_sell_quantity:g}"
-        adjusted_sell_price_string = f"{adjusted_sell_price:g}"
-
-        self.user.create_order(
-            sell_order.coin_name,
-            adjusted_sell_price_string,
-            adjusted_sell_quantity_string,
-            "SELL",
-        )
+    def place_coin_sell_order(self):
+        pass
 
 
 class AppContext:
@@ -204,6 +156,17 @@ class AppContext:
 
     def get_all_buy_orders(self) -> List[BuyOrder]:
         return self.get_all_items(BuyOrder)
+
+    def delete_buy_order(self, buy_order_id: int):
+        with self.session as session:
+            item = (
+                session.query(BuyOrder)
+                .where(BuyOrder.buy_order_id == buy_order_id)
+                .first()
+            )
+
+            session.delete(item)
+            session.commit()
 
     def get_time_series_with_coin_name(
         self, coin_name: str

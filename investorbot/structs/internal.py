@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from enum import Enum
 from investorbot.timeseries import time_now
 from investorbot.structs.ingress import OrderDetailJson, PositionBalanceJson, TickerJson
 
@@ -21,12 +22,24 @@ class LatestTrade:
         self.price = float(ticker.latest_trade)
 
 
+class OrderStatuses(Enum):
+    NEW = "NEW"
+    PENDING = "PENDING"
+    REJECTED = "REJECTED"
+    ACTIVE = "ACTIVE"
+    CANCELED = "CANCELED"
+    FILLED = "FILLED"
+    EXPIRED = "EXPIRED"
+
+
 @dataclass(init=False)
 class OrderDetail:
     status: str
     order_id: str
     coin_name: str
     quantity: float
+    quantity_after_fee: float
+    value_before_fee: float
     value_after_fee: float
     time_created_ms: int
 
@@ -34,10 +47,18 @@ class OrderDetail:
         self.status = json_data.status
         self.order_id = json_data.client_oid
         self.coin_name = json_data.instrument_name
-        self.quantity = float(json_data.cumulative_quantity)
-        self.value_after_fee = float(json_data.cumulative_value) - float(
-            json_data.cumulative_fee
-        )
+
+        if self.status == OrderStatuses.FILLED:
+            self.quantity = float(json_data.cumulative_quantity)
+            self.value_before_fee = float(json_data.cumulative_value)
+            self.value_after_fee = self.value_before_fee - float(
+                json_data.cumulative_fee
+            )
+
+            percentage_of_original_value = self.value_after_fee / self.value_before_fee
+            self.quantity_after_fee = percentage_of_original_value * self.quantity
+
+        self.fee_currency = json_data.fee_instrument_name
         self.time_created_ms = int(json_data.create_time)
 
     @property

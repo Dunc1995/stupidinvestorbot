@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  crypto-application:
+    image: crypto-application:latest
+    container_name: crypto-application
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - $HOME/.aws/credentials:/app/.aws/credentials:ro
+      - $HOME/repos/stupidinvestorbot/app.db:/app/app.db
+    environment:
+      AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
+      AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'
+      CRYPTO_KEY: ${CRYPTO_KEY}
+      CRYPTO_SECRET_KEY: ${CRYPTO_SECRET_KEY}
+      INVESTOR_APP_PATH: /app/
+      INVESTOR_APP_ENVIRONMENT: Development
+      REGION: 'eu-west-1'
+    command: [ "sh", "-c", "flask --app /app/investorbot/web/app.py run -h 0.0.0.0 -p 8080" ]
