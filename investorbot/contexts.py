@@ -22,13 +22,13 @@ from investorbot.structs.ingress import (
 from investorbot.http.market import MarketHttpClient
 from investorbot.http.user import UserHttpClient
 from investorbot.structs.internal import (
-    BuyOrderSpecification,
     OrderDetail,
     SellOrder,
     LatestTrade,
 )
 from investorbot.models import Base, BuyOrder, CoinProperties, TimeSeriesSummary
 from investorbot.timeseries import time_now
+from investorbot.validators import BuyOrderSpecification
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
@@ -41,13 +41,13 @@ class CryptoContext:
         self.market = MarketHttpClient()
         self.user = UserHttpClient(CRYPTO_KEY, CRYPTO_SECRET_KEY)
 
-    def get_coin_balance(self, instrument_name: str) -> PositionBalanceJson:
+    def get_coin_balance(self, coin_name: str) -> PositionBalanceJson:
         wallet_balance = self.user.get_balance()
 
+        name = coin_name.split("_")[0] if "_USD" in coin_name else coin_name
+
         balance = next(
-            x
-            for x in wallet_balance.position_balances
-            if x.instrument_name == instrument_name
+            x for x in wallet_balance.position_balances if x.instrument_name == name
         )
 
         return balance
@@ -97,13 +97,16 @@ class CryptoContext:
     def place_coin_buy_order(self, order_spec: BuyOrderSpecification) -> BuyOrder:
 
         order = self.user.create_order(
-            order_spec.coin_name,
+            order_spec.coin_properties.coin_name,
             order_spec.price_per_coin_str,
             order_spec.quantity_str,
             "BUY",
         )
 
-        return BuyOrder(buy_order_id=order.client_oid, coin_name=order_spec.coin_name)
+        return BuyOrder(
+            buy_order_id=order.client_oid,
+            coin_name=order_spec.coin_properties.coin_name,
+        )
 
     # TODO this can be simplified
     def place_coin_sell_order(self, sell_order: SellOrder):
@@ -161,7 +164,8 @@ class AppContext:
 
     def __init__(
         self,
-        connection_string=INVESTOR_APP_DB_CONNECTION + "app.db",
+        connection_string=INVESTOR_APP_DB_CONNECTION
+        + "app.db",  # TODO don't hardcode this.
     ):
         self.__engine = sqlalchemy.create_engine(connection_string)
 
@@ -231,3 +235,11 @@ class AppContext:
                 session.delete(item)
 
             session.commit()
+
+    def get_coin_properties(self, coin_name: str) -> CoinProperties | None:
+        session = self.session
+
+        query = sqlalchemy.select(CoinProperties).where(
+            CoinProperties.coin_name == coin_name
+        )
+        return session.scalar(query)

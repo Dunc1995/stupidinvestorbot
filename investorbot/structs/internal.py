@@ -1,59 +1,14 @@
 from dataclasses import dataclass
-import time
 from investorbot.timeseries import time_now
-from investorbot.structs.ingress import PositionBalanceJson, OrderDetailJson, TickerJson
+from investorbot.structs.ingress import OrderDetailJson, PositionBalanceJson, TickerJson
 
 
 @dataclass(init=False)
-class SellOrder:
-    buy_order_status: str
-    buy_order_id: str
-    coin_name: str
-    value_ratio: float
-    original_order_value: float
-    current_market_value: float
-    order_quantity: float
-    wallet_quantity: float
-    sellable_quantity: float
-    market_value_rounding: int
-    coin_quantity_can_be_sold = True
+class PositionBalance:
 
-    def __init__(
-        self, coin_wallet_balance: PositionBalanceJson, order_detail: OrderDetailJson
-    ):
-        self.buy_order_status = order_detail.status
-        self.buy_order_id = order_detail.client_oid
-        self.coin_name = order_detail.instrument_name
-        self.wallet_quantity = float(coin_wallet_balance.quantity)
-        self.order_quantity = float(order_detail.quantity)
-        self.original_order_value = float(order_detail.order_value)
-        self.sellable_quantity = self.wallet_quantity
-        self.market_value_rounding = (
-            len(order_detail.order_value.split(".")[1])
-            if "." in order_detail.order_value
-            else 0
-        )
-
-        current_market_value = float(coin_wallet_balance.market_value)
-        quantity_ratio = self.order_quantity / self.wallet_quantity
-
-        self.current_market_value = current_market_value
-
-        if (
-            self.wallet_quantity < self.order_quantity * 0.995
-            or not order_detail.successful
-        ):  # 0.995 should account for any fee deductions
-            self.coin_quantity_can_be_sold = False
-
-        # if quantity after fee is larger than quantity before, then
-        # then the initial buy order doesn't account for the total coin
-        # quantity in the user's wallet and shouldn't attempt to sell
-        # the total quantity available.
-        if self.wallet_quantity > self.order_quantity:
-            self.current_market_value = current_market_value * quantity_ratio
-            self.sellable_quantity = self.order_quantity
-
-        self.value_ratio = self.current_market_value / self.original_order_value
+    def __init__(self, balance: PositionBalanceJson):
+        self.market_value = balance.market_value
+        self.quantity = balance.quantity
 
 
 @dataclass(init=False)
@@ -64,24 +19,6 @@ class LatestTrade:
     def __init__(self, ticker: TickerJson):
         self.coin_name = ticker.instrument_name
         self.price = float(ticker.latest_trade)
-
-
-@dataclass
-class BuyOrderSpecification:
-    coin_name: str
-    quantity: float
-    price_per_coin: float
-
-    def __format(self, value: float):
-        return f"{value:g}"
-
-    @property
-    def quantity_str(self) -> str:
-        self.__format(self.quantity)
-
-    @property
-    def price_per_coin_str(self) -> str:
-        self.__format(self.price_per_coin)
 
 
 @dataclass(init=False)
@@ -105,10 +42,10 @@ class OrderDetail:
 
     @property
     def hours_since_order(self) -> float:
-        time_now = time_now()
+        t_now = time_now()
 
         time_of_order = self.time_created_ms
-        milliseconds_since_order = time_now - time_of_order
+        milliseconds_since_order = t_now - time_of_order
         return milliseconds_since_order / (1000 * 60 * 60)
 
     @property
