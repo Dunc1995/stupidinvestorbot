@@ -1,6 +1,8 @@
+APScheduler==3.10.4
 argh==0.31.3
 blessed==1.20.0
 blinker==1.8.2
+Bootstrap-Flask==2.4.0
 boto3==1.34.152
 botocore==1.34.152
 certifi==2024.7.4
@@ -34,7 +36,9 @@ six==1.16.0
 SQLAlchemy==2.0.32
 typing_extensions==4.12.2
 tzdata==2024.1
+tzlocal==5.2
 urllib3==2.2.2
 wcwidth==0.2.13
 Werkzeug==3.0.3
 wheel==0.43.0
+WTForms==3.1.2

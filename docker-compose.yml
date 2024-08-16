@@ -19,4 +19,4 @@ services:
       INVESTOR_APP_PATH: /app/
       INVESTOR_APP_ENVIRONMENT: Development
       REGION: 'eu-west-1'
-    command: [ "sh", "-c", "flask --app /app/investorbot/web/app.py run -h 0.0.0.0 -p 8080" ]
+    command: [ "sh", "-c", "flask --app /app/web/app.py run -h 0.0.0.0 -p 8080" ]
