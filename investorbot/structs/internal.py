@@ -48,7 +48,9 @@ class OrderDetail:
         self.order_id = json_data.client_oid
         self.coin_name = json_data.instrument_name
 
-        if self.status == OrderStatuses.FILLED:
+        # TODO Update this to break down costs and sum fees alongside corresponding sell order
+        #! Too implicit just lifting values from cumulative properties
+        if self.status == OrderStatuses.FILLED.value:
             self.quantity = float(json_data.cumulative_quantity)
             self.value_before_fee = float(json_data.cumulative_value)
             self.value_after_fee = self.value_before_fee - float(

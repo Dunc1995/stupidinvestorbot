@@ -1,6 +1,6 @@
 import atexit
 from flask import Flask, render_template
-from investorbot import app_context
+from investorbot import app_context, crypto_context
 import investorbot.routines as routines
 from flask_bootstrap import Bootstrap5
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -10,13 +10,25 @@ app = Flask(__name__)
 bootstrap = Bootstrap5(app)
 scheduler = BackgroundScheduler()
 scheduler.add_job(
-    func=routines.update_time_series_summaries_routine, trigger="interval", seconds=60
+    func=routines.update_time_series_summaries_routine, trigger="interval", minutes=60
 )
 scheduler.start()
 
 
 # Shut down the scheduler when exiting the app
 atexit.register(lambda: scheduler.shutdown())
+
+
+@app.route("/")
+def home():
+    order_details = []
+    orders = app_context.get_all_buy_orders()
+
+    for order in orders:
+        order_detail = crypto_context.get_order_detail(order.buy_order_id)
+        order_details.append(order_detail)
+
+    return render_template("home.html", order_details=order_details)
 
 
 @app.route("/time-series")
