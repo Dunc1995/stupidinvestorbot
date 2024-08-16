@@ -16,18 +16,13 @@ from investorbot.constants import (
     INVESTOR_APP_DB_CONNECTION,
     MAX_COINS,
 )
-from investorbot.structs.ingress import (
-    PositionBalanceJson,
-)
 from investorbot.http.market import MarketHttpClient
 from investorbot.http.user import UserHttpClient
-from investorbot.structs.internal import (
-    OrderDetail,
-    LatestTrade,
-)
+from investorbot.structs.ingress import PositionBalanceJson
+from investorbot.structs.internal import OrderDetail, LatestTrade
+from investorbot.structs.egress import CoinPurchase
 from investorbot.models import Base, BuyOrder, CoinProperties, TimeSeriesSummary
 from investorbot.timeseries import time_now
-from investorbot.validators import BuyOrderSpecification
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
@@ -91,14 +86,17 @@ class CryptoContext:
     def get_coin_properties(self) -> List[CoinProperties]:
         instruments = self.market.get_instruments()
 
-        return [CoinProperties(instrument) for instrument in instruments]
+        return [
+            CoinProperties.from_instrument_json(instrument)
+            for instrument in instruments
+        ]
 
-    def place_coin_buy_order(self, order_spec: BuyOrderSpecification) -> BuyOrder:
+    def place_coin_buy_order(self, order_spec: CoinPurchase) -> BuyOrder:
 
         order = self.user.create_order(
             order_spec.coin_properties.coin_name,
-            order_spec.price_per_coin_str,
-            order_spec.quantity_str,
+            order_spec.price_per_coin,
+            order_spec.quantity,
             "BUY",
         )
 

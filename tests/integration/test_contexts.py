@@ -24,7 +24,10 @@ class TestAppContext(unittest.TestCase):
             instrument_data = json.loads(f.read())["result"]["data"]
 
         instruments = [InstrumentJson(**inst_data) for inst_data in instrument_data]
-        coin_properties = [CoinProperties(instrument) for instrument in instruments]
+        coin_properties = [
+            CoinProperties.from_instrument_json(instrument)
+            for instrument in instruments
+        ]
 
         self.test_context.add_items(coin_properties)
 

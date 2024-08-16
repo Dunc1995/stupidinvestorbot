@@ -131,36 +131,3 @@ class LatestTradeValidator:
             )
 
         return all(i for i in criteria)
-
-
-@dataclass
-class BuyOrderSpecification:
-    price_per_coin: float
-    coin_properties: CoinProperties
-
-    def __format(self, value: float):
-        return f"{value:g}"
-
-    @property
-    def quantity(self) -> float | int:
-        total_order_value = INVESTMENT_INCREMENTS
-        decimal_places = self.coin_properties.quantity_decimals
-
-        absolute_quantity = total_order_value / self.price_per_coin
-
-        return (
-            round(absolute_quantity, decimal_places)
-            if decimal_places > 0
-            else int(
-                absolute_quantity
-                - (absolute_quantity % self.coin_properties.quantity_tick_size)
-            )
-        )
-
-    @property
-    def quantity_str(self) -> str:
-        return self.__format(self.quantity)
-
-    @property
-    def price_per_coin_str(self) -> str:
-        return self.__format(self.price_per_coin)

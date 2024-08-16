@@ -1,3 +1,4 @@
+import json
 import logging
 from requests.exceptions import HTTPError
 from investorbot.constants import (
@@ -5,12 +6,13 @@ from investorbot.constants import (
     DEFAULT_LOGS_NAME,
 )
 from investorbot import crypto_context, app_context
+from investorbot.decorators import routine
 from investorbot.validators import (
-    BuyOrderSpecification,
     LatestTradeValidator,
     LatestTradeValidatorOptions,
 )
 from investorbot.structs.internal import OrderStatuses
+from investorbot.structs.egress import CoinPurchase
 import investorbot.timeseries as timeseries
 import investorbot.subroutines as subroutines
 
@@ -18,7 +20,9 @@ logger = logging.getLogger(DEFAULT_LOGS_NAME)
 logging.basicConfig(level=logging.INFO)
 
 
+@routine("Check Orders for Cancellation")
 def cancel_orders_routine():
+    no_deletions = True
     orders = app_context.get_all_buy_orders()
 
     for order in orders:
@@ -35,13 +39,18 @@ def cancel_orders_routine():
             app_context.delete_buy_order(order.buy_order_id)
 
             logger.info(str(result))
+            no_deletions = False
         elif OrderStatuses.CANCELED.value == order_detail.status:
             logger.info(
                 f"Removing order {order.buy_order_id} as it has been cancelled."
             )
             app_context.delete_buy_order(order.buy_order_id)
 
+    if no_deletions:
+        logger.info("No cancellable orders found.")
 
+
+@routine("Time Series Update")
 def update_time_series_summaries_routine():
     ts_summaries = []
     app_context.delete_existing_time_series()
@@ -62,6 +71,7 @@ def update_time_series_summaries_routine():
     app_context.add_items(ts_summaries)
 
 
+@routine("Coin Purchase")
 def buy_coin_routine():
     options = LatestTradeValidatorOptions(
         standard_deviation_threshold_should_exceed_threshold=True,
@@ -95,7 +105,7 @@ def buy_coin_routine():
 
         coin_props = app_context.get_coin_properties(coin_name)
 
-        spec = BuyOrderSpecification(latest_trade.price, coin_props)
+        spec = CoinPurchase(latest_trade.price, coin_props)
 
         buy_order = crypto_context.place_coin_buy_order(spec)
         app_context.add_item(buy_order)
@@ -103,6 +113,7 @@ def buy_coin_routine():
         purchase_count += 1
 
 
+@routine("Sell Coins")
 def sell_coin_routine():
     buy_orders = app_context.get_all_buy_orders()
 
@@ -111,8 +122,8 @@ def sell_coin_routine():
 
         coin_balance = crypto_context.get_coin_balance(order_detail.coin_name)
 
-        print(order_detail.__dict__)
-        print(coin_balance.__dict__)
+        print(json.dumps(order_detail.__dict__, indent=4))
+        print(json.dumps(coin_balance.__dict__, indent=4))
 
         # logger.info(sell_order.__dict__)
 

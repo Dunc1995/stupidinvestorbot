@@ -26,12 +26,21 @@ class CoinProperties(Base):
         init=False, back_populates="coin_properties", cascade="all, delete-orphan"
     )
 
-    def __init__(self, json_data: InstrumentJson):
-        self.coin_name = json_data.symbol
-        self.quantity_tick_size = float(json_data.qty_tick_size)
-        self.quantity_decimals = int(json_data.quantity_decimals)
-        self.price_tick_size = float(json_data.price_tick_size)
-        self.price_decimals = int(json_data.quote_decimals)
+    @staticmethod
+    def from_instrument_json(json_data: InstrumentJson) -> "CoinProperties":
+        coin_name = json_data.symbol
+        quantity_tick_size = float(json_data.qty_tick_size)
+        quantity_decimals = int(json_data.quantity_decimals)
+        price_tick_size = float(json_data.price_tick_size)
+        price_decimals = int(json_data.quote_decimals)
+
+        return CoinProperties(
+            coin_name,
+            quantity_tick_size,
+            quantity_decimals,
+            price_tick_size,
+            price_decimals,
+        )
 
 
 class BuyOrder(Base):

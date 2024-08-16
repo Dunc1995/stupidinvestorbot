@@ -9,6 +9,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 app = Flask(__name__)
 bootstrap = Bootstrap5(app)
 scheduler = BackgroundScheduler()
+scheduler.add_job(func=routines.cancel_orders_routine, trigger="interval", minutes=15)
 scheduler.add_job(
     func=routines.update_time_series_summaries_routine, trigger="interval", minutes=60
 )
