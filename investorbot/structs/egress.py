@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from investorbot.constants import INVESTMENT_INCREMENTS
-from investorbot.decorators import formatted_numeric
+from investorbot.decorators import no_scientific_notation
 from investorbot.models import CoinProperties
 
 
@@ -10,7 +10,7 @@ class CoinPurchase:
     __price_per_coin: float
 
     @property
-    @formatted_numeric
+    @no_scientific_notation
     def quantity(self) -> float | int:
         total_order_value = INVESTMENT_INCREMENTS
         decimal_places = self.coin_properties.quantity_decimals
@@ -29,6 +29,6 @@ class CoinPurchase:
         return rounded_quantity
 
     @property
-    @formatted_numeric
+    @no_scientific_notation
     def price_per_coin(self) -> float:
         return self.__price_per_coin
