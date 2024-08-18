@@ -19,7 +19,7 @@ from investorbot.constants import (
 from investorbot.http.market import MarketHttpClient
 from investorbot.http.user import UserHttpClient
 from investorbot.structs.ingress import PositionBalanceJson
-from investorbot.structs.internal import OrderDetail, LatestTrade
+from investorbot.structs.internal import OrderDetail, LatestTrade, PositionBalance
 from investorbot.structs.egress import CoinPurchase
 from investorbot.models import Base, BuyOrder, CoinProperties, TimeSeriesSummary
 from investorbot.timeseries import time_now
@@ -44,7 +44,7 @@ class CryptoContext:
             x for x in wallet_balance.position_balances if x.instrument_name == name
         )
 
-        return balance
+        return PositionBalance.from_json(balance)
 
     def get_usd_balance(self) -> float:
         usd_balance = float(self.get_coin_balance("USD").market_value)
@@ -81,7 +81,7 @@ class CryptoContext:
     def get_order_detail(self, order_id: str) -> OrderDetail:
         order_detail_json = self.user.get_order_detail(order_id)
 
-        return OrderDetail(order_detail_json)
+        return OrderDetail.from_json(order_detail_json)
 
     def get_coin_properties(self) -> List[CoinProperties]:
         instruments = self.market.get_instruments()

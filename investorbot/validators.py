@@ -1,8 +1,17 @@
 from dataclasses import dataclass
-from investorbot.constants import INVESTMENT_INCREMENTS
-from investorbot.structs.internal import LatestTrade
+import json
+import logging
+from investorbot.constants import DEFAULT_LOGS_NAME
+from investorbot.structs.internal import (
+    LatestTrade,
+    OrderDetail,
+    OrderStatuses,
+    PositionBalance,
+)
 from investorbot.models import CoinProperties, TimeSeriesSummary
 from investorbot.timeseries import time_now, convert_ms_time_to_hours
+
+logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
 
 @dataclass
@@ -131,3 +140,87 @@ class LatestTradeValidator:
             )
 
         return all(i for i in criteria)
+
+
+@dataclass(init=False)
+class CoinSaleValidator:
+    order_detail: OrderDetail
+    position_balance: PositionBalance
+
+    def __init__(self, order_detail: OrderDetail, position_balance: PositionBalance):
+        self.order_detail = order_detail
+        self.position_balance = position_balance
+
+    @property
+    def is_buy_order_complete(self) -> bool:
+        return self.order_detail.status == OrderStatuses.FILLED.value
+
+    @property
+    def wallet_market_value(self) -> float:
+        return self.position_balance.market_value
+
+    @property
+    def order_value_minus_fee(self) -> float:
+        return self.order_detail.cumulative_value - self.order_detail.cumulative_fee
+
+    @property
+    def sellable_quantity(self) -> float:
+        return self.position_balance.quantity - self.position_balance.reserved_quantity
+
+    @property
+    def order_quantity_as_percentage_of_wallet_quantity(self) -> float:
+        if self.position_balance.quantity <= 0.000000000001:
+            return -1.0
+
+        return self.order_detail.cumulative_quantity / self.position_balance.quantity
+
+    @property
+    def is_wallet_quantity_sufficient(self) -> bool:
+        return self.sellable_quantity >= self.order_detail.quantity
+
+    @property
+    def current_order_value(self) -> float:
+        return (
+            self.order_quantity_as_percentage_of_wallet_quantity
+            * self.position_balance.market_value
+        )
+
+    @property
+    def value_ratio(self) -> float:
+        if self.order_value_minus_fee <= 0.000000000001:
+            return -1.0
+
+        return self.current_order_value / self.order_value_minus_fee
+
+    @property
+    def is_value_ratio_sufficient(self) -> bool:
+        return self.value_ratio >= self.order_detail.minimum_acceptable_value_ratio
+
+    def is_valid_for_sale(self) -> bool:
+        result = True
+
+        if not self.is_buy_order_complete:
+            logger.info(f"Buy order {self.order_detail.order_id} is not complete.")
+            return False
+
+        if not self.is_wallet_quantity_sufficient:
+            logger.warn(
+                f"Wallet quantity not sufficient for selling order {self.order_detail.order_id}."
+            )
+            return False
+
+        if not self.is_value_ratio_sufficient:
+            logger.info(
+                json.dumps(
+                    {
+                        "minimum_acceptable_value_ratio": self.order_detail.minimum_acceptable_value_ratio,
+                        "current_value_ratio": self.value_ratio,
+                        "value_according_to_wallet": self.current_order_value,
+                        "original_order_value": self.order_value_minus_fee,
+                    },
+                    indent=4,
+                )
+            )
+            return False
+
+        return result

@@ -1,6 +1,5 @@
 import json
 import logging
-from requests.exceptions import HTTPError
 from investorbot.constants import (
     INVESTMENT_INCREMENTS,
     DEFAULT_LOGS_NAME,

@@ -56,3 +56,7 @@ class TestDecorators(unittest.TestCase):
         self.assertEqual(self.large_float_two, "13440900000000.0")
         self.assertEqual(self.small_integer, "1")
         self.assertEqual(self.large_integer, "80000000000000")
+
+
+if __name__ == "__main__":
+    unittest.main()

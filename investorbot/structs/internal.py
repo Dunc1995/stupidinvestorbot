@@ -4,12 +4,20 @@ from investorbot.timeseries import time_now
 from investorbot.structs.ingress import OrderDetailJson, PositionBalanceJson, TickerJson
 
 
-@dataclass(init=False)
+@dataclass
 class PositionBalance:
+    coin_name: str
+    market_value: float
+    quantity: float
+    reserved_quantity: float
 
-    def __init__(self, balance: PositionBalanceJson):
-        self.market_value = balance.market_value
-        self.quantity = balance.quantity
+    def from_json(balance: PositionBalanceJson) -> "PositionBalance":
+        return PositionBalance(
+            coin_name=balance.instrument_name,
+            market_value=float(balance.market_value),
+            quantity=float(balance.quantity),
+            reserved_quantity=float(balance.reserved_qty),
+        )
 
 
 @dataclass(init=False)
@@ -32,30 +40,33 @@ class OrderStatuses(Enum):
     EXPIRED = "EXPIRED"
 
 
-@dataclass(init=False)
+@dataclass
 class OrderDetail:
     status: str
     order_id: str
     coin_name: str
-    quantity: float
     order_value: float
     quantity: float
     cumulative_quantity: float
     cumulative_value: float
     cumulative_fee: float
+    fee_currency: str
     time_created_ms: int
 
-    def __init__(self, json_data: OrderDetailJson):
-        self.status = json_data.status
-        self.order_id = json_data.client_oid
-        self.coin_name = json_data.instrument_name
-        self.order_value = float(json_data.order_value)
-        self.quantity = float(json_data.quantity)
-        self.cumulative_quantity = float(json_data.cumulative_quantity)
-        self.cumulative_value = float(json_data.cumulative_value)
-        self.cumulative_fee = float(json_data.cumulative_fee)
-        self.fee_currency = json_data.fee_instrument_name
-        self.time_created_ms = int(json_data.create_time)
+    @staticmethod
+    def from_json(json_data: OrderDetailJson) -> "OrderDetail":
+        return OrderDetail(
+            status=json_data.status,
+            order_id=json_data.client_oid,
+            coin_name=json_data.instrument_name,
+            order_value=float(json_data.order_value),
+            quantity=float(json_data.quantity),
+            cumulative_quantity=float(json_data.cumulative_quantity),
+            cumulative_value=float(json_data.cumulative_value),
+            cumulative_fee=float(json_data.cumulative_fee),
+            fee_currency=json_data.fee_instrument_name,
+            time_created_ms=int(json_data.create_time),
+        )
 
     @property
     def hours_since_order(self) -> float:
