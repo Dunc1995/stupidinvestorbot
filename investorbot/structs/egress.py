@@ -32,3 +32,20 @@ class CoinPurchase:
     @no_scientific_notation
     def price_per_coin(self) -> float:
         return self.__price_per_coin
+
+
+@dataclass
+class CoinSale:
+    coin_properties: CoinProperties
+    __price_per_coin: float
+    __quantity: float
+
+    @property
+    @no_scientific_notation
+    def quantity(self) -> float | int:
+        return self.__quantity
+
+    @property
+    @no_scientific_notation
+    def price_per_coin(self) -> float:
+        return round(self.__price_per_coin * 1.2, self.coin_properties.price_decimals)

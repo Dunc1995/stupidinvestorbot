@@ -7,11 +7,12 @@ from investorbot.constants import (
 from investorbot import crypto_context, app_context
 from investorbot.decorators import routine
 from investorbot.validators import (
+    CoinSaleValidator,
     LatestTradeValidator,
     LatestTradeValidatorOptions,
 )
 from investorbot.structs.internal import OrderStatuses
-from investorbot.structs.egress import CoinPurchase
+from investorbot.structs.egress import CoinPurchase, CoinSale
 import investorbot.timeseries as timeseries
 import investorbot.subroutines as subroutines
 
@@ -104,7 +105,7 @@ def buy_coin_routine():
 
         coin_props = app_context.get_coin_properties(coin_name)
 
-        spec = CoinPurchase(latest_trade.price, coin_props)
+        spec = CoinPurchase(coin_props, latest_trade.price)
 
         buy_order = crypto_context.place_coin_buy_order(spec)
         app_context.add_item(buy_order)
@@ -118,22 +119,20 @@ def sell_coin_routine():
 
     for order in buy_orders:
         order_detail = crypto_context.get_order_detail(order.buy_order_id)
-
         coin_balance = crypto_context.get_coin_balance(order_detail.coin_name)
 
-        print(json.dumps(order_detail.__dict__, indent=4))
-        print(json.dumps(coin_balance.__dict__, indent=4))
+        coin_sale_validator = CoinSaleValidator(order_detail, coin_balance)
 
-        # logger.info(sell_order.__dict__)
+        if coin_sale_validator.is_valid_for_sale():
+            logger.info(
+                f"Order {order.buy_order_id} is now valid for sale, with a"
+                + f" value ratio of {coin_sale_validator.value_ratio}"
+            )
 
-        # if sell_order.value_ratio >= order_detail.minimum_acceptable_value_ratio:
-        #     logger.info(f"Placing sell order for order {sell_order.buy_order_id}.")
+            coin_sale = CoinSale(
+                order.coin_properties,
+                coin_sale_validator.current_order_value,
+                order_detail.cumulative_quantity,
+            )
 
-        #     try:
-        #         pass
-        #         # crypto_context.place_coin_sell_order(sell_order)
-        #     except HTTPError as error:
-        #         logger.warn(
-        #             "WARNING HTTP ERROR - continuing with script to ensure database consistency."
-        #         )
-        #         logger.warn(error.args[0])
+            crypto_context.place_coin_sell_order(coin_sale)

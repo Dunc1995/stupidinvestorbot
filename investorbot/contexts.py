@@ -18,9 +18,9 @@ from investorbot.constants import (
 )
 from investorbot.http.market import MarketHttpClient
 from investorbot.http.user import UserHttpClient
-from investorbot.structs.ingress import PositionBalanceJson
+from investorbot.structs.ingress import OrderJson, PositionBalanceJson
 from investorbot.structs.internal import OrderDetail, LatestTrade, PositionBalance
-from investorbot.structs.egress import CoinPurchase
+from investorbot.structs.egress import CoinPurchase, CoinSale
 from investorbot.models import Base, BuyOrder, CoinProperties, TimeSeriesSummary
 from investorbot.timeseries import time_now
 
@@ -35,7 +35,7 @@ class CryptoContext:
         self.market = MarketHttpClient()
         self.user = UserHttpClient(CRYPTO_KEY, CRYPTO_SECRET_KEY)
 
-    def get_coin_balance(self, coin_name: str) -> PositionBalanceJson:
+    def get_coin_balance(self, coin_name: str) -> PositionBalance:
         wallet_balance = self.user.get_balance()
 
         name = coin_name.split("_")[0] if "_USD" in coin_name else coin_name
@@ -105,8 +105,15 @@ class CryptoContext:
             coin_name=order_spec.coin_properties.coin_name,
         )
 
-    def place_coin_sell_order(self):
-        pass
+    def place_coin_sell_order(self, coin_sale: CoinSale) -> OrderJson:
+        order = self.user.create_order(
+            coin_sale.coin_properties.coin_name,
+            coin_sale.price_per_coin,
+            coin_sale.quantity,
+            "SELL",
+        )
+
+        return order
 
 
 class AppContext:

@@ -160,8 +160,8 @@ class CoinSaleValidator:
         return self.position_balance.market_value
 
     @property
-    def order_value_minus_fee(self) -> float:
-        return self.order_detail.cumulative_value - self.order_detail.cumulative_fee
+    def order_value_plus_fee(self) -> float:
+        return self.order_detail.cumulative_value + self.order_detail.cumulative_fee
 
     @property
     def sellable_quantity(self) -> float:
@@ -187,10 +187,10 @@ class CoinSaleValidator:
 
     @property
     def value_ratio(self) -> float:
-        if self.order_value_minus_fee <= 0.000000000001:
+        if self.order_value_plus_fee <= 0.000000000001:
             return -1.0
 
-        return self.current_order_value / self.order_value_minus_fee
+        return self.current_order_value / self.order_value_plus_fee
 
     @property
     def is_value_ratio_sufficient(self) -> bool:
@@ -211,15 +211,7 @@ class CoinSaleValidator:
 
         if not self.is_value_ratio_sufficient:
             logger.info(
-                json.dumps(
-                    {
-                        "minimum_acceptable_value_ratio": self.order_detail.minimum_acceptable_value_ratio,
-                        "current_value_ratio": self.value_ratio,
-                        "value_according_to_wallet": self.current_order_value,
-                        "original_order_value": self.order_value_minus_fee,
-                    },
-                    indent=4,
-                )
+                f"Value ratio is insufficient for order {self.order_detail.order_id}."
             )
             return False
 
