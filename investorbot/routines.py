@@ -131,7 +131,7 @@ def sell_coin_routine():
 
             coin_sale = CoinSale(
                 order.coin_properties,
-                coin_sale_validator.current_order_value,
+                coin_sale_validator.current_order_value_total,
                 order_detail.cumulative_quantity,
             )
 

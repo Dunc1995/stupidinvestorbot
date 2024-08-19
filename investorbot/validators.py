@@ -176,10 +176,19 @@ class CoinSaleValidator:
 
     @property
     def is_wallet_quantity_sufficient(self) -> bool:
+        # TODO See Below
+        # Sellable quantity may be slightly less than the original order,
+        # despite the wallet quantity representing the original trade. Try
+        # to account for this by using cumulative fee percentage to deduct
+        # from the original order quantity - e.g. the actual wallet quantity
+        # could be 99.5% of the original order quantity, although I'm not sure
+        # how this'll affect the rest of the app downstream. Maybe adjust the
+        # acceptable return from the trade internally to ensure the fee is
+        # accounted for by the app.
         return self.sellable_quantity >= self.order_detail.quantity
 
     @property
-    def current_order_value(self) -> float:
+    def current_order_value_total(self) -> float:
         return (
             self.order_quantity_as_percentage_of_wallet_quantity
             * self.position_balance.market_value
@@ -190,7 +199,7 @@ class CoinSaleValidator:
         if self.order_value_plus_fee <= 0.000000000001:
             return -1.0
 
-        return self.current_order_value / self.order_value_plus_fee
+        return self.current_order_value_total / self.order_value_plus_fee
 
     @property
     def is_value_ratio_sufficient(self) -> bool:
