@@ -161,3 +161,38 @@ class TestValidators(unittest.TestCase):
         self.assertTrue(validator.is_wallet_quantity_sufficient)
         self.assertFalse(validator.is_value_ratio_sufficient)
         self.assertFalse(validator.is_valid_for_sale())
+
+    def test_coin_validator_values_are_correct(self):
+        """
+        Ensure calculated values are correct.
+        """
+        order_detail = OrderDetail(
+            OrderStatuses.FILLED.value,
+            uuid.uuid4(),
+            "TON_USD",
+            5.0,
+            1.0,
+            1.0,
+            4.9,
+            0.1,
+            "TON",
+            timeseries.time_now() - 3_600_000,
+        )
+        position_balance = PositionBalance("TON", 11.0, 2.0, 0.0)
+
+        validator = self.get_validator(order_detail, position_balance)
+
+        self.assertAlmostEqual(
+            validator.order_value_minus_fee, 4.8, 1
+        )  # cumulative value minus cumulative fee
+        self.assertAlmostEqual(
+            validator.current_order_value, 5.5, 1
+        )  # wallet market value divided by total wallet quantity
+        self.assertAlmostEqual(
+            validator.value_ratio, 1.14583, 5
+        )  # current_order_value / order_value_minus_fee
+
+        self.assertTrue(validator.is_buy_order_complete)
+        self.assertTrue(validator.is_wallet_quantity_sufficient)
+        self.assertTrue(validator.is_value_ratio_sufficient)
+        self.assertTrue(validator.is_valid_for_sale())
