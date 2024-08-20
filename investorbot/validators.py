@@ -160,8 +160,12 @@ class CoinSaleValidator:
         return self.position_balance.market_value
 
     @property
-    def order_value_plus_fee(self) -> float:
-        return self.order_detail.cumulative_value + self.order_detail.cumulative_fee
+    def order_quantity_minus_fee(self) -> float:
+        return self.order_detail.cumulative_quantity - self.order_detail.cumulative_fee
+
+    @property
+    def order_value(self) -> float:
+        return self.order_detail.cumulative_value
 
     @property
     def sellable_quantity(self) -> float:
@@ -172,23 +176,22 @@ class CoinSaleValidator:
         if self.position_balance.quantity <= 0.000000000001:
             return -1.0
 
-        return self.order_detail.cumulative_quantity / self.position_balance.quantity
+        return self.order_quantity_minus_fee / self.position_balance.quantity
 
     @property
     def is_wallet_quantity_sufficient(self) -> bool:
-        # TODO See Below
-        # Sellable quantity may be slightly less than the original order,
-        # despite the wallet quantity representing the original trade. Try
-        # to account for this by using cumulative fee percentage to deduct
-        # from the original order quantity - e.g. the actual wallet quantity
-        # could be 99.5% of the original order quantity, although I'm not sure
-        # how this'll affect the rest of the app downstream. Maybe adjust the
-        # acceptable return from the trade internally to ensure the fee is
-        # accounted for by the app.
-        return self.sellable_quantity >= self.order_detail.quantity
+
+        currency = self.order_detail.coin_name.split("_")[0]
+
+        if self.order_detail.fee_currency != currency:
+            raise NotImplementedError(
+                f"App canny handle fee in {self.order_detail.fee_currency} currency for {currency} order."
+            )
+
+        return self.sellable_quantity >= self.order_quantity_minus_fee
 
     @property
-    def current_order_value_total(self) -> float:
+    def order_market_value(self) -> float:
         return (
             self.order_quantity_as_percentage_of_wallet_quantity
             * self.position_balance.market_value
@@ -196,10 +199,10 @@ class CoinSaleValidator:
 
     @property
     def value_ratio(self) -> float:
-        if self.order_value_plus_fee <= 0.000000000001:
+        if self.order_value <= 0.000000000001:
             return -1.0
 
-        return self.current_order_value_total / self.order_value_plus_fee
+        return self.order_market_value / self.order_value
 
     @property
     def is_value_ratio_sufficient(self) -> bool:

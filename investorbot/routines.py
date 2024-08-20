@@ -147,8 +147,8 @@ def sell_coin_routine():
 
             coin_sale = CoinSale(
                 order.coin_properties,
-                coin_sale_validator.current_order_value_total,
-                order_detail.cumulative_quantity,
+                coin_sale_validator.order_market_value,
+                coin_sale_validator.order_quantity_minus_fee,
             )
 
             crypto_context.place_coin_sell_order(coin_sale)

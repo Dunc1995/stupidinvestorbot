@@ -21,8 +21,8 @@ class TestValidators(unittest.TestCase):
                 {
                     "minimum_acceptable_value_ratio": validator.order_detail.minimum_acceptable_value_ratio,
                     "current_value_ratio": validator.value_ratio,
-                    "value_according_to_wallet": validator.current_order_value_total,
-                    "original_order_value": validator.order_value_plus_fee,
+                    "value_according_to_wallet": validator.order_market_value,
+                    "original_order_value": validator.order_value,
                 },
                 indent=4,
             )
@@ -131,7 +131,7 @@ class TestValidators(unittest.TestCase):
         validator = self.get_validator(order_detail, position_balance)
 
         self.assertFalse(validator.is_buy_order_complete)
-        self.assertFalse(validator.is_wallet_quantity_sufficient)
+        self.assertTrue(validator.is_wallet_quantity_sufficient)
         self.assertFalse(validator.is_value_ratio_sufficient)
         self.assertFalse(validator.is_valid_for_sale())
 
@@ -156,7 +156,7 @@ class TestValidators(unittest.TestCase):
 
         validator = self.get_validator(order_detail, position_balance)
 
-        self.assertAlmostEqual(validator.order_value_plus_fee, 0.0)
+        self.assertAlmostEqual(validator.order_value, 0.0)
         self.assertFalse(validator.is_buy_order_complete)
         self.assertTrue(validator.is_wallet_quantity_sufficient)
         self.assertFalse(validator.is_value_ratio_sufficient)
@@ -182,14 +182,16 @@ class TestValidators(unittest.TestCase):
 
         validator = self.get_validator(order_detail, position_balance)
 
+        self.assertAlmostEqual(validator.order_quantity_minus_fee, 0.9, 1)
+
         self.assertAlmostEqual(
-            validator.order_value_plus_fee, 5.0, 1
+            validator.order_value, 4.9, 1
         )  # cumulative value minus cumulative fee
         self.assertAlmostEqual(
-            validator.current_order_value_total, 5.5, 1
+            validator.order_market_value, 4.95, 2
         )  # wallet market value divided by total wallet quantity
         self.assertAlmostEqual(
-            validator.value_ratio, 1.1, 1
+            validator.value_ratio, 1.01, 1
         )  # current_order_value / order_value_minus_fee
 
         self.assertTrue(validator.is_buy_order_complete)
