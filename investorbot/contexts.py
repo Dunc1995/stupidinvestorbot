@@ -35,16 +35,17 @@ class CryptoContext:
         self.market = MarketHttpClient()
         self.user = UserHttpClient(CRYPTO_KEY, CRYPTO_SECRET_KEY)
 
-    def get_coin_balance(self, coin_name: str) -> PositionBalance:
+    def get_coin_balance(self, coin_name: str) -> PositionBalance | None:
         wallet_balance = self.user.get_balance()
 
         name = coin_name.split("_")[0] if "_USD" in coin_name else coin_name
 
         balance = next(
-            x for x in wallet_balance.position_balances if x.instrument_name == name
+            (x for x in wallet_balance.position_balances if x.instrument_name == name),
+            None,
         )
 
-        return PositionBalance.from_json(balance)
+        return PositionBalance.from_json(balance) if balance is not None else balance
 
     def get_usd_balance(self) -> float:
         usd_balance = float(self.get_coin_balance("USD").market_value)

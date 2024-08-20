@@ -1,11 +1,12 @@
-import json
 import logging
+from typing import List
 from investorbot.constants import (
     INVESTMENT_INCREMENTS,
     DEFAULT_LOGS_NAME,
 )
 from investorbot import crypto_context, app_context
 from investorbot.decorators import routine
+from investorbot.models import TimeSeriesSummary
 from investorbot.validators import (
     CoinSaleValidator,
     LatestTradeValidator,
@@ -14,7 +15,6 @@ from investorbot.validators import (
 from investorbot.structs.internal import OrderStatuses
 from investorbot.structs.egress import CoinPurchase, CoinSale
 import investorbot.timeseries as timeseries
-import investorbot.subroutines as subroutines
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
 logging.basicConfig(level=logging.INFO)
@@ -77,6 +77,27 @@ def update_time_series_summaries_routine():
     app_context.add_items(ts_summaries)
 
 
+def get_time_series_summaries() -> List[TimeSeriesSummary]:
+    ts_summaries = app_context.get_all_time_series_summaries()
+
+    should_refresh_db = any(
+        [
+            timeseries.convert_ms_time_to_hours(
+                timeseries.time_now(), ts_summary.creation_time_ms
+            )
+            >= 1.0
+            for ts_summary in ts_summaries
+        ]
+    )
+
+    if should_refresh_db:
+        logger.warn("Time series data needs to be refreshed. Refreshing now.")
+        update_time_series_summaries_routine()
+        ts_summaries = app_context.get_all_time_series_summaries()
+
+    return ts_summaries
+
+
 @routine("Coin Purchase")
 def buy_coin_routine():
     """Fetches precalculated time series statistics for coins the application
@@ -97,7 +118,11 @@ def buy_coin_routine():
         f"Searching for {coin_count} coins to invest in at ${INVESTMENT_INCREMENTS} each"
     )
 
-    for latest_trade, ts_summary in subroutines.get_latest_trade_stats():
+    ts_summaries = get_time_series_summaries()
+
+    for ts_summary in ts_summaries:
+        latest_trade = crypto_context.get_latest_trade(ts_summary.coin_name)
+
         if purchase_count == coin_count:
             logger.info("Maximum number of coin investments reached.")
             break
@@ -105,6 +130,7 @@ def buy_coin_routine():
         validator = LatestTradeValidator(latest_trade, ts_summary, options)
 
         if not validator.is_valid_for_purchase():
+            logger.info(f"Rejected {ts_summary.coin_name}")
             continue
 
         coin_name = latest_trade.coin_name
@@ -137,6 +163,13 @@ def sell_coin_routine():
         order_detail = crypto_context.get_order_detail(order.buy_order_id)
         coin_balance = crypto_context.get_coin_balance(order_detail.coin_name)
 
+        if order_detail.status == OrderStatuses.CANCELED.value:
+            app_context.delete_buy_order(order.buy_order_id)
+            continue
+
+        if order_detail.status == OrderStatuses.ACTIVE.value or coin_balance is None:
+            continue
+
         coin_sale_validator = CoinSaleValidator(order_detail, coin_balance)
 
         if coin_sale_validator.is_valid_for_sale():
@@ -152,3 +185,5 @@ def sell_coin_routine():
             )
 
             crypto_context.place_coin_sell_order(coin_sale)
+
+            app_context.delete_buy_order(order.buy_order_id)
