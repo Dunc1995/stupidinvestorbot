@@ -77,6 +77,7 @@ def routine(name="Unnamed Routine"):
 
         _wrapper = wrapper
         _wrapper.__name__ = func.__name__  # Ensures unique function name
+        _wrapper.__doc__ = func.__doc__  # Exposes docstring to argh
 
         return _wrapper
 
