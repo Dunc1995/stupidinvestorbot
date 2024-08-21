@@ -160,11 +160,12 @@ def sell_coin_routine():
     buy_orders = app_context.get_all_buy_orders()
 
     for order in buy_orders:
+        buy_order_id = order.buy_order_id
         order_detail = crypto_context.get_order_detail(order.buy_order_id)
         coin_balance = crypto_context.get_coin_balance(order_detail.coin_name)
 
         if order_detail.status == OrderStatuses.CANCELED.value:
-            app_context.delete_buy_order(order.buy_order_id)
+            app_context.delete_buy_order(buy_order_id)
             continue
 
         if order_detail.status == OrderStatuses.ACTIVE.value or coin_balance is None:
@@ -186,4 +187,4 @@ def sell_coin_routine():
 
             crypto_context.place_coin_sell_order(coin_sale)
 
-            app_context.delete_buy_order(order.buy_order_id)
+            app_context.delete_buy_order(buy_order_id)

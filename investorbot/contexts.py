@@ -161,7 +161,17 @@ class AppContext:
         return session.scalar(query)
 
     def get_all_buy_orders(self) -> List[BuyOrder]:
-        return self.get_all_items(BuyOrder)
+        items_list = []
+        session = self.session
+
+        query = sqlalchemy.select(BuyOrder).options(
+            joinedload(BuyOrder.coin_properties)
+        )
+
+        for item in session.scalars(query):
+            items_list.append(item)
+
+        return items_list
 
     def delete_buy_order(self, buy_order_id: int):
         with self.session as session:
