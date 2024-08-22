@@ -5,7 +5,7 @@ from investorbot.routines import (
     sell_coin_routine,
     update_time_series_summaries_routine,
 )
-from investorbot.subroutines import init_db
+from investorbot.db import init_db
 
 if __name__ == "__main__":
     argh.dispatch_commands(
