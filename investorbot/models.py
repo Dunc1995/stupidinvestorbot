@@ -77,6 +77,15 @@ class TimeSeriesSummary(Base):
         cascade="all, delete",
     )
 
+    market_confidence_id: Mapped[int] = mapped_column(
+        ForeignKey("market_confidence.market_confidence_id", ondelete="CASCADE"),
+        init=False,
+    )
+
+    market_confidence: Mapped[Optional["MarketConfidence"]] = relationship(
+        back_populates="ts_data", init=False
+    )
+
 
 class TimeSeriesMode(Base):
     __tablename__ = "time_series_data_modes"
@@ -90,4 +99,36 @@ class TimeSeriesMode(Base):
     mode: Mapped[float] = mapped_column(Float())
     summary: Mapped[Optional[TimeSeriesSummary]] = relationship(
         back_populates="modes", init=False
+    )
+
+
+class MarketConfidence(Base):
+    __tablename__ = "market_confidence"
+
+    market_confidence_id: Mapped[int] = mapped_column(
+        primary_key=True, autoincrement=True, init=False
+    )
+
+    confidence_rating_id: Mapped[int] = mapped_column(
+        ForeignKey("market_confidence_rating.rating_id", ondelete="CASCADE")
+    )
+
+    rating: Mapped[Optional["MarketConfidenceRating"]] = relationship(
+        back_populates="confidence_entries", init=False
+    )
+
+    ts_data: Mapped[List["TimeSeriesSummary"]] = relationship(
+        back_populates="market_confidence",
+        cascade="all, delete",
+    )
+
+
+class MarketConfidenceRating(Base):
+    __tablename__ = "market_confidence_rating"
+
+    rating_id: Mapped[int] = mapped_column(primary_key=True)
+    description: Mapped[str] = mapped_column(String())
+
+    confidence_entries: Mapped[List["MarketConfidence"]] = relationship(
+        back_populates="rating", cascade="all, delete", init=False
     )

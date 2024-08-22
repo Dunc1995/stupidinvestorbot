@@ -6,7 +6,7 @@ from investorbot.constants import (
 )
 from investorbot import crypto_context, app_context
 from investorbot.decorators import routine
-from investorbot.models import TimeSeriesSummary
+from investorbot.models import MarketConfidence, TimeSeriesSummary
 from investorbot.validators import (
     CoinSaleValidator,
     LatestTradeValidator,
@@ -74,7 +74,9 @@ def update_time_series_summaries_routine():
 
         ts_summaries.append(ts_summary)
 
-    app_context.add_items(ts_summaries)
+    market_confidence = MarketConfidence(1, ts_summaries)
+
+    app_context.add_item(market_confidence)
 
 
 def get_time_series_summaries() -> List[TimeSeriesSummary]:
@@ -173,18 +175,20 @@ def sell_coin_routine():
 
         coin_sale_validator = CoinSaleValidator(order_detail, coin_balance)
 
-        if coin_sale_validator.is_valid_for_sale():
-            logger.info(
-                f"Order {order.buy_order_id} is now valid for sale, with a"
-                + f" value ratio of {coin_sale_validator.value_ratio}"
-            )
+        if not coin_sale_validator.is_valid_for_sale():
+            continue
 
-            coin_sale = CoinSale(
-                order.coin_properties,
-                coin_sale_validator.order_market_value,
-                coin_sale_validator.order_quantity_minus_fee,
-            )
+        logger.info(
+            f"Order {order.buy_order_id} is now valid for sale, with a"
+            + f" value ratio of {coin_sale_validator.value_ratio}"
+        )
 
-            crypto_context.place_coin_sell_order(coin_sale)
+        coin_sale = CoinSale(
+            order.coin_properties,
+            coin_sale_validator.order_market_value,
+            coin_sale_validator.order_quantity_minus_fee,
+        )
 
-            app_context.delete_buy_order(buy_order_id)
+        crypto_context.place_coin_sell_order(coin_sale)
+
+        app_context.delete_buy_order(buy_order_id)
