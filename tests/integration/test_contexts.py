@@ -80,6 +80,7 @@ class TestAppContext(unittest.TestCase):
             21314314,
             12314,
             [TimeSeriesMode(11.0), TimeSeriesMode(12.0), TimeSeriesMode(13.0)],
+            1,
         )
 
         self.test_context.add_item(ts_summary)

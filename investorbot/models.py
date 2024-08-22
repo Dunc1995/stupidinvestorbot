@@ -79,7 +79,6 @@ class TimeSeriesSummary(Base):
 
     market_confidence_id: Mapped[int] = mapped_column(
         ForeignKey("market_confidence.market_confidence_id", ondelete="CASCADE"),
-        init=False,
     )
 
     market_confidence: Mapped[Optional["MarketConfidence"]] = relationship(
