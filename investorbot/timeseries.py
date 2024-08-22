@@ -72,5 +72,5 @@ def get_coin_time_series_summary(
         line_of_best_fit_coefficient=a,
         line_of_best_fit_offset=b,
         time_offset=time_offset,
-        creation_time_ms=time_now(),
+        market_confidence_id=1,
     )

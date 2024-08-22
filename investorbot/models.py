@@ -70,7 +70,6 @@ class TimeSeriesSummary(Base):
     line_of_best_fit_coefficient: Mapped[float] = mapped_column(Float())
     line_of_best_fit_offset: Mapped[float] = mapped_column(Float())
     time_offset: Mapped[int] = mapped_column(Integer())
-    creation_time_ms: Mapped[int] = mapped_column(Integer())
 
     modes: Mapped[List["TimeSeriesMode"]] = relationship(
         back_populates="summary",
@@ -111,6 +110,8 @@ class MarketConfidence(Base):
     confidence_rating_id: Mapped[int] = mapped_column(
         ForeignKey("coin_selection_criteria.rating_id", ondelete="CASCADE")
     )
+
+    creation_time_ms: Mapped[int] = mapped_column(Integer())
 
     rating: Mapped[Optional["CoinSelectionCriteria"]] = relationship(
         back_populates="confidence_entries", init=False

@@ -28,7 +28,8 @@ def cancel_orders_routine():
     orders = app_context.get_all_buy_orders()
 
     for order in orders:
-        order_detail = crypto_context.get_order_detail(order.buy_order_id)
+        buy_order_id = order.buy_order_id
+        order_detail = crypto_context.get_order_detail(buy_order_id)
 
         current_time = timeseries.time_now()
         age = timeseries.convert_ms_time_to_hours(
@@ -36,17 +37,15 @@ def cancel_orders_routine():
         )
 
         if age > 0.15 and order_detail.status == OrderStatuses.ACTIVE.value:
-            logger.info(f"Cancelling order {order.buy_order_id}")
-            result = crypto_context.user.cancel_order(order.buy_order_id)
-            app_context.delete_buy_order(order.buy_order_id)
+            logger.info(f"Cancelling order {buy_order_id}")
+            result = crypto_context.user.cancel_order(buy_order_id)
+            app_context.delete_buy_order(buy_order_id)
 
             logger.info(str(result))
             no_deletions = False
         elif OrderStatuses.CANCELED.value == order_detail.status:
-            logger.info(
-                f"Removing order {order.buy_order_id} as it has been cancelled."
-            )
-            app_context.delete_buy_order(order.buy_order_id)
+            logger.info(f"Removing order {buy_order_id} as it has been cancelled.")
+            app_context.delete_buy_order(buy_order_id)
 
     if no_deletions:
         logger.info("No cancellable orders found.")
@@ -74,30 +73,27 @@ def update_time_series_summaries_routine():
 
         ts_summaries.append(ts_summary)
 
-    market_confidence = MarketConfidence(1, ts_summaries)
+    market_confidence = MarketConfidence(1, timeseries.time_now(), ts_summaries)
 
     app_context.add_item(market_confidence)
 
 
-def get_time_series_summaries() -> List[TimeSeriesSummary]:
-    ts_summaries = app_context.get_all_time_series_summaries()
+def get_market_confidence() -> MarketConfidence:
+    market_confidence = app_context.get_market_confidence()
 
-    should_refresh_db = any(
-        [
-            timeseries.convert_ms_time_to_hours(
-                timeseries.time_now(), ts_summary.creation_time_ms
-            )
-            >= 1.0
-            for ts_summary in ts_summaries
-        ]
+    should_refresh_db = (
+        timeseries.convert_ms_time_to_hours(
+            timeseries.time_now(), market_confidence.creation_time_ms
+        )
+        >= 1.0
     )
 
     if should_refresh_db:
         logger.warn("Time series data needs to be refreshed. Refreshing now.")
         update_time_series_summaries_routine()
-        ts_summaries = app_context.get_all_time_series_summaries()
+        market_confidence = app_context.get_market_confidence()
 
-    return ts_summaries
+    return market_confidence
 
 
 @routine("Coin Purchase")
@@ -106,13 +102,6 @@ def buy_coin_routine():
     may decide to invest in. Buy orders will be placed for coins that meet the
     conditions set by a given ruleset. Rulesets are to be determined by the app's
     confidence in the market."""
-    options = LatestTradeValidatorOptions(
-        standard_deviation_threshold_should_exceed_threshold=True,
-        standard_deviation_threshold=0.02,
-        trend_line_percentage_threshold=0.01,
-        trend_line_should_be_flat_or_rising=True,
-        trade_needs_to_be_within_mean_and_lower_bound=True,
-    )
     purchase_count = 0
     coin_count = crypto_context.get_investable_coin_count()
 
@@ -120,9 +109,10 @@ def buy_coin_routine():
         f"Searching for {coin_count} coins to invest in at ${INVESTMENT_INCREMENTS} each"
     )
 
-    ts_summaries = get_time_series_summaries()
+    market_confidence = get_market_confidence()
+    options = market_confidence.rating
 
-    for ts_summary in ts_summaries:
+    for ts_summary in market_confidence.ts_data:
         latest_trade = crypto_context.get_latest_trade(ts_summary.coin_name)
 
         if purchase_count == coin_count:

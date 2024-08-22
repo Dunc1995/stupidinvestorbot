@@ -8,24 +8,10 @@ from investorbot.structs.internal import (
     OrderStatuses,
     PositionBalance,
 )
-from investorbot.models import CoinProperties, TimeSeriesSummary
+from investorbot.models import CoinProperties, CoinSelectionCriteria, TimeSeriesSummary
 from investorbot.timeseries import time_now, convert_ms_time_to_hours
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
-
-
-@dataclass
-class LatestTradeValidatorOptions:
-    trade_needs_to_be_within_mean_and_upper_bound: bool = False
-    trade_needs_to_be_within_mean_and_lower_bound: bool = False
-    standard_deviation_threshold_should_exceed_threshold: bool = False
-    standard_deviation_threshold: float = 0.01
-    trend_line_percentage_threshold: float = 0.01
-    """Trend line percentage threshold is used to characterise whether a line is rising, falling or flat."""
-    trend_line_should_be_flat: bool = False
-    trend_line_should_be_rising: bool = False
-    trend_line_should_be_falling: bool = False
-    trend_line_should_be_flat_or_rising: bool = False
 
 
 @dataclass(init=False)
@@ -38,13 +24,13 @@ class LatestTradeValidator:
     trend_line_coefficient: float
     trend_line_offset: float
 
-    options: LatestTradeValidatorOptions
+    options: CoinSelectionCriteria
 
     def __init__(
         self,
         latest_trade: LatestTrade,
         time_series_summary: TimeSeriesSummary,
-        validator_options: LatestTradeValidatorOptions,
+        validator_options: CoinSelectionCriteria,
     ):
         self.latest_trade_price = latest_trade.price
         mean = time_series_summary.mean

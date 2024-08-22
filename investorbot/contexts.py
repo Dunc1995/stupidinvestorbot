@@ -21,7 +21,14 @@ from investorbot.http.user import UserHttpClient
 from investorbot.structs.ingress import OrderJson, PositionBalanceJson
 from investorbot.structs.internal import OrderDetail, LatestTrade, PositionBalance
 from investorbot.structs.egress import CoinPurchase, CoinSale
-from investorbot.models import Base, BuyOrder, CoinProperties, TimeSeriesSummary
+from investorbot.models import (
+    Base,
+    BuyOrder,
+    CoinProperties,
+    CoinSelectionCriteria,
+    MarketConfidence,
+    TimeSeriesSummary,
+)
 from investorbot.timeseries import time_now
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
@@ -198,16 +205,36 @@ class AppContext:
 
         return ts_data
 
-    def get_all_time_series_summaries(self) -> List[TimeSeriesSummary]:
-        return self.get_all_items(TimeSeriesSummary)
+    def get_market_confidence(self) -> MarketConfidence:
+        items_list = []
+        session = self.session
+
+        query = (
+            session.query(MarketConfidence)
+            .options(
+                joinedload(MarketConfidence.ts_data).subqueryload(
+                    TimeSeriesSummary.modes
+                )
+            )
+            .options(joinedload(CoinSelectionCriteria))
+        )
+
+        for item in session.scalars(query):
+            items_list.append(item)
+
+        return items_list
 
     def delete_existing_time_series(self):
         with self.session as session:
             now = time_now()
             query = (
-                session.query(TimeSeriesSummary)
-                .options(joinedload(TimeSeriesSummary.modes))
-                .where(TimeSeriesSummary.creation_time_ms < now)
+                session.query(MarketConfidence)
+                .options(
+                    joinedload(MarketConfidence.ts_data).subqueryload(
+                        TimeSeriesSummary.modes
+                    )
+                )
+                .where(MarketConfidence.creation_time_ms < now)
             )
 
             for item in session.scalars(query):

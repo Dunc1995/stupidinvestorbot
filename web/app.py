@@ -54,6 +54,6 @@ def home():
 
 @app.route("/time-series")
 def time_series():
-    ts_data = app_context.get_all_time_series_summaries()
+    ts_data = app_context.get_market_confidence()
 
     return render_template("time_series.html", time_series_data=ts_data)
