@@ -12,7 +12,7 @@ def no_scientific_notation(func: callable):
 
         if not isinstance(value, float) and not isinstance(value, int):
             raise TypeError(
-                f"formatted_numeric decorator was assigned to a method return type ({type(value)})"
+                f"no_scientific_notation decorator was assigned to a method return type ({type(value)})"
                 + "when it expects either a float or integer type."
             )
 
