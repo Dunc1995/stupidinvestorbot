@@ -1,5 +1,5 @@
 from typing import List, Optional
-from sqlalchemy import ForeignKey, String, Integer, Float
+from sqlalchemy import Boolean, ForeignKey, String, Integer, Float
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
@@ -109,10 +109,10 @@ class MarketConfidence(Base):
     )
 
     confidence_rating_id: Mapped[int] = mapped_column(
-        ForeignKey("market_confidence_rating.rating_id", ondelete="CASCADE")
+        ForeignKey("coin_selection_criteria.rating_id", ondelete="CASCADE")
     )
 
-    rating: Mapped[Optional["MarketConfidenceRating"]] = relationship(
+    rating: Mapped[Optional["CoinSelectionCriteria"]] = relationship(
         back_populates="confidence_entries", init=False
     )
 
@@ -122,11 +122,29 @@ class MarketConfidence(Base):
     )
 
 
-class MarketConfidenceRating(Base):
-    __tablename__ = "market_confidence_rating"
+class CoinSelectionCriteria(Base):
+    __tablename__ = "coin_selection_criteria"
 
     rating_id: Mapped[int] = mapped_column(primary_key=True)
-    description: Mapped[str] = mapped_column(String())
+
+    rating_description: Mapped[str] = mapped_column(String())
+
+    trade_needs_to_be_within_mean_and_upper_bound: Mapped[bool] = mapped_column(
+        Boolean()
+    )
+    trade_needs_to_be_within_mean_and_lower_bound: Mapped[bool] = mapped_column(
+        Boolean()
+    )
+    standard_deviation_threshold_should_exceed_threshold: Mapped[bool] = mapped_column(
+        Boolean()
+    )
+    standard_deviation_threshold: Mapped[float] = mapped_column(Float())
+    trend_line_percentage_threshold: Mapped[float] = mapped_column(Float())
+    """Trend line percentage threshold is used to characterise whether a line is rising, falling or flat."""
+    trend_line_should_be_flat: Mapped[bool] = mapped_column(Boolean())
+    trend_line_should_be_rising: Mapped[bool] = mapped_column(Boolean())
+    trend_line_should_be_falling: Mapped[bool] = mapped_column(Boolean())
+    trend_line_should_be_flat_or_rising: Mapped[bool] = mapped_column(Boolean())
 
     confidence_entries: Mapped[List["MarketConfidence"]] = relationship(
         back_populates="rating", cascade="all, delete", init=False
