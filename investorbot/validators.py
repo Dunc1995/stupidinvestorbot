@@ -41,7 +41,6 @@ class LatestTradeValidator:
         self.standard_deviation_lower_bound = mean - std
         self.trend_line_coefficient = time_series_summary.line_of_best_fit_coefficient
         self.trend_line_offset = time_series_summary.line_of_best_fit_offset
-        self.time_offset = time_series_summary.time_offset
         self.options = validator_options
 
     def __get_trend_value(self, hour_in_time: float) -> float:
@@ -53,11 +52,10 @@ class LatestTradeValidator:
 
     @property
     def trend_line_price_percentage_change(self) -> float:
-        now = time_now()
-        hours_now = convert_ms_time_to_hours(now, self.time_offset)
-
         value_at_zero = self.__get_trend_value(0.0)
-        value_at_now = self.__get_trend_value(hours_now)
+        value_at_now = self.__get_trend_value(
+            24.0
+        )  # TODO check it is valid to hardcode 24 hours here.
 
         return (value_at_now / value_at_zero) - 1.0
 
