@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-import json
 import logging
 from investorbot.constants import DEFAULT_LOGS_NAME
 from investorbot.structs.internal import (
@@ -8,7 +7,7 @@ from investorbot.structs.internal import (
     OrderStatuses,
     PositionBalance,
 )
-from investorbot.models import CoinProperties, CoinSelectionCriteria, TimeSeriesSummary
+from investorbot.models import CoinSelectionCriteria, TimeSeriesSummary
 from investorbot.timeseries import time_now, convert_ms_time_to_hours
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)

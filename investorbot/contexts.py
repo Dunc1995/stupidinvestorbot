@@ -18,7 +18,7 @@ from investorbot.constants import (
 )
 from investorbot.http.market import MarketHttpClient
 from investorbot.http.user import UserHttpClient
-from investorbot.structs.ingress import OrderJson, PositionBalanceJson
+from investorbot.structs.ingress import OrderJson
 from investorbot.structs.internal import OrderDetail, LatestTrade, PositionBalance
 from investorbot.structs.egress import CoinPurchase, CoinSale
 from investorbot.models import (

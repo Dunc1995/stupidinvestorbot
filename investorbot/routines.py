@@ -1,16 +1,14 @@
 import logging
-from typing import List
 from investorbot.constants import (
     INVESTMENT_INCREMENTS,
     DEFAULT_LOGS_NAME,
 )
 from investorbot import crypto_context, app_context
 from investorbot.decorators import routine
-from investorbot.models import MarketConfidence, TimeSeriesSummary
+from investorbot.models import MarketConfidence
 from investorbot.validators import (
     CoinSaleValidator,
     LatestTradeValidator,
-    LatestTradeValidatorOptions,
 )
 from investorbot.structs.internal import OrderStatuses
 from investorbot.structs.egress import CoinPurchase, CoinSale

@@ -1,5 +1,4 @@
 import json
-import math
 import unittest
 from investorbot import timeseries
 
