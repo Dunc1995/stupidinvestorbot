@@ -39,7 +39,7 @@ class TestTimeseries(unittest.TestCase):
     ):
         data = get_example_data(filename)
 
-        stats = timeseries.get_time_series_data_frame(data)
+        stats, _ = timeseries.get_time_series_data_frame(data)
 
         print(stats)
 

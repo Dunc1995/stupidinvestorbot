@@ -5,7 +5,7 @@ import pandas as pd
 from pandas import DataFrame
 import numpy as np
 
-from investorbot.constants import DEFAULT_LOGS_NAME, TIME_OFFSET
+from investorbot.constants import DEFAULT_LOGS_NAME
 from investorbot.models import TimeSeriesMode, TimeSeriesSummary
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
@@ -21,10 +21,13 @@ def convert_ms_time_to_hours(value: int, offset=0):
     return float(result)
 
 
-def get_time_series_data_frame(time_series_data: dict) -> DataFrame:
+def get_time_series_data_frame(time_series_data: dict) -> Tuple[DataFrame, int]:
     df = pd.DataFrame.from_dict(time_series_data)
 
-    time_value_offset = time_now() - TIME_OFFSET
+    time_value_offset = int(
+        df["t"].iat[-1]
+    )  # Relies on data ordered from most recent to x hours ago.
+
     df["t"] = df["t"].apply(
         lambda x: convert_ms_time_to_hours(x, time_value_offset)
     )  # Convert to hours.
@@ -33,7 +36,7 @@ def get_time_series_data_frame(time_series_data: dict) -> DataFrame:
     df = df[::-1]
     df.reset_index(inplace=True, drop=True)
 
-    return df
+    return df, time_value_offset
 
 
 def get_line_of_best_fit(df: DataFrame):
@@ -49,7 +52,7 @@ def get_coin_time_series_summary(
     coin_name: str, time_series_data: dict
 ) -> TimeSeriesSummary:
 
-    stats = get_time_series_data_frame(time_series_data)
+    stats, time_offset = get_time_series_data_frame(time_series_data)
 
     a, b = get_line_of_best_fit(stats)
 
@@ -67,6 +70,7 @@ def get_coin_time_series_summary(
         std=std,
         percentage_std=percentage_std,
         line_of_best_fit_coefficient=a,
-        line_of_best_fit_offset=b
+        line_of_best_fit_offset=b,
+        time_offset=time_offset,
         market_confidence_id=1,
     )
