@@ -1,5 +1,6 @@
 import json
 import unittest
+from unittest.mock import MagicMock, Mock, patch
 import uuid
 
 from investorbot.structs.ingress import InstrumentJson
@@ -10,6 +11,17 @@ from investorbot.models import (
     TimeSeriesMode,
     TimeSeriesSummary,
 )
+
+from investorbot import crypto_context
+
+
+def get_mock_response(filename: str) -> dict:
+    example_data = None
+
+    with open(f"./tests/integration/fixtures/{filename}", "r") as f:
+        example_data = json.loads(f.read())
+
+    return example_data
 
 
 class TestAppContext(unittest.TestCase):
@@ -96,6 +108,24 @@ class TestAppContext(unittest.TestCase):
             len(data.modes) == 3,
             "Number of modes doesn't match what was inserted into db.",
         )
+
+
+@patch("investorbot.http.base.INVESTOR_APP_ENVIRONMENT", "Testing")
+class TestCryptoContext(unittest.TestCase):
+    def setUp(self):
+        self.test_crypto_context = crypto_context
+        pass
+
+    @patch("investorbot.http.base.requests.post")
+    def test_usd_balance_is_retrievable(self, mock_get: MagicMock):
+        mock_get.return_value = Mock(ok=True)
+        mock_get.return_value.json.return_value = get_mock_response(
+            "private-user-balance-status-200.json"
+        )
+
+        usd_balance = self.test_crypto_context.get_usd_balance()
+
+        self.assertAlmostEqual(6.221, usd_balance, 3)
 
 
 if __name__ == "__main__":

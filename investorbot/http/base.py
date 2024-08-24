@@ -137,7 +137,7 @@ class AuthenticatedHttpClient(HttpClient):
 
         logger.debug(result.text)
 
-        data_dict = json.loads(result.text)["result"]
+        data_dict = result.json()["result"]
 
         # * data doesn't always exist even though it exists in about 90% of API calls.
         return data_dict["data"] if "data" in data_dict else data_dict
