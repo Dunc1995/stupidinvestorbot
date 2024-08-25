@@ -57,7 +57,7 @@ class HttpClient:
             f"{self.api_url}{method}", response.text, response.status_code
         )
 
-        return json.loads(response.text)
+        return response.json()
 
     def get_data(self, method: str):
         return self.get(method)["result"]["data"]

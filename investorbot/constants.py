@@ -1,8 +1,8 @@
 import os
 
-INVESTOR_APP_PATH = os.environ.get("INVESTOR_APP_PATH")
 INVESTOR_APP_ENVIRONMENT = os.environ.get("INVESTOR_APP_ENVIRONMENT")
-INVESTOR_APP_DB_CONNECTION = f"sqlite:///{INVESTOR_APP_PATH}"
+INVESTOR_APP_PATH = os.environ.get("INVESTOR_APP_PATH")
+INVESTOR_APP_DB_CONNECTION = f"sqlite:///{INVESTOR_APP_PATH}app.db"
 
 CRYPTO_BASE_URL = "https://api.crypto.com/exchange/v1/"
 CRYPTO_MARKET_URL = f"{CRYPTO_BASE_URL}public/"

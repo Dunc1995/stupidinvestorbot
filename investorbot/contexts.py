@@ -1,6 +1,5 @@
 import logging
 import math
-import time
 from typing import List
 from decimal import *
 
@@ -127,11 +126,7 @@ class CryptoContext:
 class AppContext:
     __engine: Engine
 
-    def __init__(
-        self,
-        connection_string=INVESTOR_APP_DB_CONNECTION
-        + "app.db",  # TODO don't hardcode this.
-    ):
+    def __init__(self, connection_string=INVESTOR_APP_DB_CONNECTION):
         self.__engine = sqlalchemy.create_engine(connection_string)
 
     @property
@@ -205,18 +200,12 @@ class AppContext:
 
         return ts_data
 
-    def get_market_confidence(self) -> MarketConfidence:
+    def get_market_confidence(self) -> List[MarketConfidence]:
         items_list = []
         session = self.session
 
-        query = (
-            session.query(MarketConfidence)
-            .options(
-                joinedload(MarketConfidence.ts_data).subqueryload(
-                    TimeSeriesSummary.modes
-                )
-            )
-            .options(joinedload(CoinSelectionCriteria))
+        query = session.query(MarketConfidence).options(
+            joinedload(MarketConfidence.ts_data).subqueryload(TimeSeriesSummary.modes)
         )
 
         for item in session.scalars(query):
