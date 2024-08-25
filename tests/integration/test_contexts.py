@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, Mock, patch
 import uuid
 
 from investorbot.structs.ingress import InstrumentJson
-from investorbot.contexts import AppContext
+from investorbot.contexts import AppContext, CryptoContext
 from investorbot.models import (
     BuyOrder,
     CoinProperties,
@@ -12,7 +12,6 @@ from investorbot.models import (
     TimeSeriesSummary,
 )
 
-from investorbot import crypto_context
 from tests.integration import get_mock_response
 
 
@@ -105,8 +104,9 @@ class TestAppContext(unittest.TestCase):
 @patch("investorbot.http.base.INVESTOR_APP_ENVIRONMENT", "Testing")
 class TestCryptoContext(unittest.TestCase):
     def setUp(self):
-        self.test_crypto_context = crypto_context
-        pass
+        self.test_crypto_context = CryptoContext()
+        self.test_crypto_context.user.api_key = "Test984bvwhibwbiytesTy"
+        self.test_crypto_context.user.api_secret_key = "Test_ounghTtgwth874hWWWTESTG"
 
     @patch("investorbot.http.base.requests.post")
     def test_usd_balance_is_retrievable(self, mock_get: MagicMock):
@@ -118,7 +118,3 @@ class TestCryptoContext(unittest.TestCase):
         usd_balance = self.test_crypto_context.get_usd_balance()
 
         self.assertAlmostEqual(6.221, usd_balance, 3)
-
-
-if __name__ == "__main__":
-    unittest.main()
