@@ -13,15 +13,7 @@ from investorbot.models import (
 )
 
 from investorbot import crypto_context
-
-
-def get_mock_response(filename: str) -> dict:
-    example_data = None
-
-    with open(f"./tests/integration/fixtures/{filename}", "r") as f:
-        example_data = json.loads(f.read())
-
-    return example_data
+from tests.integration import get_mock_response
 
 
 class TestAppContext(unittest.TestCase):
