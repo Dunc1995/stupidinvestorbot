@@ -3,7 +3,7 @@ import unittest
 import uuid
 
 from investorbot import timeseries
-from investorbot.enums import OrderStatuses
+from investorbot.enums import OrderStatus
 from investorbot.structs.internal import OrderDetail, PositionBalance
 from investorbot.validators import CoinSaleValidator
 
@@ -38,7 +38,7 @@ class TestValidators(unittest.TestCase):
         value.
         """
         order_detail = OrderDetail(
-            OrderStatuses.FILLED.value,
+            OrderStatus.FILLED.value,
             uuid.uuid4(),
             "TON_USD",
             4.970550,
@@ -63,7 +63,7 @@ class TestValidators(unittest.TestCase):
         The coin has now reached an acceptable value to sell.
         """
         order_detail = OrderDetail(
-            OrderStatuses.FILLED.value,
+            OrderStatus.FILLED.value,
             uuid.uuid4(),
             "TON_USD",
             4.970550,
@@ -90,7 +90,7 @@ class TestValidators(unittest.TestCase):
         this gracefully.
         """
         order_detail = OrderDetail(
-            OrderStatuses.FILLED.value,
+            OrderStatus.FILLED.value,
             uuid.uuid4(),
             "TON_USD",
             4.970550,
@@ -116,7 +116,7 @@ class TestValidators(unittest.TestCase):
         buy order. This needs to be handled gracefully by the validator.
         """
         order_detail = OrderDetail(
-            OrderStatuses.ACTIVE.value,
+            OrderStatus.ACTIVE.value,
             uuid.uuid4(),
             "TON_USD",
             4.970550,
@@ -142,7 +142,7 @@ class TestValidators(unittest.TestCase):
         buy order. This needs to be handled gracefully by the validator.
         """
         order_detail = OrderDetail(
-            OrderStatuses.ACTIVE.value,
+            OrderStatus.ACTIVE.value,
             uuid.uuid4(),
             "TON_USD",
             4.970550,
@@ -168,7 +168,7 @@ class TestValidators(unittest.TestCase):
         Ensure calculated values are correct.
         """
         order_detail = OrderDetail(
-            OrderStatuses.FILLED.value,
+            OrderStatus.FILLED.value,
             uuid.uuid4(),
             "TON_USD",
             5.0,

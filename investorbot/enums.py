@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class OrderStatuses(Enum):
+class OrderStatus(Enum):
     NEW = "NEW"
     PENDING = "PENDING"
     REJECTED = "REJECTED"

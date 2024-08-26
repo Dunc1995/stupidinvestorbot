@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import logging
 from investorbot.constants import DEFAULT_LOGS_NAME
-from investorbot.enums import OrderStatuses
+from investorbot.enums import OrderStatus
 from investorbot.structs.internal import (
     LatestTrade,
     OrderDetail,
@@ -138,7 +138,7 @@ class CoinSaleValidator:
 
     @property
     def is_buy_order_complete(self) -> bool:
-        return self.order_detail.status == OrderStatuses.FILLED.value
+        return self.order_detail.status == OrderStatus.FILLED.value
 
     @property
     def wallet_market_value(self) -> float:

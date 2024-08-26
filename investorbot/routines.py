@@ -5,7 +5,7 @@ from investorbot.constants import (
 )
 from investorbot import crypto_context, app_context
 from investorbot.decorators import routine
-from investorbot.enums import OrderStatuses
+from investorbot.enums import OrderStatus
 from investorbot.models import MarketAnalysis
 from investorbot.validators import (
     CoinSaleValidator,
@@ -34,14 +34,14 @@ def cancel_orders_routine():
             current_time - order_detail.time_created_ms
         )
 
-        if age > 0.15 and order_detail.status == OrderStatuses.ACTIVE.value:
+        if age > 0.15 and order_detail.status == OrderStatus.ACTIVE.value:
             logger.info(f"Cancelling order {buy_order_id}")
             result = crypto_context.user.cancel_order(buy_order_id)
             app_context.delete_buy_order(buy_order_id)
 
             logger.info(str(result))
             no_deletions = False
-        elif OrderStatuses.CANCELED.value == order_detail.status:
+        elif OrderStatus.CANCELED.value == order_detail.status:
             logger.info(f"Removing order {buy_order_id} as it has been cancelled.")
             app_context.delete_buy_order(buy_order_id)
 
@@ -154,11 +154,11 @@ def sell_coin_routine():
         order_detail = crypto_context.get_order_detail(order.buy_order_id)
         coin_balance = crypto_context.get_coin_balance(order_detail.coin_name)
 
-        if order_detail.status == OrderStatuses.CANCELED.value:
+        if order_detail.status == OrderStatus.CANCELED.value:
             app_context.delete_buy_order(buy_order_id)
             continue
 
-        if order_detail.status == OrderStatuses.ACTIVE.value or coin_balance is None:
+        if order_detail.status == OrderStatus.ACTIVE.value or coin_balance is None:
             continue
 
         coin_sale_validator = CoinSaleValidator(order_detail, coin_balance)
