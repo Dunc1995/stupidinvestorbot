@@ -5,7 +5,7 @@ from investorbot.constants import (
 )
 from investorbot import crypto_context, app_context
 from investorbot.decorators import routine
-from investorbot.models import MarketConfidence
+from investorbot.models import MarketAnalysis
 from investorbot.validators import (
     CoinSaleValidator,
     LatestTradeValidator,
@@ -71,17 +71,17 @@ def update_time_series_summaries_routine():
 
         ts_summaries.append(ts_summary)
 
-    market_confidence = MarketConfidence(1, timeseries.time_now(), ts_summaries)
+    market_analysis = MarketAnalysis(1, timeseries.time_now(), ts_summaries)
 
-    app_context.add_item(market_confidence)
+    app_context.add_item(market_analysis)
 
 
-def get_market_confidence() -> MarketConfidence:
-    market_confidence = app_context.get_market_confidence()
+def get_market_analysis() -> MarketAnalysis:
+    market_analysis = app_context.get_market_analysis()
 
     should_refresh_db = (
         timeseries.convert_ms_time_to_hours(
-            timeseries.time_now(), market_confidence.creation_time_ms
+            timeseries.time_now(), market_analysis.creation_time_ms
         )
         >= 1.0
     )
@@ -89,9 +89,9 @@ def get_market_confidence() -> MarketConfidence:
     if should_refresh_db:
         logger.warn("Time series data needs to be refreshed. Refreshing now.")
         update_time_series_summaries_routine()
-        market_confidence = app_context.get_market_confidence()
+        market_analysis = app_context.get_market_analysis()
 
-    return market_confidence
+    return market_analysis
 
 
 @routine("Coin Purchase")
@@ -107,10 +107,10 @@ def buy_coin_routine():
         f"Searching for {coin_count} coins to invest in at ${INVESTMENT_INCREMENTS} each"
     )
 
-    market_confidence = get_market_confidence()
-    options = market_confidence.rating
+    market_analysis = get_market_analysis()
+    options = market_analysis.rating
 
-    for ts_summary in market_confidence.ts_data:
+    for ts_summary in market_analysis.ts_data:
         latest_trade = crypto_context.get_latest_trade(ts_summary.coin_name)
 
         if purchase_count == coin_count:

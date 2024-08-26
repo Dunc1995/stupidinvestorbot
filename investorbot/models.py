@@ -76,11 +76,11 @@ class TimeSeriesSummary(Base):
         cascade="all, delete",
     )
 
-    market_confidence_id: Mapped[int] = mapped_column(
-        ForeignKey("market_confidence.market_confidence_id", ondelete="CASCADE"),
+    market_analysis_id: Mapped[int] = mapped_column(
+        ForeignKey("market_analysis.market_analysis_id", ondelete="CASCADE"),
     )
 
-    market_confidence: Mapped[Optional["MarketConfidence"]] = relationship(
+    market_analysis: Mapped[Optional["MarketAnalysis"]] = relationship(
         back_populates="ts_data", init=False
     )
 
@@ -100,10 +100,10 @@ class TimeSeriesMode(Base):
     )
 
 
-class MarketConfidence(Base):
-    __tablename__ = "market_confidence"
+class MarketAnalysis(Base):
+    __tablename__ = "market_analysis"
 
-    market_confidence_id: Mapped[int] = mapped_column(
+    market_analysis_id: Mapped[int] = mapped_column(
         primary_key=True, autoincrement=True, init=False
     )
 
@@ -118,7 +118,7 @@ class MarketConfidence(Base):
     )
 
     ts_data: Mapped[List["TimeSeriesSummary"]] = relationship(
-        back_populates="market_confidence",
+        back_populates="market_analysis",
         cascade="all, delete",
     )
 
@@ -147,6 +147,6 @@ class CoinSelectionCriteria(Base):
     trend_line_should_be_falling: Mapped[bool] = mapped_column(Boolean())
     trend_line_should_be_flat_or_rising: Mapped[bool] = mapped_column(Boolean())
 
-    confidence_entries: Mapped[List["MarketConfidence"]] = relationship(
+    confidence_entries: Mapped[List["MarketAnalysis"]] = relationship(
         back_populates="rating", cascade="all, delete", init=False
     )

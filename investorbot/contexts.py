@@ -25,7 +25,7 @@ from investorbot.models import (
     BuyOrder,
     CoinProperties,
     CoinSelectionCriteria,
-    MarketConfidence,
+    MarketAnalysis,
     TimeSeriesSummary,
 )
 from investorbot.timeseries import time_now
@@ -200,12 +200,12 @@ class AppContext:
 
         return ts_data
 
-    def get_market_confidence(self) -> List[MarketConfidence]:
+    def get_market_analysis(self) -> List[MarketAnalysis]:
         items_list = []
         session = self.session
 
-        query = session.query(MarketConfidence).options(
-            joinedload(MarketConfidence.ts_data).subqueryload(TimeSeriesSummary.modes)
+        query = session.query(MarketAnalysis).options(
+            joinedload(MarketAnalysis.ts_data).subqueryload(TimeSeriesSummary.modes)
         )
 
         for item in session.scalars(query):
@@ -217,13 +217,13 @@ class AppContext:
         with self.session as session:
             now = time_now()
             query = (
-                session.query(MarketConfidence)
+                session.query(MarketAnalysis)
                 .options(
-                    joinedload(MarketConfidence.ts_data).subqueryload(
+                    joinedload(MarketAnalysis.ts_data).subqueryload(
                         TimeSeriesSummary.modes
                     )
                 )
-                .where(MarketConfidence.creation_time_ms < now)
+                .where(MarketAnalysis.creation_time_ms < now)
             )
 
             for item in session.scalars(query):

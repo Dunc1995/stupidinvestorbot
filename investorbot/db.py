@@ -82,7 +82,7 @@ def init_db():
     app_context.run_migration()
 
     coin_properties = crypto_context.get_coin_properties()
-    market_confidence_ratings = [
+    market_analysis_ratings = [
         CoinSelectionCriteria(**HIGH_CONFIDENCE),
         CoinSelectionCriteria(**MODERATE_CONFIDENCE),
         CoinSelectionCriteria(**UNDECIDED),
@@ -91,4 +91,4 @@ def init_db():
     ]
 
     app_context.add_items(coin_properties)
-    app_context.add_items(market_confidence_ratings)
+    app_context.add_items(market_analysis_ratings)

@@ -57,17 +57,18 @@ class TestRoutines(unittest.TestCase):
 
         update_time_series_summaries_routine()
 
-        market_confidence_items = self.mock_db_context_routines.get_market_confidence()
+        market_analysis_items = self.mock_db_context_routines.get_market_analysis()
 
         self.assertEqual(
-            len(market_confidence_items),
+            len(market_analysis_items),
             1,
-            "Expected one market confidence entry.",
+            "Expected one market analysis entry.",
         )
 
-        ts_analysis = market_confidence_items[0]
+        ts_analysis = market_analysis_items[0]
 
         self.assertIsNotNone(ts_analysis)
         self.assertIsNotNone(ts_analysis.ts_data)
 
         self.assertEqual(len(ts_analysis.ts_data), 8)
+        self.assertIsNotNone(ts_analysis.rating)
