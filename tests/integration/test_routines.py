@@ -35,11 +35,6 @@ class TestRoutines(unittest.TestCase):
 
         init_db()
 
-    # @patch("investorbot.crypto_context.get_usd_balance", return_value=27.65)
-    # @patch("investorbot.crypto_context.get_investable_coin_count", return_value=5)
-    # def test_usd_balance_is_retrievable(self, mock_coin_count, mock_usd):
-    #     buy_coin_routine()
-
     @patch("investorbot.http.base.requests.get")
     def test_update_time_series_summaries_routine(self, mock_tickers):
         mock_tickers.return_value = Mock(ok=True)
@@ -57,18 +52,18 @@ class TestRoutines(unittest.TestCase):
 
         update_time_series_summaries_routine()
 
-        market_analysis_items = self.mock_db_context_routines.get_market_analysis()
+        market_analysis = self.mock_db_context_routines.get_market_analysis()
 
-        self.assertEqual(
-            len(market_analysis_items),
-            1,
-            "Expected one market analysis entry.",
-        )
+        self.assertIsNotNone(market_analysis)
+        self.assertIsNotNone(market_analysis.ts_data)
 
-        ts_analysis = market_analysis_items[0]
+        self.assertEqual(len(market_analysis.ts_data), 8)
+        self.assertIsNotNone(market_analysis.rating)
 
-        self.assertIsNotNone(ts_analysis)
-        self.assertIsNotNone(ts_analysis.ts_data)
+    # @patch("investorbot.crypto_context.get_usd_balance", return_value=27.65)
+    # @patch("investorbot.crypto_context.get_investable_coin_count", return_value=5)
+    # @patch("investorbot.http.base.requests.get")
+    # def test(self, mock_tickers, mock_coin_count, mock_usd):
+    #     self.test_update_time_series_summaries_routine()
 
-        self.assertEqual(len(ts_analysis.ts_data), 8)
-        self.assertIsNotNone(ts_analysis.rating)
+    #     buy_coin_routine()

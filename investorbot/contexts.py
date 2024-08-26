@@ -200,7 +200,7 @@ class AppContext:
 
         return ts_data
 
-    def get_market_analysis(self) -> List[MarketAnalysis]:
+    def get_market_analysis(self) -> MarketAnalysis | None:
         items_list = []
         session = self.session
 
@@ -211,7 +211,14 @@ class AppContext:
         for item in session.scalars(query):
             items_list.append(item)
 
-        return items_list
+        list_length = len(items_list)
+
+        if list_length > 1:
+            raise NotImplementedError(
+                "Investor bot can only handle one market analysis in its database currently."
+            )
+
+        return items_list[0] if list_length == 1 else None
 
     def delete_existing_time_series(self):
         with self.session as session:
