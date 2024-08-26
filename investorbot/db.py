@@ -2,14 +2,14 @@ import logging
 
 from investorbot import app_context, crypto_context
 from investorbot.constants import DEFAULT_LOGS_NAME
-from investorbot.enums import ConfidenceRatings
+from investorbot.enums import ConfidenceRating
 from investorbot.models import CoinSelectionCriteria
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
 
 HIGH_CONFIDENCE = {
-    "rating_id": ConfidenceRatings.HIGH_CONFIDENCE.value,
+    "rating_id": ConfidenceRating.HIGH_CONFIDENCE.value,
     "rating_description": "High Confidence",
     "trade_needs_to_be_within_mean_and_upper_bound": False,
     "trade_needs_to_be_within_mean_and_lower_bound": True,
@@ -23,7 +23,7 @@ HIGH_CONFIDENCE = {
 }
 
 MODERATE_CONFIDENCE = {
-    "rating_id": ConfidenceRatings.MODERATE_CONFIDENCE.value,
+    "rating_id": ConfidenceRating.MODERATE_CONFIDENCE.value,
     "rating_description": "Moderate Confidence",
     "trade_needs_to_be_within_mean_and_upper_bound": False,
     "trade_needs_to_be_within_mean_and_lower_bound": True,
@@ -37,7 +37,7 @@ MODERATE_CONFIDENCE = {
 }
 
 UNDECIDED = {
-    "rating_id": ConfidenceRatings.UNDECIDED.value,
+    "rating_id": ConfidenceRating.UNDECIDED.value,
     "rating_description": "Unsure",
     "trade_needs_to_be_within_mean_and_upper_bound": False,
     "trade_needs_to_be_within_mean_and_lower_bound": True,
@@ -51,7 +51,7 @@ UNDECIDED = {
 }
 
 LITTLE_CONFIDENCE = {
-    "rating_id": ConfidenceRatings.LITTLE_CONFIDENCE.value,
+    "rating_id": ConfidenceRating.LITTLE_CONFIDENCE.value,
     "rating_description": "Low Confidence",
     "trade_needs_to_be_within_mean_and_upper_bound": False,
     "trade_needs_to_be_within_mean_and_lower_bound": True,
@@ -65,7 +65,7 @@ LITTLE_CONFIDENCE = {
 }
 
 NO_CONFIDENCE = {
-    "rating_id": ConfidenceRatings.NO_CONFIDENCE.value,
+    "rating_id": ConfidenceRating.NO_CONFIDENCE.value,
     "rating_description": "No Confidence - Do not Invest",
     "trade_needs_to_be_within_mean_and_upper_bound": False,
     "trade_needs_to_be_within_mean_and_lower_bound": False,

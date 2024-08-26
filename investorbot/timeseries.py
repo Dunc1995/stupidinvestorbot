@@ -6,7 +6,7 @@ from pandas import DataFrame
 import numpy as np
 
 from investorbot.constants import DEFAULT_LOGS_NAME
-from investorbot.enums import ConfidenceRatings
+from investorbot.enums import ConfidenceRating
 from investorbot.models import CoinSelectionCriteria, TimeSeriesMode, TimeSeriesSummary
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
@@ -77,5 +77,5 @@ def get_coin_time_series_summary(
     )
 
 
-def get_market_analysis_rating() -> ConfidenceRatings:
-    pass
+def get_market_analysis_rating() -> ConfidenceRating:
+    return ConfidenceRating.HIGH_CONFIDENCE

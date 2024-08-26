@@ -11,7 +11,7 @@ class OrderStatuses(Enum):
     EXPIRED = "EXPIRED"
 
 
-class ConfidenceRatings(Enum):
+class ConfidenceRating(Enum):
     HIGH_CONFIDENCE = 1
     MODERATE_CONFIDENCE = 2
     UNDECIDED = 3
