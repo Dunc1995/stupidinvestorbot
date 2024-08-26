@@ -5,12 +5,12 @@ from investorbot.constants import (
 )
 from investorbot import crypto_context, app_context
 from investorbot.decorators import routine
+from investorbot.enums import OrderStatuses
 from investorbot.models import MarketAnalysis
 from investorbot.validators import (
     CoinSaleValidator,
     LatestTradeValidator,
 )
-from investorbot.structs.internal import OrderStatuses
 from investorbot.structs.egress import CoinPurchase, CoinSale
 import investorbot.timeseries as timeseries
 

@@ -3,7 +3,8 @@ import unittest
 import uuid
 
 from investorbot import timeseries
-from investorbot.structs.internal import OrderDetail, OrderStatuses, PositionBalance
+from investorbot.enums import OrderStatuses
+from investorbot.structs.internal import OrderDetail, PositionBalance
 from investorbot.validators import CoinSaleValidator
 
 

@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 import logging
 from investorbot.constants import DEFAULT_LOGS_NAME
+from investorbot.enums import OrderStatuses
 from investorbot.structs.internal import (
     LatestTrade,
     OrderDetail,
-    OrderStatuses,
     PositionBalance,
 )
 from investorbot.models import CoinSelectionCriteria, TimeSeriesSummary

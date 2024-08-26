@@ -30,16 +30,6 @@ class LatestTrade:
         self.price = float(ticker.latest_trade)
 
 
-class OrderStatuses(Enum):
-    NEW = "NEW"
-    PENDING = "PENDING"
-    REJECTED = "REJECTED"
-    ACTIVE = "ACTIVE"
-    CANCELED = "CANCELED"
-    FILLED = "FILLED"
-    EXPIRED = "EXPIRED"
-
-
 @dataclass
 class OrderDetail:
     status: str
