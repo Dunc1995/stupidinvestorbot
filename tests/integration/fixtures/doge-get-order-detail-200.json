@@ -1,0 +1,31 @@
+{
+    "id": 15,
+    "method": "private/get-order-detail",
+    "code": 0,
+    "result": {
+        "account_id": "32040f09-d4d6-43ba-9ae5-b6b4adabbb02",
+        "order_id": "5755600406115748812",
+        "client_oid": "4310e324-8705-42d2-b15f-a5a62cb412d2",
+        "order_type": "LIMIT",
+        "time_in_force": "GOOD_TILL_CANCEL",
+        "side": "BUY",
+        "exec_inst": [],
+        "quantity": "4600000",
+        "limit_price": "0.00000108087",
+        "order_value": "4.972002",
+        "avg_price": "0",
+        "ref_price": "0",
+        "cumulative_quantity": "0",
+        "cumulative_value": "0",
+        "cumulative_fee": "0",
+        "status": "ACTIVE",
+        "update_user_id": "32040f09-d4d6-43ba-9ae5-b6b4adabbb02",
+        "order_date": "2024-08-20",
+        "instrument_name": "DOGE_USD",
+        "fee_instrument_name": "DOGE",
+        "reason": 0,
+        "create_time": 1724184453933,
+        "create_time_ns": "1724184453933137789",
+        "update_time": 1724184453933
+    }
+}

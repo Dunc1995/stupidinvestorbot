@@ -1,0 +1,9 @@
+{
+    "id": 7,
+    "method": "private/create-order",
+    "code": 0,
+    "result": {
+        "client_oid": "2746b58a-8373-40ea-ae72-64150d4aae0d",
+        "order_id": "5755600405934513680"
+    }
+}

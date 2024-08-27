@@ -1,0 +1,31 @@
+{
+    "id": 15,
+    "method": "private/get-order-detail",
+    "code": 0,
+    "result": {
+        "account_id": "32040f09-d4d6-43ba-9ae5-b6b4adabbb02",
+        "order_id": "5755600406115748812",
+        "client_oid": "a1d2bcb1-5991-41a1-833f-1db903258a1a",
+        "order_type": "LIMIT",
+        "time_in_force": "GOOD_TILL_CANCEL",
+        "side": "BUY",
+        "exec_inst": [],
+        "quantity": "0.01",
+        "limit_price": "0.00000108087",
+        "order_value": "4.972002",
+        "avg_price": "0",
+        "ref_price": "0",
+        "cumulative_quantity": "0.01",
+        "cumulative_value": "4.972002",
+        "cumulative_fee": "0.0001",
+        "status": "FILLED",
+        "update_user_id": "32040f09-d4d6-43ba-9ae5-b6b4adabbb02",
+        "order_date": "2024-08-20",
+        "instrument_name": "ETH_USD",
+        "fee_instrument_name": "ETH",
+        "reason": 0,
+        "create_time": 1724184453933,
+        "create_time_ns": "1724184453933137789",
+        "update_time": 1724184453933
+    }
+}
