@@ -8,7 +8,7 @@ from investorbot.structs.internal import (
     PositionBalance,
 )
 from investorbot.models import CoinSelectionCriteria, TimeSeriesSummary
-from investorbot.timeseries import time_now, convert_ms_time_to_hours
+from investorbot.timeseries import get_trend_value, time_now, convert_ms_time_to_hours
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
@@ -44,11 +44,9 @@ class LatestTradeValidator:
         self.options = validator_options
 
     def __get_trend_value(self, hour_in_time: float) -> float:
-        trend_value = (
-            self.trend_line_coefficient * hour_in_time + self.trend_line_offset
+        return get_trend_value(
+            self.trend_line_coefficient, hour_in_time, self.trend_line_offset
         )
-
-        return trend_value
 
     @property
     def trend_line_price_percentage_change(self) -> float:

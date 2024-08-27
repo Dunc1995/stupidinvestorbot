@@ -71,7 +71,11 @@ def update_time_series_summaries_routine():
 
         ts_summaries.append(ts_summary)
 
-    market_analysis = MarketAnalysis(1, timeseries.time_now(), ts_summaries)
+    confidence_rating = timeseries.get_market_analysis_rating(ts_summaries)
+
+    market_analysis = MarketAnalysis(
+        confidence_rating.value, timeseries.time_now(), ts_summaries
+    )
 
     app_context.add_item(market_analysis)
 

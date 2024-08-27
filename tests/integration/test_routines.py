@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, Mock, patch
 
 from investorbot.contexts import AppContext
 from investorbot.db import init_db, app_context
+from investorbot.enums import ConfidenceRating
 from investorbot.routines import buy_coin_routine, update_time_series_summaries_routine
 from tests.integration import get_mock_response
 
@@ -54,11 +55,22 @@ class TestRoutines(unittest.TestCase):
 
         market_analysis = self.mock_db_context_routines.get_market_analysis()
 
-        self.assertIsNotNone(market_analysis)
-        self.assertIsNotNone(market_analysis.ts_data)
+        self.assertIsNotNone(market_analysis, "Market analysis was found to be None.")
+        self.assertIsNotNone(
+            market_analysis.ts_data, "Time series data was found to be None."
+        )
 
-        self.assertEqual(len(market_analysis.ts_data), 8)
-        self.assertIsNotNone(market_analysis.rating)
+        self.assertEqual(
+            len(market_analysis.ts_data),
+            8,
+            "Incorrect number of time series data entries.",
+        )
+        self.assertIsNotNone(market_analysis.rating, "Rating was found to be None.")
+        self.assertEqual(
+            market_analysis.confidence_rating_id,
+            ConfidenceRating.MODERATE_CONFIDENCE.value,
+            "Confidence rating is not correct.",
+        )
 
     # @patch("investorbot.crypto_context.get_usd_balance", return_value=27.65)
     # @patch("investorbot.crypto_context.get_investable_coin_count", return_value=5)
