@@ -4,7 +4,12 @@ from unittest.mock import MagicMock, Mock, patch
 from investorbot.contexts import AppContext
 from investorbot.db import init_db, app_context
 from investorbot.enums import ConfidenceRating
-from investorbot.routines import buy_coin_routine, update_time_series_summaries_routine
+from investorbot.models import BuyOrder
+from investorbot.routines import (
+    buy_coin_routine,
+    sell_coin_routine,
+    update_time_series_summaries_routine,
+)
 from tests.integration import get_mock_response
 
 
@@ -14,7 +19,7 @@ class TestRoutines(unittest.TestCase):
     def setUp(self, mock_instruments: MagicMock):
         mock_instruments.return_value = Mock(ok=True)
         mock_instruments.return_value.json.return_value = get_mock_response(
-            "get-instruments.json"
+            "get-instruments"
         )
 
         context = AppContext("sqlite:///:memory:")
@@ -40,15 +45,15 @@ class TestRoutines(unittest.TestCase):
     def test_update_time_series_summaries_routine(self, mock_tickers):
         mock_tickers.return_value = Mock(ok=True)
         mock_tickers.return_value.json.side_effect = [
-            get_mock_response("get-tickers-200.json"),
-            get_mock_response("ts_data/ltc.json"),
-            get_mock_response("ts_data/sol.json"),
-            get_mock_response("ts_data/xrp.json"),
-            get_mock_response("ts_data/beat.json"),
-            get_mock_response("ts_data/doge.json"),
-            get_mock_response("ts_data/avax.json"),
-            get_mock_response("ts_data/shib.json"),
-            get_mock_response("ts_data/ftm.json"),
+            get_mock_response("get-tickers-200"),
+            get_mock_response("ts_data/ltc"),
+            get_mock_response("ts_data/sol"),
+            get_mock_response("ts_data/xrp"),
+            get_mock_response("ts_data/beat"),
+            get_mock_response("ts_data/doge"),
+            get_mock_response("ts_data/avax"),
+            get_mock_response("ts_data/shib"),
+            get_mock_response("ts_data/ftm"),
         ]
 
         update_time_series_summaries_routine()
@@ -79,3 +84,44 @@ class TestRoutines(unittest.TestCase):
     #     self.test_update_time_series_summaries_routine()
 
     #     buy_coin_routine()
+
+    # @patch("investorbot.crypto_context.get_usd_balance", return_value=27.65)
+    # @patch("investorbot.crypto_context.get_investable_coin_count", return_value=5)
+    @patch("investorbot.http.base.requests.post")
+    def test_sell_coin_routine(self, mock_requests):
+        mock_requests.return_value = Mock(ok=True)
+        mock_requests.return_value.json.side_effect = [
+            get_mock_response("doge-get-order-detail-200"),
+            get_mock_response("user-balance-200"),
+            get_mock_response("eth-get-order-detail-200"),
+            get_mock_response("user-balance-200"),
+            get_mock_response("create-order-200"),
+        ]
+
+        self.mock_db_context_routines.add_items(
+            [
+                BuyOrder("4310e324-8705-42d2-b15f-a5a62cb412d2", "DOGE_USD"),
+                BuyOrder("a1d2bcb1-5991-41a1-833f-1db903258a1a", "ETH_USD"),
+            ]
+        )
+
+        sell_coin_routine()
+
+        doge_buy_order = self.mock_db_context_routines.get_buy_order(
+            "4310e324-8705-42d2-b15f-a5a62cb412d2"
+        )
+
+        eth_buy_order = self.mock_db_context_routines.get_buy_order(
+            "a1d2bcb1-5991-41a1-833f-1db903258a1a"
+        )
+
+        self.assertIsNone(
+            doge_buy_order.sell_order,
+            "DOGE sell order should be None as no order has been placed",
+        )
+
+        self.assertIsNotNone(eth_buy_order, "ETH buy order was found to be None")
+        self.assertIsNotNone(
+            eth_buy_order.sell_order,
+            "ETH sell order is returning None when it should exist",
+        )

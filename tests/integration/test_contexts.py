@@ -112,7 +112,7 @@ class TestCryptoContext(unittest.TestCase):
     def test_usd_balance_is_retrievable(self, mock_get: MagicMock):
         mock_get.return_value = Mock(ok=True)
         mock_get.return_value.json.return_value = get_mock_response(
-            "private-user-balance-status-200.json"
+            "private-user-balance-status-200"
         )
 
         usd_balance = self.test_crypto_context.get_usd_balance()

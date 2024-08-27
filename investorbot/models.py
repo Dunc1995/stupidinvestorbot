@@ -52,6 +52,21 @@ class BuyOrder(Base):
         init=False, back_populates="buy_orders"
     )
 
+    sell_order: Mapped[Optional["SellOrder"]] = relationship(
+        init=False, back_populates="buy_order"
+    )
+
+
+class SellOrder(Base):
+    __tablename__ = "sell_orders"
+
+    sell_order_id: Mapped[str] = mapped_column(primary_key=True)
+    buy_order_id: Mapped[str] = mapped_column(ForeignKey("buy_orders.buy_order_id"))
+
+    buy_order: Mapped[Optional[BuyOrder]] = relationship(
+        init=False, back_populates="sell_order"
+    )
+
 
 class TimeSeriesSummary(Base):
     """Data container for storing basic statistical properties after

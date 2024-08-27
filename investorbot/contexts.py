@@ -26,6 +26,7 @@ from investorbot.models import (
     CoinProperties,
     CoinSelectionCriteria,
     MarketAnalysis,
+    SellOrder,
     TimeSeriesSummary,
 )
 from investorbot.timeseries import time_now
@@ -112,7 +113,9 @@ class CryptoContext:
             coin_name=order_spec.coin_properties.coin_name,
         )
 
-    def place_coin_sell_order(self, coin_sale: CoinSale) -> OrderJson:
+    def place_coin_sell_order(
+        self, buy_order_id: str, coin_sale: CoinSale
+    ) -> SellOrder:
         order = self.user.create_order(
             coin_sale.coin_properties.coin_name,
             coin_sale.price_per_coin,
@@ -120,7 +123,9 @@ class CryptoContext:
             "SELL",
         )
 
-        return order
+        sell_order = SellOrder(order.client_oid, buy_order_id)
+
+        return sell_order
 
 
 class AppContext:

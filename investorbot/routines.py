@@ -181,6 +181,5 @@ def sell_coin_routine():
             coin_sale_validator.order_quantity_minus_fee,
         )
 
-        crypto_context.place_coin_sell_order(coin_sale)
-
-        app_context.delete_buy_order(buy_order_id)
+        sell_order = crypto_context.place_coin_sell_order(order.buy_order_id, coin_sale)
+        app_context.add_item(sell_order)
