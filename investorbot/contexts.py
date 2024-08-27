@@ -164,7 +164,12 @@ class AppContext:
     def get_buy_order(self, buy_order_id: str) -> BuyOrder | None:
         session = self.session
 
-        query = sqlalchemy.select(BuyOrder).where(BuyOrder.buy_order_id == buy_order_id)
+        query = (
+            sqlalchemy.select(BuyOrder)
+            .where(BuyOrder.buy_order_id == buy_order_id)
+            .options(joinedload(BuyOrder.sell_order))
+        )
+
         return session.scalar(query)
 
     def get_all_buy_orders(self) -> List[BuyOrder]:
