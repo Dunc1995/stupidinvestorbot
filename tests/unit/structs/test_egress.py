@@ -5,6 +5,11 @@ from investorbot.structs.egress import CoinSale
 
 
 class TestCoinSale(unittest.TestCase):
+    """The Crypto API expects quantity and order values to be rounded to specific
+    decimal places when placing orders. These test cases ensure that order values
+    will be printed correctly whilst making POST requests to the Crypto API.
+    """
+
     def setUp(self):
         pass
 

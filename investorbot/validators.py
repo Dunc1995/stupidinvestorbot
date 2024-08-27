@@ -131,6 +131,10 @@ class CoinSaleValidator:
     position_balance: PositionBalance
 
     def __init__(self, order_detail: OrderDetail, position_balance: PositionBalance):
+        # TODO see below:
+        # This structure is good for wallet validation, but this class is doing too
+        # much overall.
+
         self.order_detail = order_detail
         self.position_balance = position_balance
 
@@ -144,6 +148,8 @@ class CoinSaleValidator:
 
     @property
     def order_quantity_minus_fee(self) -> float:
+        # TODO include this in the BuyOrder rather in validation
+        # TODO incorporate instrument fee currency to ensure this calculation is always valid
         return self.order_detail.cumulative_quantity - self.order_detail.cumulative_fee
 
     @property
@@ -152,6 +158,7 @@ class CoinSaleValidator:
 
     @property
     def sellable_quantity(self) -> float:
+        # TODO maybe include this in position balance class.
         return self.position_balance.quantity - self.position_balance.reserved_quantity
 
     @property

@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import MagicMock, Mock, patch
 
-from investorbot.contexts import AppContext
+from investorbot.contexts import AppContext, CryptoContext
 from investorbot.db import init_db, app_context
 from investorbot.enums import ConfidenceRating
 from investorbot.models import BuyOrder
@@ -22,27 +22,42 @@ class TestRoutines(unittest.TestCase):
             "get-instruments"
         )
 
-        context = AppContext("sqlite:///:memory:")
+        app_context = AppContext("sqlite:///:memory:")
+        crypto_context = CryptoContext()
+        crypto_context.user.api_key = "Test984bvwhibwbiytesTy"
+        crypto_context.user.api_secret_key = "Test_ounghTtgwth874hWWWTESTG"
 
         self.patcher_environment = patch(
             "investorbot.http.base.INVESTOR_APP_ENVIRONMENT", "Testing"
         )
-        self.patcher_db_app_context = patch("investorbot.db.app_context", context)
+        self.patcher_db_app_context = patch("investorbot.db.app_context", app_context)
         self.patcher_routine_app_context = patch(
-            "investorbot.routines.app_context", context
+            "investorbot.routines.app_context", app_context
+        )
+        self.patcher_routine_crypto_context = patch(
+            "investorbot.routines.crypto_context", crypto_context
         )
 
         self.mock_environment = self.patcher_environment.start()
         self.mock_db_context_db = self.patcher_db_app_context.start()
         self.mock_db_context_routines = self.patcher_routine_app_context.start()
+        self.mock_routine_crypto_context = self.patcher_routine_crypto_context.start()
         self.addCleanup(self.patcher_environment.stop)
         self.addCleanup(self.patcher_db_app_context.stop)
         self.addCleanup(self.patcher_routine_app_context.stop)
+        self.addCleanup(self.patcher_routine_crypto_context.stop)
 
         init_db()
 
     @patch("investorbot.http.base.requests.get")
     def test_update_time_series_summaries_routine(self, mock_tickers):
+        """The time series summary update routine iterates over time series data
+        periodically and stores properties such as median, mean, trend line coefficient,
+        etc. for each coin of interest. Market confidence can then be determined by
+        collating all information for each coin and trying to spot an overall trend across
+        the time series datasets. This test ensures market analysis results are correct
+        after ingesting some example time series data.
+        """
         mock_tickers.return_value = Mock(ok=True)
         mock_tickers.return_value.json.side_effect = [
             get_mock_response("get-tickers-200"),
@@ -88,7 +103,12 @@ class TestRoutines(unittest.TestCase):
     # @patch("investorbot.crypto_context.get_usd_balance", return_value=27.65)
     # @patch("investorbot.crypto_context.get_investable_coin_count", return_value=5)
     @patch("investorbot.http.base.requests.post")
-    def test_sell_coin_routine(self, mock_requests):
+    def test_sell_coin_routine_stores_sell_order(self, mock_requests):
+        """Testing the sell coin routine is able to distinguish between BuyOrders with
+        an associated SellOrder and BuyOrders without. This behavior is necessary to
+        prevent the application from repeatedly trying to make sell orders for the same
+        BuyOrder.
+        """
         mock_requests.return_value = Mock(ok=True)
         mock_requests.return_value.json.side_effect = [
             get_mock_response("doge-get-order-detail-200"),

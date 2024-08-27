@@ -34,11 +34,14 @@ class TestAppContext(unittest.TestCase):
         self.test_context.add_items(coin_properties)
 
     def test_get_buy_order_will_return_none_when_not_found(self):
+        """Testing ORM will return None when buy orders do not exist."""
         result = self.test_context.get_buy_order("123")
 
         self.assertIsNone(result, "Buy order query result is not None.")
 
     def test_buy_order_can_be_stored_and_retrieved(self):
+        """Testing my implementation of the ORM is able to add items and read
+        said items from the app database."""
         buy_order_id = str(uuid.uuid4())
 
         buy_order = BuyOrder(buy_order_id=buy_order_id, coin_name="AGLD_USDT")
@@ -69,7 +72,9 @@ class TestAppContext(unittest.TestCase):
         )
 
     def test_time_series_summary_is_retrievable_with_modes(self):
-
+        """Ensuring ORM query is such that Modes are included in the time series
+        data summary query.
+        """
         coin_name = "TON_USD"
 
         ts_summary = TimeSeriesSummary(
@@ -110,6 +115,9 @@ class TestCryptoContext(unittest.TestCase):
 
     @patch("investorbot.http.base.requests.post")
     def test_usd_balance_is_retrievable(self, mock_get: MagicMock):
+        """Testing get_usd_balance correctly fetches my USD balance from the user
+        balance JSON.
+        """
         mock_get.return_value = Mock(ok=True)
         mock_get.return_value.json.return_value = get_mock_response(
             "private-user-balance-status-200"
