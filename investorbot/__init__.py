@@ -1,4 +1,4 @@
-from investorbot.contexts import CryptoContext, AppContext
+from investorbot.services import CryptoService, AppService
 
-crypto_context = CryptoContext()
-app_context = AppContext()
+crypto_service = CryptoService()
+app_service = AppService()

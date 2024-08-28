@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, Mock, patch
 import uuid
 
 from investorbot.structs.ingress import InstrumentJson
-from investorbot.contexts import AppContext, CryptoContext
+from investorbot.services import AppService, CryptoService
 from investorbot.models import (
     BuyOrder,
     CoinProperties,
@@ -15,12 +15,12 @@ from investorbot.models import (
 from tests.integration import get_mock_response
 
 
-class TestAppContext(unittest.TestCase):
+class TestAppService(unittest.TestCase):
     def setUp(self):
         instrument_data = None
 
-        self.test_context = AppContext("sqlite:///:memory:")
-        self.test_context.run_migration()
+        self.test_service = AppService("sqlite:///:memory:")
+        self.test_service.run_migration()
 
         with open("./tests/integration/fixtures/get-instruments.json", "r") as f:
             instrument_data = json.loads(f.read())["result"]["data"]
@@ -31,11 +31,11 @@ class TestAppContext(unittest.TestCase):
             for instrument in instruments
         ]
 
-        self.test_context.add_items(coin_properties)
+        self.test_service.add_items(coin_properties)
 
     def test_get_buy_order_will_return_none_when_not_found(self):
         """Testing ORM will return None when buy orders do not exist."""
-        result = self.test_context.get_buy_order("123")
+        result = self.test_service.get_buy_order("123")
 
         self.assertIsNone(result, "Buy order query result is not None.")
 
@@ -45,9 +45,9 @@ class TestAppContext(unittest.TestCase):
         buy_order_id = str(uuid.uuid4())
 
         buy_order = BuyOrder(buy_order_id=buy_order_id, coin_name="AGLD_USDT")
-        self.test_context.add_item(buy_order)
+        self.test_service.add_item(buy_order)
 
-        db_buy_order = self.test_context.get_buy_order(buy_order_id)
+        db_buy_order = self.test_service.get_buy_order(buy_order_id)
 
         self.assertEqual(db_buy_order.buy_order_id, buy_order_id)
         self.assertIsInstance(
@@ -89,9 +89,9 @@ class TestAppContext(unittest.TestCase):
             1,
         )
 
-        self.test_context.add_item(ts_summary)
+        self.test_service.add_item(ts_summary)
 
-        retrieved_ts_summary = self.test_context.get_time_series_with_coin_name(
+        retrieved_ts_summary = self.test_service.get_time_series_with_coin_name(
             coin_name
         )
 
@@ -107,11 +107,11 @@ class TestAppContext(unittest.TestCase):
 
 
 @patch("investorbot.http.base.INVESTOR_APP_ENVIRONMENT", "Testing")
-class TestCryptoContext(unittest.TestCase):
+class TestCryptoService(unittest.TestCase):
     def setUp(self):
-        self.test_crypto_context = CryptoContext()
-        self.test_crypto_context.user.api_key = "Test984bvwhibwbiytesTy"
-        self.test_crypto_context.user.api_secret_key = "Test_ounghTtgwth874hWWWTESTG"
+        self.test_crypto_service = CryptoService()
+        self.test_crypto_service.user.api_key = "Test984bvwhibwbiytesTy"
+        self.test_crypto_service.user.api_secret_key = "Test_ounghTtgwth874hWWWTESTG"
 
     @patch("investorbot.http.base.requests.post")
     def test_usd_balance_is_retrievable(self, mock_get: MagicMock):
@@ -123,6 +123,6 @@ class TestCryptoContext(unittest.TestCase):
             "private-user-balance-status-200"
         )
 
-        usd_balance = self.test_crypto_context.get_usd_balance()
+        usd_balance = self.test_crypto_service.get_usd_balance()
 
         self.assertAlmostEqual(6.221, usd_balance, 3)

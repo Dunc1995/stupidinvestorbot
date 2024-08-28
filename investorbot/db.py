@@ -1,6 +1,6 @@
 import logging
 
-from investorbot import app_context, crypto_context
+from investorbot import app_service, crypto_service
 from investorbot.constants import DEFAULT_LOGS_NAME
 from investorbot.enums import ConfidenceRating
 from investorbot.models import CoinSelectionCriteria
@@ -80,9 +80,9 @@ NO_CONFIDENCE = {
 
 
 def init_db():
-    app_context.run_migration()
+    app_service.run_migration()
 
-    coin_properties = crypto_context.get_coin_properties()
+    coin_properties = crypto_service.get_coin_properties()
     market_analysis_ratings = [
         CoinSelectionCriteria(**HIGH_CONFIDENCE),
         CoinSelectionCriteria(**MODERATE_CONFIDENCE),
@@ -91,5 +91,5 @@ def init_db():
         CoinSelectionCriteria(**NO_CONFIDENCE),
     ]
 
-    app_context.add_items(coin_properties)
-    app_context.add_items(market_analysis_ratings)
+    app_service.add_items(coin_properties)
+    app_service.add_items(market_analysis_ratings)

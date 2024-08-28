@@ -3,7 +3,7 @@ from investorbot.constants import (
     INVESTMENT_INCREMENTS,
     DEFAULT_LOGS_NAME,
 )
-from investorbot import crypto_context, app_context
+from investorbot import crypto_service, app_service
 from investorbot.decorators import routine
 from investorbot.enums import OrderStatus
 from investorbot.models import MarketAnalysis
@@ -23,11 +23,11 @@ def cancel_orders_routine():
     """If any orders are taking too long to succeed, this routine will cancel the order
     and remove any reference to the unsuccessful order from the application database."""
     no_deletions = True
-    orders = app_context.get_all_buy_orders()
+    orders = app_service.get_all_buy_orders()
 
     for order in orders:
         buy_order_id = order.buy_order_id
-        order_detail = crypto_context.get_order_detail(buy_order_id)
+        order_detail = crypto_service.get_order_detail(buy_order_id)
 
         current_time = timeseries.time_now()
         age = timeseries.convert_ms_time_to_hours(
@@ -36,14 +36,14 @@ def cancel_orders_routine():
 
         if age > 0.15 and order_detail.status == OrderStatus.ACTIVE.value:
             logger.info(f"Cancelling order {buy_order_id}")
-            result = crypto_context.user.cancel_order(buy_order_id)
-            app_context.delete_buy_order(buy_order_id)
+            result = crypto_service.user.cancel_order(buy_order_id)
+            app_service.delete_buy_order(buy_order_id)
 
             logger.info(str(result))
             no_deletions = False
         elif OrderStatus.CANCELED.value == order_detail.status:
             logger.info(f"Removing order {buy_order_id} as it has been cancelled.")
-            app_context.delete_buy_order(buy_order_id)
+            app_service.delete_buy_order(buy_order_id)
 
     if no_deletions:
         logger.info("No cancellable orders found.")
@@ -56,12 +56,12 @@ def update_time_series_summaries_routine():
     these values are then stored in the application database via the TimeSeriesSummary
     models."""
     ts_summaries = []
-    app_context.delete_existing_time_series()
+    app_service.delete_existing_time_series()
 
-    for latest_trade in crypto_context.get_latest_trades():
+    for latest_trade in crypto_service.get_latest_trades():
         logger.info(f"Fetching latest 24hr dataset for {latest_trade.coin_name}.")
 
-        time_series_data = crypto_context.get_coin_time_series_data(
+        time_series_data = crypto_service.get_coin_time_series_data(
             latest_trade.coin_name
         )
 
@@ -77,11 +77,11 @@ def update_time_series_summaries_routine():
         confidence_rating.value, timeseries.time_now(), ts_summaries
     )
 
-    app_context.add_item(market_analysis)
+    app_service.add_item(market_analysis)
 
 
 def get_market_analysis() -> MarketAnalysis:
-    market_analysis = app_context.get_market_analysis()
+    market_analysis = app_service.get_market_analysis()
 
     should_refresh_db = (
         timeseries.convert_ms_time_to_hours(
@@ -93,7 +93,7 @@ def get_market_analysis() -> MarketAnalysis:
     if should_refresh_db:
         logger.warn("Time series data needs to be refreshed. Refreshing now.")
         update_time_series_summaries_routine()
-        market_analysis = app_context.get_market_analysis()
+        market_analysis = app_service.get_market_analysis()
 
     return market_analysis
 
@@ -105,7 +105,7 @@ def buy_coin_routine():
     conditions set by a given ruleset. Rulesets are to be determined by the app's
     confidence in the market."""
     purchase_count = 0
-    coin_count = crypto_context.get_investable_coin_count()
+    coin_count = crypto_service.get_investable_coin_count()
 
     logger.info(
         f"Searching for {coin_count} coins to invest in at ${INVESTMENT_INCREMENTS} each"
@@ -115,7 +115,7 @@ def buy_coin_routine():
     options = market_analysis.rating
 
     for ts_summary in market_analysis.ts_data:
-        latest_trade = crypto_context.get_latest_trade(ts_summary.coin_name)
+        latest_trade = crypto_service.get_latest_trade(ts_summary.coin_name)
 
         if purchase_count == coin_count:
             logger.info("Maximum number of coin investments reached.")
@@ -133,12 +133,12 @@ def buy_coin_routine():
             f"{coin_name} can be purchased based on current selection criteria."
         )
 
-        coin_props = app_context.get_coin_properties(coin_name)
+        coin_props = app_service.get_coin_properties(coin_name)
 
         spec = CoinPurchase(coin_props, latest_trade.price)
 
-        buy_order = crypto_context.place_coin_buy_order(spec)
-        app_context.add_item(buy_order)
+        buy_order = crypto_service.place_coin_buy_order(spec)
+        app_service.add_item(buy_order)
 
         purchase_count += 1
 
@@ -151,15 +151,15 @@ def sell_coin_routine():
     coin balances that have met the minimum return threshold - e.g. 101 percent
     of the original BuyOrder value."""
 
-    buy_orders = app_context.get_all_buy_orders()
+    buy_orders = app_service.get_all_buy_orders()
 
     for order in buy_orders:
         buy_order_id = order.buy_order_id
-        order_detail = crypto_context.get_order_detail(order.buy_order_id)
-        coin_balance = crypto_context.get_coin_balance(order_detail.coin_name)
+        order_detail = crypto_service.get_order_detail(order.buy_order_id)
+        coin_balance = crypto_service.get_coin_balance(order_detail.coin_name)
 
         if order_detail.status == OrderStatus.CANCELED.value:
-            app_context.delete_buy_order(buy_order_id)
+            app_service.delete_buy_order(buy_order_id)
             continue
 
         if order_detail.status == OrderStatus.ACTIVE.value or coin_balance is None:
@@ -181,5 +181,5 @@ def sell_coin_routine():
             coin_sale_validator.order_quantity_minus_fee,
         )
 
-        sell_order = crypto_context.place_coin_sell_order(order.buy_order_id, coin_sale)
-        app_context.add_item(sell_order)
+        sell_order = crypto_service.place_coin_sell_order(order.buy_order_id, coin_sale)
+        app_service.add_item(sell_order)

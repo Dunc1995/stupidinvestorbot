@@ -1,6 +1,6 @@
 import atexit
 from flask import Flask, render_template
-from investorbot import app_context, crypto_context
+from investorbot import app_service, crypto_service
 import investorbot.routines as routines
 from flask_bootstrap import Bootstrap5
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -43,10 +43,10 @@ atexit.register(lambda: scheduler.shutdown())
 @app.route("/")
 def home():
     order_details = []
-    orders = app_context.get_all_buy_orders()
+    orders = app_service.get_all_buy_orders()
 
     for order in orders:
-        order_detail = crypto_context.get_order_detail(order.buy_order_id)
+        order_detail = crypto_service.get_order_detail(order.buy_order_id)
         order_details.append(order_detail)
 
     return render_template("home.html", order_details=order_details)
@@ -54,6 +54,6 @@ def home():
 
 @app.route("/time-series")
 def time_series():
-    ts_data = app_context.get_market_analysis()
+    ts_data = app_service.get_market_analysis()
 
     return render_template("time_series.html", time_series_data=ts_data)

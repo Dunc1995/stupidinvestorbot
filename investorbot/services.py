@@ -34,7 +34,7 @@ from investorbot.timeseries import time_now
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
 
-class CryptoContext:
+class CryptoService:
     market: MarketHttpClient
     user: UserHttpClient
 
@@ -128,7 +128,7 @@ class CryptoContext:
         return sell_order
 
 
-class AppContext:
+class AppService:
     __engine: Engine
 
     def __init__(self, connection_string=INVESTOR_APP_DB_CONNECTION):

@@ -1,8 +1,8 @@
 import unittest
 from unittest.mock import MagicMock, Mock, patch
 
-from investorbot.contexts import AppContext, CryptoContext
-from investorbot.db import init_db, app_context
+from investorbot.services import AppService, CryptoService
+from investorbot.db import init_db, app_service
 from investorbot.enums import ConfidenceRating
 from investorbot.models import BuyOrder
 from investorbot.routines import (
@@ -22,30 +22,30 @@ class TestRoutines(unittest.TestCase):
             "get-instruments"
         )
 
-        app_context = AppContext("sqlite:///:memory:")
-        crypto_context = CryptoContext()
-        crypto_context.user.api_key = "Test984bvwhibwbiytesTy"
-        crypto_context.user.api_secret_key = "Test_ounghTtgwth874hWWWTESTG"
+        app_service = AppService("sqlite:///:memory:")
+        crypto_service = CryptoService()
+        crypto_service.user.api_key = "Test984bvwhibwbiytesTy"
+        crypto_service.user.api_secret_key = "Test_ounghTtgwth874hWWWTESTG"
 
         self.patcher_environment = patch(
             "investorbot.http.base.INVESTOR_APP_ENVIRONMENT", "Testing"
         )
-        self.patcher_db_app_context = patch("investorbot.db.app_context", app_context)
-        self.patcher_routine_app_context = patch(
-            "investorbot.routines.app_context", app_context
+        self.patcher_db_app_service = patch("investorbot.db.app_service", app_service)
+        self.patcher_routine_app_service = patch(
+            "investorbot.routines.app_service", app_service
         )
-        self.patcher_routine_crypto_context = patch(
-            "investorbot.routines.crypto_context", crypto_context
+        self.patcher_routine_crypto_service = patch(
+            "investorbot.routines.crypto_service", crypto_service
         )
 
         self.mock_environment = self.patcher_environment.start()
-        self.mock_db_context_db = self.patcher_db_app_context.start()
-        self.mock_db_context_routines = self.patcher_routine_app_context.start()
-        self.mock_routine_crypto_context = self.patcher_routine_crypto_context.start()
+        self.mock_db_service_db = self.patcher_db_app_service.start()
+        self.mock_db_service_routines = self.patcher_routine_app_service.start()
+        self.mock_routine_crypto_service = self.patcher_routine_crypto_service.start()
         self.addCleanup(self.patcher_environment.stop)
-        self.addCleanup(self.patcher_db_app_context.stop)
-        self.addCleanup(self.patcher_routine_app_context.stop)
-        self.addCleanup(self.patcher_routine_crypto_context.stop)
+        self.addCleanup(self.patcher_db_app_service.stop)
+        self.addCleanup(self.patcher_routine_app_service.stop)
+        self.addCleanup(self.patcher_routine_crypto_service.stop)
 
         init_db()
 
@@ -73,7 +73,7 @@ class TestRoutines(unittest.TestCase):
 
         update_time_series_summaries_routine()
 
-        market_analysis = self.mock_db_context_routines.get_market_analysis()
+        market_analysis = self.mock_db_service_routines.get_market_analysis()
 
         self.assertIsNotNone(market_analysis, "Market analysis was found to be None.")
         self.assertIsNotNone(
@@ -92,16 +92,6 @@ class TestRoutines(unittest.TestCase):
             "Confidence rating is not correct.",
         )
 
-    # @patch("investorbot.crypto_context.get_usd_balance", return_value=27.65)
-    # @patch("investorbot.crypto_context.get_investable_coin_count", return_value=5)
-    # @patch("investorbot.http.base.requests.get")
-    # def test(self, mock_tickers, mock_coin_count, mock_usd):
-    #     self.test_update_time_series_summaries_routine()
-
-    #     buy_coin_routine()
-
-    # @patch("investorbot.crypto_context.get_usd_balance", return_value=27.65)
-    # @patch("investorbot.crypto_context.get_investable_coin_count", return_value=5)
     @patch("investorbot.http.base.requests.post")
     def test_sell_coin_routine_stores_sell_order(self, mock_requests):
         """Testing the sell coin routine is able to distinguish between BuyOrders with
@@ -118,7 +108,7 @@ class TestRoutines(unittest.TestCase):
             get_mock_response("create-order-200"),
         ]
 
-        self.mock_db_context_routines.add_items(
+        self.mock_db_service_routines.add_items(
             [
                 BuyOrder("4310e324-8705-42d2-b15f-a5a62cb412d2", "DOGE_USD"),
                 BuyOrder("a1d2bcb1-5991-41a1-833f-1db903258a1a", "ETH_USD"),
@@ -127,11 +117,11 @@ class TestRoutines(unittest.TestCase):
 
         sell_coin_routine()
 
-        doge_buy_order = self.mock_db_context_routines.get_buy_order(
+        doge_buy_order = self.mock_db_service_routines.get_buy_order(
             "4310e324-8705-42d2-b15f-a5a62cb412d2"
         )
 
-        eth_buy_order = self.mock_db_context_routines.get_buy_order(
+        eth_buy_order = self.mock_db_service_routines.get_buy_order(
             "a1d2bcb1-5991-41a1-833f-1db903258a1a"
         )
 
