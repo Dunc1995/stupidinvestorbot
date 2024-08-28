@@ -18,8 +18,7 @@ def no_scientific_notation(func: callable):
 
         result = format(value).lower()
 
-        #! Python has made me resort to this if statement to get rid of bloody
-        #! scientific notation
+        # ! Python has made me resort to this if statement to get rid of bloody scientific notation
         if "e" in result:
             decimal_value = float(result.split("e")[0])
             exponent_value = int(result.split("e")[1])

@@ -1,4 +1,3 @@
-import json
 import logging
 import time
 from typing import List, Tuple
@@ -8,7 +7,7 @@ import numpy as np
 
 from investorbot.constants import DEFAULT_LOGS_NAME
 from investorbot.enums import ConfidenceRating
-from investorbot.models import CoinSelectionCriteria, TimeSeriesMode, TimeSeriesSummary
+from investorbot.models import TimeSeriesMode, TimeSeriesSummary
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
 

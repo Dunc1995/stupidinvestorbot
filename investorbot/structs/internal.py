@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from enum import Enum
 from investorbot.timeseries import time_now
 from investorbot.structs.ingress import OrderDetailJson, PositionBalanceJson, TickerJson
 
