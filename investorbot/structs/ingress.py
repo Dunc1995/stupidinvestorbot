@@ -43,10 +43,6 @@ class UserBalanceJson:
 
 @dataclass
 class InstrumentJson:
-    """Expected parameters when calling public/get-instruments.
-    At the moment I only really want qty_tick_size from these objects.
-    Price tick size is probably also important."""
-
     symbol: str
     inst_type: str
     display_name: str
@@ -107,7 +103,8 @@ class OrderDetailJson:
 
 @dataclass
 class TickerJson:
-    """Maps abbreviated property names from public/get-tickers query to human readable properties."""
+    """Maps abbreviated property names from public/get-tickers query to human readable
+    properties."""
 
     instrument_name: str
     highest_trade_24h: str

@@ -48,12 +48,10 @@ class TestDecorators(unittest.TestCase):
         return 80000000000000
 
     def test_numerical_values_print_correctly(self):
-        """There are many different edge cases for converting numerical types to strings.
-        I want to ensure here that my no_scientific_notation converts any numerical value
-        to a string that looks like the float as it is written - i.e. no floating point
-        precision weirdness, or scientific notation. This is only really a problem when
-        interacting with the Crypto API.
-        """
+        """There are many different edge cases for converting numerical types to strings. I want to
+        ensure here that my no_scientific_notation converts any numerical value to a string that
+        looks like the float as it is written - i.e. no floating point precision weirdness, or
+        scientific notation. This is only really a problem when interacting with the Crypto API."""
         self.assertEqual(self.small_float_one, "0.0000008")
         self.assertEqual(self.small_float_two, "0.000343115")
         self.assertEqual(self.small_float_three, "0.000000031343431")

@@ -20,8 +20,8 @@ logging.basicConfig(level=logging.INFO)
 
 @routine("Check Orders for Cancellation")
 def cancel_orders_routine():
-    """If any orders are taking too long to succeed, this routine will cancel the order
-    and remove any reference to the unsuccessful order from the application database."""
+    """If any orders are taking too long to succeed, this routine will cancel the order and remove
+    any reference to the unsuccessful order from the application database."""
     no_deletions = True
     orders = app_service.get_all_buy_orders()
 
@@ -51,10 +51,9 @@ def cancel_orders_routine():
 
 @routine("Time Series Update")
 def update_time_series_summaries_routine():
-    """Fetches time series data from the Crypto API and calculates various parameters
-    according to each dataset - e.g. median, mean, modes, line-of-best-fit, etc. -
-    these values are then stored in the application database via the TimeSeriesSummary
-    models."""
+    """Fetches time series data from the Crypto API and calculates various parameters according to
+    each dataset - e.g. median, mean, modes, line-of-best-fit, etc. - these values are then stored
+    in the application database via the TimeSeriesSummary models."""
     ts_summaries = []
     app_service.delete_existing_time_series()
 
@@ -100,10 +99,9 @@ def get_market_analysis() -> MarketAnalysis:
 
 @routine("Coin Purchase")
 def buy_coin_routine():
-    """Fetches precalculated time series statistics for coins the application
-    may decide to invest in. Buy orders will be placed for coins that meet the
-    conditions set by a given ruleset. Rulesets are to be determined by the app's
-    confidence in the market."""
+    """Fetches precalculated time series statistics for coins the application may decide to invest
+    in. Buy orders will be placed for coins that meet the conditions set by a given ruleset.
+    Rulesets are to be determined by the app's confidence in the market."""
     purchase_count = 0
     coin_count = crypto_service.get_investable_coin_count()
 
@@ -145,11 +143,10 @@ def buy_coin_routine():
 
 @routine("Sell Coins")
 def sell_coin_routine():
-    """Pulls all BuyOrders from the application database, fetches corresponding
-    data via the Crypto API and cross-references this with the user's wallet to
-    verify that a SELL trade can be placed. SELL orders will then be placed for
-    coin balances that have met the minimum return threshold - e.g. 101 percent
-    of the original BuyOrder value."""
+    """Pulls all BuyOrders from the application database, fetches corresponding data via the Crypto
+    API and cross-references this with the user's wallet to verify that a SELL trade can be placed.
+    SELL orders will then be placed for coin balances that have met the minimum return threshold -
+    e.g. 101 percent of the original BuyOrder value."""
 
     buy_orders = app_service.get_all_buy_orders()
 

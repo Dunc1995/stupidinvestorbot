@@ -40,8 +40,8 @@ class TestAppService(unittest.TestCase):
         self.assertIsNone(result, "Buy order query result is not None.")
 
     def test_buy_order_can_be_stored_and_retrieved(self):
-        """Testing my implementation of the ORM is able to add items and read
-        said items from the app database."""
+        """Testing my implementation of the ORM is able to add items and read said items from the
+        app database."""
         buy_order_id = str(uuid.uuid4())
 
         buy_order = BuyOrder(buy_order_id=buy_order_id, coin_name="AGLD_USDT")
@@ -72,9 +72,8 @@ class TestAppService(unittest.TestCase):
         )
 
     def test_time_series_summary_is_retrievable_with_modes(self):
-        """Ensuring ORM query is such that Modes are included in the time series
-        data summary query.
-        """
+        """Ensuring ORM query is such that Modes are included in the time series data summary
+        query."""
         coin_name = "TON_USD"
 
         ts_summary = TimeSeriesSummary(
@@ -115,9 +114,7 @@ class TestCryptoService(unittest.TestCase):
 
     @patch("investorbot.http.base.requests.post")
     def test_usd_balance_is_retrievable(self, mock_get: MagicMock):
-        """Testing get_usd_balance correctly fetches my USD balance from the user
-        balance JSON.
-        """
+        """Testing get_usd_balance correctly fetches my USD balance from the user balance JSON."""
         mock_get.return_value = Mock(ok=True)
         mock_get.return_value.json.return_value = get_mock_response(
             "private-user-balance-status-200"

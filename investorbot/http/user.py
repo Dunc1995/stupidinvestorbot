@@ -65,18 +65,6 @@ class UserHttpClient(AuthenticatedHttpClient):
         quantity: str,
         side: str,
     ) -> OrderJson:
-        """Creates a buy or sell order for a specific coin. Quantity has to be a multiple of the coin's
-        quantity tick size.
-
-        Args:
-            instrument_name (str): Name of the crypto coin.
-            instrument_price_usd (float): Specific crypto coin price.
-            quantity (str): Number of coins to buy or sell.
-            side (str): BUY or SELL.
-
-        Returns:
-            Dict: response from the buy or sell order.
-        """
 
         params = self.get_create_order_params(
             instrument_name, instrument_price_usd, quantity, side
@@ -94,10 +82,8 @@ class UserHttpClient(AuthenticatedHttpClient):
         )
 
     def get_trades(self, instrument_name: str) -> dict:
-        # TODO See below:
-        # I suspect this will be needed if multiple trades are triggered
-        # by one buy or sell order. Can remove if the app runs for a decent
-        # amount of time without error.
+        # TODO I suspect this will be needed if multiple trades are triggered by one buy or sell
+        # order. Can remove if the app runs for a decent amount of time without error.
 
         return self.post_request(
             "get-trades", {"instrument_name": instrument_name, "limit": 20}

@@ -51,13 +51,11 @@ class TestRoutines(unittest.TestCase):
 
     @patch("investorbot.http.base.requests.get")
     def test_update_time_series_summaries_routine(self, mock_tickers):
-        """The time series summary update routine iterates over time series data
-        periodically and stores properties such as median, mean, trend line coefficient,
-        etc. for each coin of interest. Market confidence can then be determined by
-        collating all information for each coin and trying to spot an overall trend across
-        the time series datasets. This test ensures market analysis results are correct
-        after ingesting some example time series data.
-        """
+        """The time series summary update routine iterates over time series data periodically and
+        stores properties such as median, mean, trend line coefficient, etc. for each coin of
+        interest. Market confidence can then be determined by collating all information for each
+        coin and trying to spot an overall trend across the time series datasets. This test ensures
+        market analysis results are correct after ingesting some example time series data."""
         mock_tickers.return_value = Mock(ok=True)
         mock_tickers.return_value.json.side_effect = [
             get_mock_response("get-tickers-200"),
@@ -94,11 +92,9 @@ class TestRoutines(unittest.TestCase):
 
     @patch("investorbot.http.base.requests.post")
     def test_sell_coin_routine_stores_sell_order(self, mock_requests):
-        """Testing the sell coin routine is able to distinguish between BuyOrders with
-        an associated SellOrder and BuyOrders without. This behavior is necessary to
-        prevent the application from repeatedly trying to make sell orders for the same
-        BuyOrder.
-        """
+        """Testing the sell coin routine is able to distinguish between BuyOrders with an associated
+        SellOrder and BuyOrders without. This behavior is necessary to prevent the application from
+        repeatedly trying to make sell orders for the same BuyOrder."""
         mock_requests.return_value = Mock(ok=True)
         mock_requests.return_value.json.side_effect = [
             get_mock_response("doge-get-order-detail-200"),

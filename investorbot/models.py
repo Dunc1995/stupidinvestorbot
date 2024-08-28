@@ -69,9 +69,8 @@ class SellOrder(Base):
 
 
 class TimeSeriesSummary(Base):
-    """Data container for storing basic statistical properties after
-    analyzing valuation data for a particular coin.
-    """
+    """Data container for storing basic statistical properties after analyzing valuation data for a
+    particular coin."""
 
     __tablename__ = "time_series_data"
 
@@ -156,7 +155,8 @@ class CoinSelectionCriteria(Base):
     )
     standard_deviation_threshold: Mapped[float] = mapped_column(Float())
     trend_line_percentage_threshold: Mapped[float] = mapped_column(Float())
-    """Trend line percentage threshold is used to characterise whether a line is rising, falling or flat."""
+    """Trend line percentage threshold is used to characterise whether a line is rising, falling or
+    flat."""
     trend_line_should_be_flat: Mapped[bool] = mapped_column(Boolean())
     trend_line_should_be_rising: Mapped[bool] = mapped_column(Boolean())
     trend_line_should_be_falling: Mapped[bool] = mapped_column(Boolean())

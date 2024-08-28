@@ -55,9 +55,8 @@ class TestTimeseries(unittest.TestCase):
         )
 
     def test_get_line_of_best_fit_one(self):
-        """Testing I can replicate the trend line properties as calculated
-        for the same dataset via Google Sheets.
-        """
+        """Testing I can replicate the trend line properties as calculated for the same dataset via
+        Google Sheets."""
         self.__test_get_line_of_best_fit(
             "time-series-example-one.json",
             self.example_one_gradient,
@@ -67,9 +66,8 @@ class TestTimeseries(unittest.TestCase):
         )
 
     def test_get_line_of_best_fit_two(self):
-        """Testing I can replicate the trend line properties as calculated
-        for the same dataset via Google Sheets.
-        """
+        """Testing I can replicate the trend line properties as calculated for the same dataset via
+        Google Sheets."""
         self.__test_get_line_of_best_fit(
             "time-series-example-two.json",
             self.example_two_gradient,

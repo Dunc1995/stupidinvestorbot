@@ -32,11 +32,8 @@ class TestValidators(unittest.TestCase):
         return validator
 
     def test_coin_sale_validator_will_not_sell_because_of_value_ratio(self):
-        """
-        Covers basis for when all criteria has been met for the bot to sell a coin.
-        It's now just a case of waiting for the coin value to reach an acceptable
-        value.
-        """
+        """Covers basis for when all criteria has been met for the bot to sell a coin. It's now just
+        a case of waiting for the coin value to reach an acceptable value."""
         order_detail = OrderDetail(
             OrderStatus.FILLED.value,
             uuid.uuid4(),
@@ -59,9 +56,7 @@ class TestValidators(unittest.TestCase):
         self.assertFalse(validator.is_valid_for_sale())
 
     def test_coin_sale_validator_will_sell(self):
-        """
-        The coin has now reached an acceptable value to sell.
-        """
+        """The coin has now reached an acceptable value to sell."""
         order_detail = OrderDetail(
             OrderStatus.FILLED.value,
             uuid.uuid4(),
@@ -84,11 +79,8 @@ class TestValidators(unittest.TestCase):
         self.assertTrue(validator.is_valid_for_sale())
 
     def test_coin_sale_validator_will_not_sell_because_of_wallet_quantity(self):
-        """
-        A user may sell a coin manually, causing the original order quantity to
-        be higher than what exists in the user's wallet. The bot needs to handle
-        this gracefully.
-        """
+        """A user may sell a coin manually, causing the original order quantity to be higher than
+        what exists in the user's wallet. The bot needs to handle this gracefully."""
         order_detail = OrderDetail(
             OrderStatus.FILLED.value,
             uuid.uuid4(),
@@ -111,10 +103,8 @@ class TestValidators(unittest.TestCase):
         self.assertFalse(validator.is_valid_for_sale())
 
     def test_coin_sale_validator_will_not_break_on_small_coin_balance(self):
-        """
-        A user may have a small amount of coin available whilst they have a pending
-        buy order. This needs to be handled gracefully by the validator.
-        """
+        """A user may have a small amount of coin available whilst they have a pending buy order.
+        This needs to be handled gracefully by the validator."""
         order_detail = OrderDetail(
             OrderStatus.ACTIVE.value,
             uuid.uuid4(),
@@ -137,10 +127,8 @@ class TestValidators(unittest.TestCase):
         self.assertFalse(validator.is_valid_for_sale())
 
     def test_coin_sale_validator_will_not_break_on_normal_coin_balance(self):
-        """
-        A user may have an amount of coin available whilst they have a pending
-        buy order. This needs to be handled gracefully by the validator.
-        """
+        """A user may have an amount of coin available whilst they have a pending buy order. This
+        needs to be handled gracefully by the validator."""
         order_detail = OrderDetail(
             OrderStatus.ACTIVE.value,
             uuid.uuid4(),
