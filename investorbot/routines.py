@@ -7,10 +7,7 @@ from investorbot import crypto_service, app_service
 from investorbot.decorators import routine
 from investorbot.enums import OrderStatus
 from investorbot.models import MarketAnalysis
-from investorbot.validators import (
-    CoinSaleValidator,
-    LatestTradeValidator,
-)
+from investorbot.validators import LatestTradeValidator, is_coin_sellable
 from investorbot.structs.egress import CoinPurchase, CoinSale
 import investorbot.timeseries as timeseries
 
@@ -150,33 +147,34 @@ def sell_coin_routine():
 
     buy_orders = app_service.get_all_buy_orders()
 
-    for order in buy_orders:
-        buy_order_id = order.buy_order_id
-        order_detail = crypto_service.get_order_detail(order.buy_order_id)
+    for buy_order in buy_orders:
+        order_detail = crypto_service.get_order_detail(buy_order.buy_order_id)
         coin_balance = crypto_service.get_coin_balance(order_detail.coin_name)
 
-        if order_detail.status == OrderStatus.CANCELED.value:
-            app_service.delete_buy_order(buy_order_id)
-            continue
-
-        if order_detail.status == OrderStatus.ACTIVE.value or coin_balance is None:
-            continue
-
-        coin_sale_validator = CoinSaleValidator(order_detail, coin_balance)
-
-        if not coin_sale_validator.is_valid_for_sale():
-            continue
-
-        logger.info(
-            f"Order {order.buy_order_id} is now valid for sale, with a"
-            + f" value ratio of {coin_sale_validator.value_ratio}"
+        coin_is_sellable, validation_result = is_coin_sellable(
+            buy_order, order_detail, coin_balance
         )
+
+        if validation_result.order_has_been_cancelled:
+            app_service.delete_buy_order(buy_order.buy_order_id)
+
+        if not coin_is_sellable:
+            continue
+
+        latest_trade = crypto_service.get_latest_trade(buy_order.coin_name)
+
+        value_ratio = latest_trade.price / buy_order.price_per_coin
+
+        if value_ratio < order_detail.minimum_acceptable_value_ratio:
+            continue
 
         coin_sale = CoinSale(
-            order.coin_properties,
-            coin_sale_validator.order_market_value,
-            coin_sale_validator.order_quantity_minus_fee,
+            buy_order.coin_properties,
+            latest_trade.price,
+            order_detail.order_quantity_minus_fee,
         )
 
-        sell_order = crypto_service.place_coin_sell_order(order.buy_order_id, coin_sale)
+        sell_order = crypto_service.place_coin_sell_order(
+            buy_order.buy_order_id, coin_sale
+        )
         app_service.add_item(sell_order)

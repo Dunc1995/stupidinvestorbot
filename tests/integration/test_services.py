@@ -44,7 +44,9 @@ class TestAppService(unittest.TestCase):
         app database."""
         buy_order_id = str(uuid.uuid4())
 
-        buy_order = BuyOrder(buy_order_id=buy_order_id, coin_name="AGLD_USDT")
+        buy_order = BuyOrder(
+            buy_order_id=buy_order_id, coin_name="AGLD_USDT", price_per_coin=3.0
+        )
         self.test_service.add_item(buy_order)
 
         db_buy_order = self.test_service.get_buy_order(buy_order_id)

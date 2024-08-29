@@ -1,6 +1,11 @@
 from dataclasses import dataclass
+import logging
+from investorbot.constants import DEFAULT_LOGS_NAME
 from investorbot.timeseries import time_now
 from investorbot.structs.ingress import OrderDetailJson, PositionBalanceJson, TickerJson
+
+
+logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
 
 @dataclass
@@ -17,6 +22,10 @@ class PositionBalance:
             quantity=float(balance.quantity),
             reserved_quantity=float(balance.reserved_qty),
         )
+
+    @property
+    def sellable_quantity(self) -> float:
+        return self.quantity - self.reserved_quantity
 
 
 @dataclass(init=False)
@@ -67,4 +76,19 @@ class OrderDetail:
 
     @property
     def minimum_acceptable_value_ratio(self) -> float:
+        # TODO make this configurable as DecayEquationParameters or similar. High confidence in the
+        # market should result in slower decay rate.
         return 0.98 + 0.03 ** ((0.01 * self.hours_since_order) + 1.0)
+
+    @property
+    def order_quantity_minus_fee(self) -> float:
+        currency = self.coin_name.split("_")[0]
+
+        if self.fee_currency != currency:
+            logger.warn(
+                f"{currency} has been used to calculate the fee for {self.coin_name}. Unable"
+                + " to calculate fee deduction. You may still be able to proceed with selling this"
+                + " order if your wallet balance allows."
+            )
+
+        return self.cumulative_quantity - self.cumulative_fee

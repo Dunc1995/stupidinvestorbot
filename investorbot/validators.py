@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import logging
+from typing import Tuple
 from investorbot.constants import DEFAULT_LOGS_NAME
 from investorbot.enums import OrderStatus
 from investorbot.structs.internal import (
@@ -7,7 +8,7 @@ from investorbot.structs.internal import (
     OrderDetail,
     PositionBalance,
 )
-from investorbot.models import CoinSelectionCriteria, TimeSeriesSummary
+from investorbot.models import BuyOrder, CoinSelectionCriteria, TimeSeriesSummary
 from investorbot.timeseries import get_trend_value, time_now, convert_ms_time_to_hours
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
@@ -31,6 +32,7 @@ class LatestTradeValidator:
         time_series_summary: TimeSeriesSummary,
         validator_options: CoinSelectionCriteria,
     ):
+        # TODO may need to break this down.
         self.latest_trade_price = latest_trade.price
         mean = time_series_summary.mean
         std = time_series_summary.std
@@ -52,6 +54,13 @@ class LatestTradeValidator:
     def trend_line_price_percentage_change(self) -> float:
         now = time_now()
         hours_now = convert_ms_time_to_hours(now, self.time_offset)
+
+        # TODO can revisit this implementation. Can probably be simplified. If using 24.0 instead of
+        # hours_now then there's no need for the time_offset column in TimeSeriesSummary. Precision
+        # probably isn't important here.
+
+        # TODO Maybe include trend line percentage delta 24 hours in TimeSeriesSummary
+        # (Precalculated)
 
         value_at_zero = self.__get_trend_value(0.0)
         value_at_now = self.__get_trend_value(hours_now)
@@ -90,6 +99,7 @@ class LatestTradeValidator:
 
     @property
     def is_within_upper_bound_and_mean(self) -> bool:
+        # TODO don't think this is needed
         return (
             self.latest_trade_price >= self.mean
             and self.latest_trade_price <= self.standard_deviation_upper_bound
@@ -125,96 +135,41 @@ class LatestTradeValidator:
         return all(i for i in criteria)
 
 
-@dataclass(init=False)
-class CoinSaleValidator:
-    order_detail: OrderDetail
-    position_balance: PositionBalance
+@dataclass
+class CoinValidationResult:
+    no_coin_balance: bool
+    order_balance_has_already_been_sold: bool
+    order_has_been_cancelled: bool
+    order_has_not_been_filled: bool
+    wallet_balance_is_not_sufficient: bool
 
-    def __init__(self, order_detail: OrderDetail, position_balance: PositionBalance):
-        # TODO see below:
-        # This structure is good for wallet validation, but this class is doing too
-        # much overall.
 
-        self.order_detail = order_detail
-        self.position_balance = position_balance
+def is_coin_sellable(
+    buy_order: BuyOrder, order_detail: OrderDetail, coin_balance: PositionBalance | None
+) -> Tuple[bool, CoinValidationResult]:
 
-    @property
-    def is_buy_order_complete(self) -> bool:
-        return self.order_detail.status == OrderStatus.FILLED.value
+    no_coin_balance = coin_balance is None
+    order_balance_has_already_been_sold = buy_order.sell_order is not None
+    order_has_been_cancelled = order_detail.status == OrderStatus.CANCELED.value
+    order_has_not_been_filled = order_detail.status != OrderStatus.FILLED.value
+    wallet_balance_is_not_sufficient = (
+        coin_balance.sellable_quantity < order_detail.order_quantity_minus_fee
+        if coin_balance is not None
+        else True
+    )
 
-    @property
-    def wallet_market_value(self) -> float:
-        return self.position_balance.market_value
-
-    @property
-    def order_quantity_minus_fee(self) -> float:
-        # TODO include this in the BuyOrder rather in validation
-        # TODO incorporate instrument fee currency to ensure this calculation is always valid
-        return self.order_detail.cumulative_quantity - self.order_detail.cumulative_fee
-
-    @property
-    def order_value(self) -> float:
-        return self.order_detail.cumulative_value
-
-    @property
-    def sellable_quantity(self) -> float:
-        # TODO maybe include this in position balance class.
-        return self.position_balance.quantity - self.position_balance.reserved_quantity
-
-    @property
-    def order_quantity_as_percentage_of_wallet_quantity(self) -> float:
-        if self.position_balance.quantity <= 0.000000000001:
-            return -1.0
-
-        return self.order_quantity_minus_fee / self.position_balance.quantity
-
-    @property
-    def is_wallet_quantity_sufficient(self) -> bool:
-
-        currency = self.order_detail.coin_name.split("_")[0]
-
-        if self.order_detail.fee_currency != currency:
-            raise NotImplementedError(
-                f"App canny handle fee in {self.order_detail.fee_currency} currency for {currency} order."
-            )
-
-        return self.sellable_quantity >= self.order_quantity_minus_fee
-
-    @property
-    def order_market_value(self) -> float:
-        return (
-            self.order_quantity_as_percentage_of_wallet_quantity
-            * self.position_balance.market_value
-        )
-
-    @property
-    def value_ratio(self) -> float:
-        if self.order_value <= 0.000000000001:
-            return -1.0
-
-        return self.order_market_value / self.order_value
-
-    @property
-    def is_value_ratio_sufficient(self) -> bool:
-        return self.value_ratio >= self.order_detail.minimum_acceptable_value_ratio
-
-    def is_valid_for_sale(self) -> bool:
-        result = True
-
-        if not self.is_buy_order_complete:
-            logger.info(f"Buy order {self.order_detail.order_id} is not complete.")
-            return False
-
-        if not self.is_wallet_quantity_sufficient:
-            logger.warn(
-                f"Wallet quantity not sufficient for selling order {self.order_detail.order_id}."
-            )
-            return False
-
-        if not self.is_value_ratio_sufficient:
-            logger.info(
-                f"Value ratio is insufficient for order {self.order_detail.order_id}."
-            )
-            return False
-
-        return result
+    return not any(
+        [
+            no_coin_balance,
+            order_balance_has_already_been_sold,
+            order_has_been_cancelled,
+            order_has_not_been_filled,
+            wallet_balance_is_not_sufficient,
+        ]
+    ), CoinValidationResult(
+        no_coin_balance,
+        order_balance_has_already_been_sold,
+        order_has_been_cancelled,
+        order_has_not_been_filled,
+        wallet_balance_is_not_sufficient,
+    )

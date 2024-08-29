@@ -48,6 +48,7 @@ class BuyOrder(Base):
 
     buy_order_id: Mapped[str] = mapped_column(primary_key=True)
     coin_name: Mapped[str] = mapped_column(ForeignKey("coin_properties.coin_name"))
+    price_per_coin: Mapped[float] = mapped_column(Float())
     coin_properties: Mapped[Optional[CoinProperties]] = relationship(
         init=False, back_populates="buy_orders"
     )

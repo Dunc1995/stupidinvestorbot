@@ -55,7 +55,8 @@ class TestRoutines(unittest.TestCase):
         stores properties such as median, mean, trend line coefficient, etc. for each coin of
         interest. Market confidence can then be determined by collating all information for each
         coin and trying to spot an overall trend across the time series datasets. This test ensures
-        market analysis results are correct after ingesting some example time series data."""
+        market analysis results are correct after ingesting some example time series data.
+        """
         mock_tickers.return_value = Mock(ok=True)
         mock_tickers.return_value.json.side_effect = [
             get_mock_response("get-tickers-200"),
@@ -106,8 +107,8 @@ class TestRoutines(unittest.TestCase):
 
         self.mock_db_service_routines.add_items(
             [
-                BuyOrder("4310e324-8705-42d2-b15f-a5a62cb412d2", "DOGE_USD"),
-                BuyOrder("a1d2bcb1-5991-41a1-833f-1db903258a1a", "ETH_USD"),
+                BuyOrder("4310e324-8705-42d2-b15f-a5a62cb412d2", "DOGE_USD", 3.0),
+                BuyOrder("a1d2bcb1-5991-41a1-833f-1db903258a1a", "ETH_USD", 3.0),
             ]
         )
 

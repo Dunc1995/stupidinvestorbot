@@ -173,8 +173,10 @@ class AppService:
         items_list = []
         session = self.session
 
-        query = sqlalchemy.select(BuyOrder).options(
-            joinedload(BuyOrder.coin_properties)
+        query = (
+            sqlalchemy.select(BuyOrder)
+            .options(joinedload(BuyOrder.coin_properties))
+            .options(joinedload(BuyOrder.sell_order))
         )
 
         for item in session.scalars(query):
