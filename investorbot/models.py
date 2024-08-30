@@ -14,6 +14,12 @@ class Base(MappedAsDataclass, DeclarativeBase):
 
 
 class CoinProperties(Base):
+    """The Crypto API requires order quantities and order values to be rounded according to "tick
+    sizes" for coin price and coin quantities. There's no way to request these properties for coins
+    individually, so here it is easier to query the data whilst initialising the database and then
+    storing the data internally.
+    """
+
     __tablename__ = "coin_properties"
 
     coin_name: Mapped[str] = mapped_column(primary_key=True)
@@ -44,6 +50,9 @@ class CoinProperties(Base):
 
 
 class BuyOrder(Base):
+    """When an order has been placed, we want to store the associated GUID id so the app can track
+    the state of the order."""
+
     __tablename__ = "buy_orders"
 
     buy_order_id: Mapped[str] = mapped_column(primary_key=True)
@@ -59,6 +68,9 @@ class BuyOrder(Base):
 
 
 class SellOrder(Base):
+    """As with tracking BUY orders, SELL orders also need to be tracked incase orders are
+    unsuccessful or end up cancelled."""
+
     __tablename__ = "sell_orders"
 
     sell_order_id: Mapped[str] = mapped_column(primary_key=True)
@@ -70,8 +82,8 @@ class SellOrder(Base):
 
 
 class TimeSeriesSummary(Base):
-    """Data container for storing basic statistical properties after analyzing valuation data for a
-    particular coin."""
+    """Data container for storing basic statistical properties after analyzing time series data for
+    a particular coin."""
 
     __tablename__ = "time_series_data"
 
@@ -101,6 +113,9 @@ class TimeSeriesSummary(Base):
 
 
 class TimeSeriesMode(Base):
+    """Time series analysis can produce multiple modes for a given dataset. This is represented by
+    the one-to-many relationship between TimeSeriesSummary and TimeSeriesMode models."""
+
     __tablename__ = "time_series_data_modes"
 
     mode_id: Mapped[int] = mapped_column(
@@ -116,6 +131,10 @@ class TimeSeriesMode(Base):
 
 
 class MarketAnalysis(Base):
+    """Market analysis, as the name suggests, stores data relating to averaged values across all
+    coins. The confidence rating for a given analysis then determines how the app proceeds to
+    invest."""
+
     __tablename__ = "market_analysis"
 
     market_analysis_id: Mapped[int] = mapped_column(
@@ -139,6 +158,11 @@ class MarketAnalysis(Base):
 
 
 class CoinSelectionCriteria(Base):
+    """Coin selection criteria can be used to configure the app's decision-making process to invest
+    in particular coins. Used in conjunction with the app's market analysis, it is able to perform a
+    change of tack depending on current market conditions - e.g. if all coins are performing poorly
+    then don't invest at all."""
+
     __tablename__ = "coin_selection_criteria"
 
     rating_id: Mapped[int] = mapped_column(primary_key=True)

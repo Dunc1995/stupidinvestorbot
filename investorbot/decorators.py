@@ -7,6 +7,9 @@ logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
 
 def no_scientific_notation(func: callable):
+    """Forces Python to print raw float values without scientific notation and without floating
+    point errors."""
+
     def wrapper(self) -> str:
         value = func(self)
 
@@ -18,15 +21,18 @@ def no_scientific_notation(func: callable):
 
         result = format(value).lower()
 
-        # ! Python has made me resort to this if statement to get rid of bloody scientific notation
+        # Python has made me resort to this if statement to get rid of scientific notation
         if "e" in result:
+            # e.g. 1.05e5 - decimal_value = 1.05 and exponent_value = 5
             decimal_value = float(result.split("e")[0])
             exponent_value = int(result.split("e")[1])
 
+            # Ensure decimal_value is positive.
             decimal_value = -1 * decimal_value if decimal_value < 0 else decimal_value
 
             decimal_value_string_init = str(decimal_value)
 
+            # If a decimal point exists, strip trailing zeros.
             decimal_value_string = (
                 decimal_value_string_init.rstrip("0").replace(".", "")
                 if "." in decimal_value_string_init
@@ -34,6 +40,7 @@ def no_scientific_notation(func: callable):
             )
             precision = len(decimal_value_string) - 1
 
+            # Ensure exponent_value is positive.
             exponent_value = (
                 -1 * exponent_value if exponent_value < 0 else exponent_value
             )
@@ -45,14 +52,15 @@ def no_scientific_notation(func: callable):
     return wrapper
 
 
-def format_float(precision: None | int = None):
-    def format_float_internal(func: callable):
+# TODO move this to the web folder. Probably won't be needed internally.
+def format_numeric(precision: None | int = None):
+    def format_numeric_internal(func: callable):
         def wrapper(self) -> str:
             value = func(self)
 
             if not isinstance(value, float) and not isinstance(value, int):
                 raise TypeError(
-                    f"formatted_numeric decorator was assigned to a method return type ({type(value)})"
+                    f"format_numeric decorator was assigned to a method return type ({type(value)})"
                     + "when it expects either a float or integer type."
                 )
 
@@ -62,10 +70,13 @@ def format_float(precision: None | int = None):
 
         return wrapper
 
-    return format_float_internal
+    return format_numeric_internal
 
 
 def routine(name="Unnamed Routine"):
+    """Prepends and appends log messages to signal the start and end of a given routine. This is
+    useful when multiple routines are being triggered concurrently."""
+
     def routine_internal(func):
         def wrapper():
             printed_name = name.upper()

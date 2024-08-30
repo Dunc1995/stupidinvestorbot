@@ -41,7 +41,7 @@ class CoinPurchase:
 @dataclass
 class CoinSale:
     coin_properties: CoinProperties
-    __total_order_value: float
+    __price_per_coin: float
     __quantity: float
 
     @property
@@ -52,12 +52,7 @@ class CoinSale:
     @property
     @no_scientific_notation
     def price_per_coin(self) -> float:
-        # Absolute quantity can be used for division here seeing as price per coin won't be affected
-        # by corrections to the CoinSale quantity. Simply means the actual sale value may be
-        # slightly less than what's calculated internally to trigger the initial sale. Final profit
-        # will be logged once the SELL order has been filled. Coin dust conversions can be used to
-        # recoup some of the lost value but this has to be done manually currently :(
         return round(
-            self.__total_order_value / self.__quantity,
+            self.__price_per_coin,
             self.coin_properties.price_decimals,
         )

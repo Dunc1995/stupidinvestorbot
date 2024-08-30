@@ -222,6 +222,7 @@ class AppService:
 
         list_length = len(items_list)
 
+        # TODO enable this to handle multiple market analysis entries
         if list_length > 1:
             raise NotImplementedError(
                 "Investor bot can only handle one market analysis in its database currently."

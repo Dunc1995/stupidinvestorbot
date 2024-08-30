@@ -136,7 +136,7 @@ class LatestTradeValidator:
 
 
 @dataclass
-class CoinValidationResult:
+class SaleValidationResult:
     no_coin_balance: bool
     order_balance_has_already_been_sold: bool
     order_has_been_cancelled: bool
@@ -146,8 +146,7 @@ class CoinValidationResult:
 
 def is_coin_sellable(
     buy_order: BuyOrder, order_detail: OrderDetail, coin_balance: PositionBalance | None
-) -> Tuple[bool, CoinValidationResult]:
-
+) -> Tuple[bool, SaleValidationResult]:
     no_coin_balance = coin_balance is None
     order_balance_has_already_been_sold = buy_order.sell_order is not None
     order_has_been_cancelled = order_detail.status == OrderStatus.CANCELED.value
@@ -166,7 +165,7 @@ def is_coin_sellable(
             order_has_not_been_filled,
             wallet_balance_is_not_sufficient,
         ]
-    ), CoinValidationResult(
+    ), SaleValidationResult(
         no_coin_balance,
         order_balance_has_already_been_sold,
         order_has_been_cancelled,
