@@ -92,17 +92,25 @@ class TestRoutines(unittest.TestCase):
         )
 
     @patch("investorbot.http.base.requests.post")
-    def test_sell_coin_routine_stores_sell_order(self, mock_requests):
+    @patch("investorbot.http.base.requests.get")
+    def test_sell_coin_routine_stores_sell_order(
+        self, mock_get_requests, mock_post_requests
+    ):
         """Testing the sell coin routine is able to distinguish between BuyOrders with an associated
         SellOrder and BuyOrders without. This behavior is necessary to prevent the application from
         repeatedly trying to make sell orders for the same BuyOrder."""
-        mock_requests.return_value = Mock(ok=True)
-        mock_requests.return_value.json.side_effect = [
+        mock_post_requests.return_value = Mock(ok=True)
+        mock_post_requests.return_value.json.side_effect = [
             get_mock_response("doge-get-order-detail-200"),
             get_mock_response("user-balance-200"),
             get_mock_response("eth-get-order-detail-200"),
             get_mock_response("user-balance-200"),
             get_mock_response("create-order-200"),
+        ]
+
+        mock_get_requests.return_value = Mock(ok=True)
+        mock_get_requests.return_value.json.side_effect = [
+            get_mock_response("get-tickers-eth-200"),
         ]
 
         self.mock_db_service_routines.add_items(
