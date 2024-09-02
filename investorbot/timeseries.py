@@ -8,6 +8,7 @@ import numpy as np
 from investorbot.constants import DEFAULT_LOGS_NAME
 from investorbot.enums import ConfidenceRating
 from investorbot.models import TimeSeriesMode, TimeSeriesSummary
+from investorbot.structs.internal import RatingThreshold
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
@@ -96,10 +97,13 @@ def get_coin_time_series_summary(
     )
 
 
-def get_market_analysis_rating(ts_data: List[TimeSeriesSummary]) -> ConfidenceRating:
+def get_market_analysis_rating(
+    ts_data: List[TimeSeriesSummary], rating_thresholds: List[RatingThreshold]
+) -> ConfidenceRating:
     """For a given set of time series summaries, calculate the market trend across all coins."""
 
-    rating = ConfidenceRating.NO_CONFIDENCE
+    ratings = []
+
     df = pd.DataFrame.from_records([ts_entry.__dict__ for ts_entry in ts_data])
 
     df["value_at_zero"] = get_trend_value(
@@ -115,16 +119,15 @@ def get_market_analysis_rating(ts_data: List[TimeSeriesSummary]) -> ConfidenceRa
 
     median_value = df["percentage_change"].median()
 
-    # TODO add these threshold values to CoinSelectionCriteria
-    if median_value >= 0.02:
-        rating = ConfidenceRating.HIGH_CONFIDENCE
-    elif median_value >= 0.002 and median_value < 0.02:
-        rating = ConfidenceRating.MODERATE_CONFIDENCE
-    elif median_value >= -0.002 and median_value < 0.002:
-        rating = ConfidenceRating.UNDECIDED
-    elif median_value >= -0.01 and median_value < -0.002:
-        rating = ConfidenceRating.LITTLE_CONFIDENCE
-    elif median_value < -0.01:
-        rating = ConfidenceRating.NO_CONFIDENCE
+    for rating_threshold in rating_thresholds:
+        if rating_threshold.is_in_bounds(median_value):
+            rating_id = ConfidenceRating(rating_threshold.rating_id)
+            ratings.append(rating_id)
 
-    return rating
+    if len(ratings) > 1:
+        raise NotImplementedError(
+            "More than one rating was found for a particular market analysis. "
+            + "Try reconfiguring threshold values in the CoinSelectionCriteria table."
+        )
+
+    return ratings[0]

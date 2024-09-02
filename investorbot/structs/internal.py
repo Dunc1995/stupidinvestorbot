@@ -1,11 +1,16 @@
 from dataclasses import dataclass
 import logging
+import time
 from investorbot.constants import DEFAULT_LOGS_NAME
-from investorbot.timeseries import time_now
 from investorbot.structs.ingress import OrderDetailJson, PositionBalanceJson, TickerJson
 
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
+
+
+# TODO this is here due to circular imports - needs fixing
+def time_now():
+    return int(time.time() * 1000)
 
 
 @dataclass
@@ -92,3 +97,22 @@ class OrderDetail:
             )
 
         return self.cumulative_quantity - self.cumulative_fee
+
+
+@dataclass
+class RatingThreshold:
+    rating_id: int
+    rating_upper_threshold: float
+    rating_upper_unbounded: bool
+    rating_lower_threshold: float
+    rating_lower_unbounded: bool
+
+    def is_in_bounds(self, value: float) -> bool:
+        upper_condition = (
+            value < self.rating_upper_threshold or self.rating_upper_unbounded
+        )
+        lower_condition = (
+            value >= self.rating_lower_threshold or self.rating_lower_unbounded
+        )
+
+        return upper_condition and lower_condition

@@ -16,12 +16,18 @@ from investorbot.constants import (
 )
 from investorbot.http.market import MarketHttpClient
 from investorbot.http.user import UserHttpClient
-from investorbot.structs.internal import OrderDetail, LatestTrade, PositionBalance
+from investorbot.structs.internal import (
+    OrderDetail,
+    LatestTrade,
+    PositionBalance,
+    RatingThreshold,
+)
 from investorbot.structs.egress import CoinPurchase, CoinSale
 from investorbot.models import (
     Base,
     BuyOrder,
     CoinProperties,
+    CoinSelectionCriteria,
     MarketAnalysis,
     SellOrder,
     TimeSeriesSummary,
@@ -255,3 +261,17 @@ class AppService:
             CoinProperties.coin_name == coin_name
         )
         return session.scalar(query)
+
+    def get_rating_thresholds(self) -> List[RatingThreshold]:
+        coin_selection_criteria = self.get_all_items(CoinSelectionCriteria)
+
+        return [
+            RatingThreshold(
+                rating_id=criteria.rating_id,
+                rating_upper_unbounded=criteria.rating_upper_unbounded,
+                rating_upper_threshold=criteria.rating_upper_threshold,
+                rating_lower_unbounded=criteria.rating_lower_unbounded,
+                rating_lower_threshold=criteria.rating_lower_threshold,
+            )
+            for criteria in coin_selection_criteria
+        ]

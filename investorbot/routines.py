@@ -69,7 +69,11 @@ def update_time_series_summaries_routine():
 
         ts_summaries.append(ts_summary)
 
-    confidence_rating = timeseries.get_market_analysis_rating(ts_summaries)
+    rating_thresholds = app_service.get_rating_thresholds()
+
+    confidence_rating = timeseries.get_market_analysis_rating(
+        ts_summaries, rating_thresholds
+    )
 
     market_analysis = MarketAnalysis(
         confidence_rating.value, timeseries.time_now(), ts_summaries

@@ -168,6 +168,10 @@ class CoinSelectionCriteria(Base):
     rating_id: Mapped[int] = mapped_column(primary_key=True)
 
     rating_description: Mapped[str] = mapped_column(String())
+    rating_upper_threshold: Mapped[float] = mapped_column(Float())
+    rating_upper_unbounded: Mapped[bool] = mapped_column(Boolean())
+    rating_lower_threshold: Mapped[float] = mapped_column(Float())
+    rating_lower_unbounded: Mapped[bool] = mapped_column(Boolean())
 
     trade_needs_to_be_within_mean_and_upper_bound: Mapped[bool] = mapped_column(
         Boolean()
