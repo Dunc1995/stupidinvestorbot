@@ -121,6 +121,7 @@ class CryptoService:
         return BuyOrder(
             buy_order_id=order.client_oid,
             coin_name=order_spec.coin_properties.coin_name,
+            price_per_coin=order_spec.price_per_coin,
         )
 
     def place_coin_sell_order(

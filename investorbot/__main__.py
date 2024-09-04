@@ -2,7 +2,6 @@ import argh
 from investorbot.routines import (
     buy_coin_routine,
     cancel_orders_routine,
-    get_market_analysis,
     sell_coin_routine,
     update_time_series_summaries_routine,
 )
