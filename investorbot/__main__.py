@@ -15,7 +15,6 @@ if __name__ == "__main__":
             cancel_orders_routine,
             buy_coin_routine,
             sell_coin_routine,
-            get_market_analysis,
             update_time_series_summaries_routine,
         ]
     )
