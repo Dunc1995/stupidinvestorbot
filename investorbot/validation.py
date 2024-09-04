@@ -7,6 +7,7 @@ from investorbot.structs.internal import (
     LatestTrade,
     OrderDetail,
     PositionBalance,
+    SaleValidationResult,
 )
 from investorbot.models import BuyOrder, CoinSelectionCriteria, TimeSeriesSummary
 from investorbot.timeseries import get_trend_value, time_now, convert_ms_time_to_hours
@@ -135,19 +136,6 @@ class LatestTradeValidator:
         return all(i for i in criteria)
 
 
-@dataclass
-class SaleValidationResult:
-    """Contains validation checks to determine whether a coin can be sold or not. This struct can be
-    used to implement different behaviors depending on what invalidates the sale for a particular
-    coin."""
-
-    no_coin_balance: bool
-    order_balance_has_already_been_sold: bool
-    order_has_been_cancelled: bool
-    order_has_not_been_filled: bool
-    wallet_balance_is_not_sufficient: bool
-
-
 def is_coin_sellable(
     buy_order: BuyOrder, order_detail: OrderDetail, coin_balance: PositionBalance | None
 ) -> Tuple[bool, SaleValidationResult]:
@@ -176,3 +164,21 @@ def is_coin_sellable(
         order_has_not_been_filled,
         wallet_balance_is_not_sufficient,
     )
+
+
+def __hours_since_order(order: OrderDetail) -> float:
+    t_now = time_now()
+
+    time_of_order = order.time_created_ms
+    milliseconds_since_order = t_now - time_of_order
+    return milliseconds_since_order / (1000 * 60 * 60)
+
+
+def __get_minimum_acceptable_value_ratio(order: OrderDetail) -> float:
+    # TODO make this configurable as DecayEquationParameters or similar. High confidence in the
+    # market should result in slower decay rate.
+    return 0.98 + 0.03 ** ((0.01 * __hours_since_order(order)) + 1.0)
+
+
+def is_value_ratio_sufficient(value_ratio: float, order: OrderDetail) -> bool:
+    return value_ratio >= __get_minimum_acceptable_value_ratio(order)

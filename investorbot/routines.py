@@ -157,7 +157,7 @@ def sell_coin_routine():
 
         value_ratio = latest_trade.price / buy_order.price_per_coin
 
-        if value_ratio < app_service.get_minimum_acceptable_value_ratio(order_detail):
+        if not validation.is_value_ratio_sufficient(value_ratio, order_detail):
             continue
 
         coin_sale = CoinSale(

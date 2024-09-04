@@ -287,18 +287,6 @@ class AppService:
         )
         return session.scalar(query)
 
-    def __hours_since_order(self, order: OrderDetail) -> float:
-        t_now = time_now()
-
-        time_of_order = order.time_created_ms
-        milliseconds_since_order = t_now - time_of_order
-        return milliseconds_since_order / (1000 * 60 * 60)
-
-    def get_minimum_acceptable_value_ratio(self, order: OrderDetail) -> float:
-        # TODO make this configurable as DecayEquationParameters or similar. High confidence in the
-        # market should result in slower decay rate.
-        return 0.98 + 0.03 ** ((0.01 * self.__hours_since_order(order)) + 1.0)
-
     def get_rating_thresholds(self) -> List[RatingThreshold]:
         coin_selection_criteria: List[CoinSelectionCriteria] = self.get_all_items(
             CoinSelectionCriteria

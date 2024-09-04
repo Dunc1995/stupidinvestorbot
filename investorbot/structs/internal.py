@@ -72,3 +72,16 @@ class RatingThreshold:
         )
 
         return upper_condition and lower_condition
+
+
+@dataclass
+class SaleValidationResult:
+    """Contains validation checks to determine whether a coin can be sold or not. This struct can be
+    used to implement different behaviors depending on what invalidates the sale for a particular
+    coin."""
+
+    no_coin_balance: bool
+    order_balance_has_already_been_sold: bool
+    order_has_been_cancelled: bool
+    order_has_not_been_filled: bool
+    wallet_balance_is_not_sufficient: bool
