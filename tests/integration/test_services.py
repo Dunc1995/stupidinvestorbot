@@ -3,6 +3,7 @@ import unittest
 from unittest.mock import MagicMock, Mock, patch
 import uuid
 
+from investorbot import mappings
 from investorbot.structs.ingress import InstrumentJson
 from investorbot.services import AppService, CryptoService
 from investorbot.models import (
@@ -27,8 +28,7 @@ class TestAppService(unittest.TestCase):
 
         instruments = [InstrumentJson(**inst_data) for inst_data in instrument_data]
         coin_properties = [
-            CoinProperties.from_instrument_json(instrument)
-            for instrument in instruments
+            mappings.json_to_coin_properties(instrument) for instrument in instruments
         ]
 
         self.test_service.add_items(coin_properties)

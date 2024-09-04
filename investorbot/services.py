@@ -6,6 +6,7 @@ import sqlalchemy
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session, joinedload
 
+from investorbot import mappings
 from investorbot.constants import (
     CRYPTO_KEY,
     CRYPTO_SECRET_KEY,
@@ -32,7 +33,7 @@ from investorbot.models import (
     SellOrder,
     TimeSeriesSummary,
 )
-from investorbot.timeseries import time_now
+from investorbot.timeseries import get_trend_value, time_now
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
@@ -55,7 +56,11 @@ class CryptoService:
             None,
         )
 
-        return PositionBalance.from_json(balance) if balance is not None else balance
+        return (
+            mappings.json_to_position_balance(balance)
+            if balance is not None
+            else balance
+        )
 
     def get_usd_balance(self) -> float:
         usd_balance = float(self.get_coin_balance("USD").market_value)
@@ -77,11 +82,14 @@ class CryptoService:
     def get_latest_trade(self, coin_name: str) -> LatestTrade:
         ticker_json = self.market.get_ticker(coin_name)
 
-        return LatestTrade(ticker_json)
+        return LatestTrade(ticker_json.instrument_name, ticker_json.latest_trade)
 
     def get_latest_trades(self) -> List[LatestTrade]:
         tickers = self.market.get_usd_tickers()
-        trades = [LatestTrade(ticker) for ticker in tickers]
+        trades = [
+            LatestTrade(ticker.instrument_name, ticker.latest_trade)
+            for ticker in tickers
+        ]
 
         return trades
 
@@ -92,14 +100,13 @@ class CryptoService:
     def get_order_detail(self, order_id: str) -> OrderDetail:
         order_detail_json = self.user.get_order_detail(order_id)
 
-        return OrderDetail.from_json(order_detail_json)
+        return mappings.json_to_order_detail(order_detail_json)
 
     def get_coin_properties(self) -> List[CoinProperties]:
         instruments = self.market.get_instruments()
 
         return [
-            CoinProperties.from_instrument_json(instrument)
-            for instrument in instruments
+            mappings.json_to_coin_properties(instrument) for instrument in instruments
         ]
 
     def place_coin_buy_order(self, order_spec: CoinPurchase) -> BuyOrder:
@@ -262,16 +269,24 @@ class AppService:
         )
         return session.scalar(query)
 
+    def __hours_since_order(self, order: OrderDetail) -> float:
+        t_now = time_now()
+
+        time_of_order = order.time_created_ms
+        milliseconds_since_order = t_now - time_of_order
+        return milliseconds_since_order / (1000 * 60 * 60)
+
+    def get_minimum_acceptable_value_ratio(self, order: OrderDetail) -> float:
+        # TODO make this configurable as DecayEquationParameters or similar. High confidence in the
+        # market should result in slower decay rate.
+        return 0.98 + 0.03 ** ((0.01 * self.__hours_since_order(order)) + 1.0)
+
     def get_rating_thresholds(self) -> List[RatingThreshold]:
-        coin_selection_criteria = self.get_all_items(CoinSelectionCriteria)
+        coin_selection_criteria: List[CoinSelectionCriteria] = self.get_all_items(
+            CoinSelectionCriteria
+        )
 
         return [
-            RatingThreshold(
-                rating_id=criteria.rating_id,
-                rating_upper_unbounded=criteria.rating_upper_unbounded,
-                rating_upper_threshold=criteria.rating_upper_threshold,
-                rating_lower_unbounded=criteria.rating_lower_unbounded,
-                rating_lower_threshold=criteria.rating_lower_threshold,
-            )
+            mappings.coin_selection_to_rating_threshold(criteria)
             for criteria in coin_selection_criteria
         ]
