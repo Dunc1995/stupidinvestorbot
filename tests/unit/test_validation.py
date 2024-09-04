@@ -6,7 +6,7 @@ from investorbot import timeseries
 from investorbot.enums import OrderStatus
 from investorbot.models import BuyOrder
 from investorbot.structs.internal import OrderDetail, PositionBalance
-from investorbot.validators import is_coin_sellable
+from investorbot.validation import is_coin_sellable
 
 
 class TestValidators(unittest.TestCase):

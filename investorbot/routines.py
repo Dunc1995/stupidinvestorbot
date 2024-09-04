@@ -7,9 +7,10 @@ from investorbot import crypto_service, app_service
 from investorbot.decorators import routine
 from investorbot.enums import OrderStatus
 from investorbot.models import MarketAnalysis
-from investorbot.validators import LatestTradeValidator, is_coin_sellable
+from investorbot.validation import LatestTradeValidator
 from investorbot.structs.egress import CoinPurchase, CoinSale
 import investorbot.timeseries as timeseries
+import investorbot.validation as validation
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
 logging.basicConfig(level=logging.INFO)
@@ -142,7 +143,7 @@ def sell_coin_routine():
         order_detail = crypto_service.get_order_detail(buy_order.buy_order_id)
         coin_balance = crypto_service.get_coin_balance(order_detail.coin_name)
 
-        coin_is_sellable, validation_result = is_coin_sellable(
+        coin_is_sellable, validation_result = validation.is_coin_sellable(
             buy_order, order_detail, coin_balance
         )
 
