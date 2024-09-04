@@ -82,27 +82,6 @@ def update_time_series_summaries_routine():
     app_service.add_item(market_analysis)
 
 
-def get_market_analysis() -> MarketAnalysis:
-    """If the latest time series data is older than an hour, then rerun the time series update
-    routine."""
-
-    market_analysis = app_service.get_market_analysis()
-
-    should_refresh_db = (
-        timeseries.convert_ms_time_to_hours(
-            timeseries.time_now(), market_analysis.creation_time_ms
-        )
-        >= 1.0
-    )
-
-    if should_refresh_db:
-        logger.warn("Time series data needs to be refreshed. Refreshing now.")
-        update_time_series_summaries_routine()
-        market_analysis = app_service.get_market_analysis()
-
-    return market_analysis
-
-
 @routine("Coin Purchase")
 def buy_coin_routine():
     """Fetches precalculated time series statistics for coins the application may decide to invest
@@ -116,7 +95,9 @@ def buy_coin_routine():
         f"Searching for {coin_count} coins to invest in at ${INVESTMENT_INCREMENTS} each"
     )
 
-    market_analysis = get_market_analysis()
+    market_analysis = app_service.get_market_analysis(
+        update_time_series_summaries_routine
+    )
     options = market_analysis.rating
 
     for ts_summary in market_analysis.ts_data:

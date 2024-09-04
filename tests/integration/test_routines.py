@@ -72,7 +72,9 @@ class TestRoutines(unittest.TestCase):
 
         update_time_series_summaries_routine()
 
-        market_analysis = self.mock_db_service_routines.get_market_analysis()
+        market_analysis = self.mock_db_service_routines.get_market_analysis(
+            update_time_series_summaries_routine
+        )
 
         self.assertIsNotNone(market_analysis, "Market analysis was found to be None.")
         self.assertIsNotNone(

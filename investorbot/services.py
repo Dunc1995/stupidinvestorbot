@@ -33,7 +33,7 @@ from investorbot.models import (
     SellOrder,
     TimeSeriesSummary,
 )
-from investorbot.timeseries import get_trend_value, time_now
+from investorbot.timeseries import time_now, convert_ms_time_to_hours
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
@@ -222,7 +222,7 @@ class AppService:
 
         return ts_data
 
-    def get_market_analysis(self) -> MarketAnalysis | None:
+    def __get_market_analysis(self) -> MarketAnalysis | None:
         items_list = []
         session = self.session
 
@@ -242,6 +242,24 @@ class AppService:
             )
 
         return items_list[0] if list_length == 1 else None
+
+    def get_market_analysis(self, update_routine: callable) -> MarketAnalysis:
+        """If the latest time series data is older than an hour, then rerun the time series update
+        routine."""
+
+        market_analysis = self.__get_market_analysis()
+
+        should_refresh_db = (
+            convert_ms_time_to_hours(time_now(), market_analysis.creation_time_ms)
+            >= 1.0
+        )
+
+        if should_refresh_db:
+            logger.warn("Time series data needs to be refreshed. Refreshing now.")
+            update_routine()
+            market_analysis = self.__get_market_analysis()
+
+        return market_analysis
 
     def delete_existing_time_series(self):
         with self.session as session:
