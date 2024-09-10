@@ -1,5 +1,7 @@
 import logging
 
+from requests import HTTPError
+
 from investorbot.constants import DEFAULT_LOGS_NAME
 
 
@@ -80,9 +82,17 @@ def routine(name="Unnamed Routine"):
     def routine_internal(func):
         def wrapper():
             printed_name = name.upper()
-
             logger.info(f">>>---START {printed_name} ROUTINE---<<<")
-            func()
+            try:
+                func()
+            except HTTPError as http_error:
+                logger.fatal(http_error)
+
+                if http_error.response.status_code == 401:
+                    logger.info(
+                        "Your IP address likely needs to be whitelisted on your API security settings,"
+                        + " assuming your API keys are set correctly with necessary permissions."
+                    )
             logger.info(f">>>---END {printed_name} ROUTINE---<<<")
 
         _wrapper = wrapper
