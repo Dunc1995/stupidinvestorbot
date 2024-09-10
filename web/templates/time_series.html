@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% set time_series_data = market_analysis.ts_data %}
 
 {% block header %}
 <h1>{% block title %}Time Series Data{% endblock %}</h1>
@@ -13,7 +14,6 @@
             <th>Percentage Standard Deviation</th>
             <th>Trend Line Gradient</th>
             <th>Trend Line Offset</th>
-            <th>Creation Time</th>
         </tr>
     </thead>
     <tbody>
@@ -21,10 +21,9 @@
         <tr>
             <th scope="row">{{ts_data.summary_id}}</td>
             <td>{{ts_data.coin_name}}</td>
-            <td>{{ts_data.percentage_std}}</td>
+            <td>{{ts_data.percentage_std}}%</td>
             <td>{{ts_data.line_of_best_fit_coefficient}}</td>
             <td>{{ts_data.line_of_best_fit_offset}}</td>
-            <td>{{ts_data.creation_time_ms}}</td>
         </tr>
         {% endfor %}
     </tbody>

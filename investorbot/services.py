@@ -1,6 +1,6 @@
 import logging
 import math
-from typing import List
+from typing import List, Tuple
 
 import sqlalchemy
 from sqlalchemy import Engine
@@ -244,23 +244,18 @@ class AppService:
 
         return items_list[0] if list_length == 1 else None
 
-    def get_market_analysis(self, update_routine: callable) -> MarketAnalysis:
-        """If the latest time series data is older than an hour, then rerun the time series update
-        routine."""
+    def get_market_analysis(self) -> Tuple[MarketAnalysis, bool]:
+        """If the latest time series data is older than an hour, then this method will return true
+        in addition to the current market analysis."""
 
         market_analysis = self.__get_market_analysis()
 
-        should_refresh_db = (
+        should_refresh_ts_data = (
             convert_ms_time_to_hours(time_now(), market_analysis.creation_time_ms)
             >= 1.0
         )
 
-        if should_refresh_db:
-            logger.warn("Time series data needs to be refreshed. Refreshing now.")
-            update_routine()
-            market_analysis = self.__get_market_analysis()
-
-        return market_analysis
+        return market_analysis, should_refresh_ts_data
 
     def delete_existing_time_series(self):
         with self.session as session:

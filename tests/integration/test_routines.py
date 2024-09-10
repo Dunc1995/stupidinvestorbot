@@ -8,7 +8,7 @@ from investorbot.models import BuyOrder
 from investorbot.routines import (
     buy_coin_routine,
     sell_coin_routine,
-    update_time_series_summaries_routine,
+    refresh_market_analysis_routine,
 )
 from tests.integration import get_mock_response
 
@@ -70,11 +70,9 @@ class TestRoutines(unittest.TestCase):
             get_mock_response("ts_data/ftm"),
         ]
 
-        update_time_series_summaries_routine()
+        refresh_market_analysis_routine()
 
-        market_analysis = self.mock_db_service_routines.get_market_analysis(
-            update_time_series_summaries_routine
-        )
+        market_analysis, _ = self.mock_db_service_routines.get_market_analysis()
 
         self.assertIsNotNone(market_analysis, "Market analysis was found to be None.")
         self.assertIsNotNone(

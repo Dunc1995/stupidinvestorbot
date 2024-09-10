@@ -48,8 +48,8 @@ def cancel_orders_routine():
         logger.info("No cancellable orders found.")
 
 
-@routine("Time Series Update")
-def update_time_series_summaries_routine():
+@routine("Market Analysis")
+def refresh_market_analysis_routine() -> MarketAnalysis:
     """Fetches time series data from the Crypto API and calculates various parameters according to
     each dataset - e.g. median, mean, modes, line-of-best-fit, etc. - these values are then stored
     in the application database via the TimeSeriesSummary models."""
@@ -81,6 +81,9 @@ def update_time_series_summaries_routine():
     )
 
     app_service.add_item(market_analysis)
+    market_analysis, _ = app_service.get_market_analysis()
+
+    return market_analysis
 
 
 @routine("Coin Purchase")
@@ -96,9 +99,11 @@ def buy_coin_routine():
         f"Searching for {coin_count} coins to invest in at ${INVESTMENT_INCREMENTS} each"
     )
 
-    market_analysis = app_service.get_market_analysis(
-        update_time_series_summaries_routine
-    )
+    market_analysis, is_market_analysis_old = app_service.get_market_analysis()
+
+    if is_market_analysis_old:
+        market_analysis = refresh_market_analysis_routine()
+
     options = market_analysis.rating
 
     for ts_summary in market_analysis.ts_data:

@@ -54,27 +54,6 @@ def no_scientific_notation(func: callable):
     return wrapper
 
 
-# TODO move this to the web folder. Probably won't be needed internally.
-def format_numeric(precision: None | int = None):
-    def format_numeric_internal(func: callable):
-        def wrapper(self) -> str:
-            value = func(self)
-
-            if not isinstance(value, float) and not isinstance(value, int):
-                raise TypeError(
-                    f"format_numeric decorator was assigned to a method return type ({type(value)})"
-                    + "when it expects either a float or integer type."
-                )
-
-            result = format(value, f".{precision}f")
-
-            return result
-
-        return wrapper
-
-    return format_numeric_internal
-
-
 def routine(name="Unnamed Routine"):
     """Prepends and appends log messages to signal the start and end of a given routine. This is
     useful when multiple routines are being triggered concurrently."""

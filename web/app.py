@@ -5,6 +5,8 @@ import investorbot.routines as routines
 from flask_bootstrap import Bootstrap5
 from apscheduler.schedulers.background import BackgroundScheduler
 
+from web.viewmodels import MarketAnalysisViewModel, TimeSeriesSummaryViewModel
+
 
 app = Flask(__name__)
 bootstrap = Bootstrap5(app)
@@ -54,6 +56,10 @@ def home():
 
 @app.route("/time-series")
 def time_series():
-    ts_data = app_service.get_market_analysis()
+    market_analysis, _ = app_service.get_market_analysis()
 
-    return render_template("time_series.html", time_series_data=ts_data)
+    market_view = MarketAnalysisViewModel(
+        [TimeSeriesSummaryViewModel(ts_data) for ts_data in market_analysis.ts_data]
+    )
+
+    return render_template("time_series.html", market_analysis=market_view)
