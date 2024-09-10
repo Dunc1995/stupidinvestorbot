@@ -5,7 +5,7 @@ import investorbot.routines as routines
 from flask_bootstrap import Bootstrap5
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from web.viewmodels import MarketAnalysisViewModel, TimeSeriesSummaryViewModel
+from web.viewmodels import MarketAnalysisViewModel
 
 
 app = Flask(__name__)
