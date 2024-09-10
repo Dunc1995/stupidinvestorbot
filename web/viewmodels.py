@@ -1,7 +1,8 @@
 from dataclasses import dataclass
+import datetime
 from typing import List
-from investorbot.models import TimeSeriesSummary
-from web.decorators import format_numeric
+from investorbot.models import MarketAnalysis, TimeSeriesSummary
+from web.decorators import format_date, format_numeric
 
 
 @dataclass(init=False)
@@ -35,6 +36,22 @@ class TimeSeriesSummaryViewModel:
         self.__line_of_best_fit_offset = ts_summary.line_of_best_fit_offset
 
 
-@dataclass
+@dataclass(init=False)
 class MarketAnalysisViewModel:
+    __timestamp: int
+    confidence_description: str
+    requires_update: str
     ts_data: List[TimeSeriesSummaryViewModel]
+
+    @property
+    @format_date
+    def creation_date(self) -> datetime.datetime:
+        return datetime.datetime.fromtimestamp(self.__timestamp / 1000)
+
+    def __init__(self, market_analysis: MarketAnalysis, requires_update: bool):
+        self.__timestamp = market_analysis.creation_time_ms
+        self.confidence_description = market_analysis.rating.rating_description
+        self.requires_update = "Yes" if requires_update else "No"
+        self.ts_data = [
+            TimeSeriesSummaryViewModel(ts_data) for ts_data in market_analysis.ts_data
+        ]

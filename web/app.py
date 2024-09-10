@@ -54,12 +54,10 @@ def home():
     return render_template("home.html", order_details=order_details)
 
 
-@app.route("/time-series")
+@app.route("/market_analysis")
 def time_series():
-    market_analysis, _ = app_service.get_market_analysis()
+    market_analysis, analysis_requires_update = app_service.get_market_analysis()
 
-    market_view = MarketAnalysisViewModel(
-        [TimeSeriesSummaryViewModel(ts_data) for ts_data in market_analysis.ts_data]
-    )
+    market_view = MarketAnalysisViewModel(market_analysis, analysis_requires_update)
 
     return render_template("time_series.html", market_analysis=market_view)

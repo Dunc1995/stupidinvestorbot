@@ -1,3 +1,6 @@
+import datetime
+
+
 def format_numeric(precision: None | int = None):
     def format_numeric_internal(func: callable):
         def wrapper(self) -> str:
@@ -16,3 +19,14 @@ def format_numeric(precision: None | int = None):
         return wrapper
 
     return format_numeric_internal
+
+
+def format_date(func: callable):
+    def wrapper(self) -> str:
+        date_object: datetime.datetime = func(self)
+
+        result = date_object.strftime("%b %d %Y %H:%M:%S")
+
+        return result
+
+    return wrapper
