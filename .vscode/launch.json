@@ -30,6 +30,22 @@
             "args": [
                 "cancel-orders-routine"
             ]
+        },
+        {
+            "name": "Run Website",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "flask",
+            "env": {
+                "FLASK_APP": "web/app.py"
+            },
+            "args": [
+                "run",
+                "--no-debugger",
+                "--no-reload"
+            ],
+            "jinja": true,
+            "preLaunchTask": "npm: build"
         }
     ]
 }

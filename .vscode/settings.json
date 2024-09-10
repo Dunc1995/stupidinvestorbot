@@ -1,9 +1,14 @@
 {
     "cSpell.words": [
+        "apscheduler",
         "argh",
         "investorbot",
         "joinedload",
-        "sqlalchemy"
+        "Plotly",
+        "sqlalchemy",
+        "stupidinvestorbot",
+        "subqueryload",
+        "viewmodels"
     ],
     "python.testing.unittestArgs": [
         "-v",

@@ -1,0 +1,4 @@
+import os
+
+
+INVESTOR_WEB_ENVIRONMENT = os.environ.get("INVESTOR_WEB_ENVIRONMENT")
