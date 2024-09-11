@@ -71,6 +71,13 @@ function component(plotData) {
                     type: 'time',
                     position: 'bottom'
                 }
+            },
+            elements: {
+                point: {
+                    borderWidth: 0,
+                    radius: 10,
+                    backgroundColor: 'rgba(0,0,0,0)'
+                }
             }
         }
     };
