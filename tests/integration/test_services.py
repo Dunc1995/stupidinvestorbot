@@ -87,8 +87,9 @@ class TestAppService(unittest.TestCase):
             0.001,
             21314314,
             [TimeSeriesMode(11.0), TimeSeriesMode(12.0), TimeSeriesMode(13.0)],
-            1,
         )
+
+        ts_summary.market_analysis_id = -1
 
         self.test_service.add_item(ts_summary)
 

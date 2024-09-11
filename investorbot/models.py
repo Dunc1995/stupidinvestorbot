@@ -86,7 +86,7 @@ class TimeSeriesSummary(Base):
     )
 
     market_analysis_id: Mapped[int] = mapped_column(
-        ForeignKey("market_analysis.market_analysis_id", ondelete="CASCADE"),
+        ForeignKey("market_analysis.market_analysis_id", ondelete="CASCADE"), init=False
     )
 
     market_analysis: Mapped[Optional["MarketAnalysis"]] = relationship(
