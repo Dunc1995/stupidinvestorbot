@@ -93,6 +93,13 @@ class TimeSeriesSummary(Base):
         back_populates="ts_data", init=False
     )
 
+    @property
+    def normalized_line_of_best_fit_coefficient(self):
+        """Represents the percentage change when calculating the trend value at any given point in
+        time. The normalized line_of_best_fit_offset doesn't need to be calculated as it will always
+        be 1 (100%) when time is zero (t=0)."""
+        return self.line_of_best_fit_coefficient / self.line_of_best_fit_offset
+
 
 class TimeSeriesMode(Base):
     """Time series analysis can produce multiple modes for a given dataset. This is represented by

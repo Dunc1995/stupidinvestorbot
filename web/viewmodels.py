@@ -11,7 +11,6 @@ class TimeSeriesSummaryViewModel:
     coin_name: str
     __percentage_std: float
     __line_of_best_fit_coefficient: float
-    __line_of_best_fit_offset: float
 
     @property
     @format_numeric(precision=2)
@@ -23,17 +22,13 @@ class TimeSeriesSummaryViewModel:
     def line_of_best_fit_coefficient(self) -> float:
         return self.__line_of_best_fit_coefficient
 
-    @property
-    @format_numeric(precision=5)
-    def line_of_best_fit_offset(self) -> float:
-        return self.__line_of_best_fit_offset
-
     def __init__(self, ts_summary: TimeSeriesSummary):
         self.summary_id = ts_summary.summary_id
         self.coin_name = ts_summary.coin_name
         self.__percentage_std = ts_summary.percentage_std
-        self.__line_of_best_fit_coefficient = ts_summary.line_of_best_fit_coefficient
-        self.__line_of_best_fit_offset = ts_summary.line_of_best_fit_offset
+        self.__line_of_best_fit_coefficient = (
+            ts_summary.normalized_line_of_best_fit_coefficient
+        )
 
 
 @dataclass(init=False)

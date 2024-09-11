@@ -12,12 +12,18 @@ const getRandomColour = () => {
 
 
 const fetchData = async (coinName) => {
-    const tsData = await fetch(`https://api.crypto.com/exchange/v1/public/get-valuations?instrument_name=${coinName}&valuation_type=mark_price&count=4000`)
+    const tsData = await fetch(`https://api.crypto.com/exchange/v1/public/get-valuations?instrument_name=${coinName}&valuation_type=mark_price&count=2880`)
 
     return tsData.json();
 }
 
 const getTimeSeriesData = async () => {
+    let loader = document.getElementById("data-loading");
+    let ctx = document.getElementById('graph-display');
+
+    loader.style.display = "block";
+    ctx.style.display = "none";
+
     let data = {
         datasets: []
     };
@@ -33,9 +39,6 @@ const getTimeSeriesData = async () => {
         firstEntry = tsDataRaw[tsDataRaw.length - 1]
         allData = tsDataRaw.map(dataPoint => { return { 'x': dataPoint.t, 'y': dataPoint.v / firstEntry.v } });
 
-        console.log(allData)
-
-
         for (let tsData of allData) {
             if (count % 20 === 0) {
                 truncatedData.push(tsData);
@@ -43,17 +46,18 @@ const getTimeSeriesData = async () => {
             count += 1;
         }
 
-        console.log(truncatedData)
-
         const dataSeries = {
             label: coinName,
             data: truncatedData,
             borderColor: getRandomColour(),
-            tension: 0.1
+            tension: 0.5
         };
 
         data.datasets.push(dataSeries)
     }));
+
+    loader.style.display = "none";
+    ctx.style.display = "block";
 
     return data;
 }
@@ -66,6 +70,15 @@ function component(plotData) {
         type: 'line',
         data: plotData,
         options: {
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 20
+                    }
+                }
+            },
             scales: {
                 x: {
                     type: 'time',
@@ -73,6 +86,9 @@ function component(plotData) {
                 }
             },
             elements: {
+                line: {
+                    borderWidth: 1
+                },
                 point: {
                     borderWidth: 0,
                     radius: 10,

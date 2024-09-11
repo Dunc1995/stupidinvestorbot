@@ -53,7 +53,7 @@ class MarketHttpClient(HttpClient):
         seconds, hence the default count here is 2880 to correspond with 24 hours-worth of data.
         """
         valuation_data = self.get_data(
-            f"get-valuations?instrument_name={instrument_name}&valuation_type={valuation_type}&count=f{count}"
+            f"get-valuations?instrument_name={instrument_name}&valuation_type={valuation_type}&count={count}"
         )
 
         return valuation_data
