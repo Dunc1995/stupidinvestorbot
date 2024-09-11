@@ -17,7 +17,9 @@ class MarketHttpClient(HttpClient):
         data = [
             TickerJson(obj)
             for obj in ticker_data
-            if str(obj["i"]).endswith("_USD") and float(obj["vv"]) > 200_000.0
+            if str(obj["i"]).endswith("_USD")
+            and not str(obj["i"]).startswith("USDT_")
+            and float(obj["vv"]) > 200_000.0
         ]
 
         result = sorted(
@@ -41,17 +43,17 @@ class MarketHttpClient(HttpClient):
 
         return data[0]
 
-    def get_valuation(self, instrument_name: str, valuation_type: str) -> dict:
-        # ! start/end time query parameters don't seem to work hence the following being commented out
-        # to_unix = lambda x: int(time.mktime(x.timetuple()) * 1000)
-
-        # date_now = to_unix(dt.datetime.now())
-        # date_past = to_unix(dt.datetime.now() - dt.timedelta(days=1))
-
-        # * count query max ~4000 data points going back 24h
-        # TODO attempt to retrieve data >24h ago.
+    def get_valuation(
+        self, instrument_name: str, valuation_type: str, count=2880
+    ) -> dict:
+        """Allegedly fetches per minute data market valuation data for the requested coin name
+        (https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations). If
+        the documentation was correct you'd need to request 1440 data points (24 hours * 60
+        minutes), but in reality, the API returns alternating intervals of 20 seconds and 40
+        seconds, hence the default count here is 2880 to correspond with 24 hours-worth of data.
+        """
         valuation_data = self.get_data(
-            f"get-valuations?instrument_name={instrument_name}&valuation_type={valuation_type}&count=4000"
+            f"get-valuations?instrument_name={instrument_name}&valuation_type={valuation_type}&count=f{count}"
         )
 
         return valuation_data
