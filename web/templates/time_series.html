@@ -34,5 +34,8 @@
         </tbody>
     </table>
 </div>
+<script>
+    window.coinNames = {{ market_analysis.coin_names | tojson | safe }};
+</script>
 <script src="{{ url_for('static', filename='bundle.js') }}"></script>
 {% endblock %}

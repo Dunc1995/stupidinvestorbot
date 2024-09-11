@@ -41,6 +41,7 @@ class MarketAnalysisViewModel:
     __timestamp: int
     confidence_description: str
     requires_update: str
+    coin_names: str
     ts_data: List[TimeSeriesSummaryViewModel]
 
     @property
@@ -52,6 +53,7 @@ class MarketAnalysisViewModel:
         self.__timestamp = market_analysis.creation_time_ms
         self.confidence_description = market_analysis.rating.rating_description
         self.requires_update = "Yes" if requires_update else "No"
+        self.coin_names = [ts_data.coin_name for ts_data in market_analysis.ts_data]
         self.ts_data = [
             TimeSeriesSummaryViewModel(ts_data) for ts_data in market_analysis.ts_data
         ]
