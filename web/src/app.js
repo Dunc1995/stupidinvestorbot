@@ -27,13 +27,17 @@ const getTimeSeriesData = async () => {
         tsData = await fetchData(coinName);
 
         truncatedData = [];
-        allData = tsData.result.data.map(dataPoint => { return { 'x': dataPoint.t, 'y': dataPoint.v } });
+
+        tsDataRaw = tsData.result.data;
+
+        firstEntry = tsDataRaw[tsDataRaw.length - 1]
+        allData = tsDataRaw.map(dataPoint => { return { 'x': dataPoint.t, 'y': dataPoint.v / firstEntry.v } });
 
         console.log(allData)
 
 
         for (let tsData of allData) {
-            if (count % 10 === 0) {
+            if (count % 20 === 0) {
                 truncatedData.push(tsData);
             }
             count += 1;
