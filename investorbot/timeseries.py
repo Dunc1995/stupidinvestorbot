@@ -1,4 +1,5 @@
 import logging
+import math
 import time
 from typing import List, Tuple
 import pandas as pd
@@ -130,3 +131,39 @@ def get_market_analysis_rating(
         )
 
     return ratings[0]
+
+
+def get_outliers_in_time_series_data(
+    ts_data: List[TimeSeriesSummary],
+) -> List[TimeSeriesSummary]:
+
+    ordered_data = list(
+        sorted(ts_data, key=lambda x: x.normalized_line_of_best_fit_coefficient)
+    )
+
+    ts_count = len(ordered_data)
+
+    # flooring here to account for zero index.
+    first_quartile_index = math.floor(0.25 * ts_count)
+    third_quartile_index = math.floor(0.75 * ts_count)
+
+    first_quartile = ordered_data[
+        first_quartile_index
+    ].normalized_line_of_best_fit_coefficient
+    third_quartile = ordered_data[
+        third_quartile_index
+    ].normalized_line_of_best_fit_coefficient
+
+    inter_quartile_range = third_quartile - first_quartile
+
+    lower_boundary = first_quartile - 1.5 * inter_quartile_range
+    upper_boundary = third_quartile + 1.5 * inter_quartile_range
+
+    for data in ordered_data:
+        if (
+            data.normalized_line_of_best_fit_coefficient > upper_boundary
+            or data.normalized_line_of_best_fit_coefficient < lower_boundary
+        ):
+            data.is_outlier = True
+
+    return ordered_data

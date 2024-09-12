@@ -2,6 +2,12 @@ import Chart from 'chart.js/auto'
 import 'chartjs-adapter-date-fns';
 
 
+let graphSpinner = document.getElementById("data-loading");
+let graphElement = document.getElementById('graph-display');
+let isOutliersShown = true;
+let outliersToggle = document.getElementById('toggle-outliers');
+
+
 const getRandomColour = () => {
     const red = Math.random() * 255.0;
     const green = Math.random() * 255.0;
@@ -18,30 +24,28 @@ const fetchData = async (coinName) => {
 }
 
 const getTimeSeriesData = async () => {
-    let loader = document.getElementById("data-loading");
-    let ctx = document.getElementById('graph-display');
-
-    loader.style.display = "block";
-    ctx.style.display = "none";
+    graphSpinner.style.display = "block";
+    graphElement.style.display = "none";
 
     let data = {
         datasets: []
     };
 
-    await Promise.all(window.coinNames.map(async coinName => {
+    await Promise.all(window.coinData.map(async coinData => {
         let count = 0;
-        tsData = await fetchData(coinName);
+        const coinName = coinData['coin_name'];
+        const isOutlier = coinData['is_outlier'];
 
-        truncatedData = [];
+        let tsData = await fetchData(coinName);
+        let truncatedData = [];
+        let tsDataRaw = tsData.result.data;
 
-        tsDataRaw = tsData.result.data;
+        let firstEntry = tsDataRaw[tsDataRaw.length - 1]
+        let allData = tsDataRaw.map(dataPoint => { return { 'x': dataPoint.t, 'y': dataPoint.v / firstEntry.v } });
 
-        firstEntry = tsDataRaw[tsDataRaw.length - 1]
-        allData = tsDataRaw.map(dataPoint => { return { 'x': dataPoint.t, 'y': dataPoint.v / firstEntry.v } });
-
-        for (let tsData of allData) {
+        for (let tsDat of allData) {
             if (count % 20 === 0) {
-                truncatedData.push(tsData);
+                truncatedData.push(tsDat);
             }
             count += 1;
         }
@@ -50,22 +54,21 @@ const getTimeSeriesData = async () => {
             label: coinName,
             data: truncatedData,
             borderColor: getRandomColour(),
-            tension: 0.5
+            isOutlier: isOutlier,
+            borderDash: isOutlier ? [4, 4] : undefined,
+            tension: isOutlier ? 0.1 : 0.5
         };
 
         data.datasets.push(dataSeries)
     }));
 
-    loader.style.display = "none";
-    ctx.style.display = "block";
+    graphSpinner.style.display = "none";
+    graphElement.style.display = "block";
 
     return data;
 }
 
-function component(plotData) {
-    const ctx = document.getElementById('graph-display');
-
-
+const generateGraph = (plotData) => {
     const config = {
         type: 'line',
         data: plotData,
@@ -98,11 +101,38 @@ function component(plotData) {
         }
     };
 
-    new Chart(ctx, config);
+    return new Chart(graphElement, config);
 }
 
-window.onload = async function (e) {
-    plotData = await getTimeSeriesData();
 
-    component(plotData);
+const toggleOutliers = (show) => {
+    let chartData = window.chartData;
+
+    chartData.config.data.datasets.map((graphData, index) => {
+        if (graphData.isOutlier) {
+            chartData.setDatasetVisibility(index, show)
+        }
+    })
+
+    chartData.update();
+}
+
+
+window.onload = async function (e) {
+    const graphData = await getTimeSeriesData();
+
+    outliersToggle.innerHTML = "Hide Outliers";
+    outliersToggle.disabled = false;
+
+    window.chartData = generateGraph(graphData);
+
+    outliersToggle.onclick = (e) => {
+        let shown = !isOutliersShown
+
+        outliersToggle.innerHTML = shown ? "Hide Outliers" : "Show Outliers";
+
+        toggleOutliers(shown);
+
+        isOutliersShown = shown;
+    }
 }

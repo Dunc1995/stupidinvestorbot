@@ -70,14 +70,16 @@ def refresh_market_analysis_routine() -> MarketAnalysis:
 
         ts_summaries.append(ts_summary)
 
+    final_ts_summaries = timeseries.get_outliers_in_time_series_data(ts_summaries)
+
     rating_thresholds = app_service.get_rating_thresholds()
 
     confidence_rating = timeseries.get_market_analysis_rating(
-        ts_summaries, rating_thresholds
+        final_ts_summaries, rating_thresholds
     )
 
     market_analysis = MarketAnalysis(
-        confidence_rating.value, timeseries.time_now(), ts_summaries
+        confidence_rating.value, timeseries.time_now(), final_ts_summaries
     )
 
     app_service.add_item(market_analysis)

@@ -7,6 +7,10 @@
 
 {% block content %}
 <figure>
+    <button id="toggle-outliers" type="button" class="btn btn-primary" style="float: right;" disabled>
+        <span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span>
+        <span class="sr-only">Loading...</span>
+    </button>
     <div id="data-loading" class="text-center" style="display: none;">
         <div class="spinner-border" role="status">
         </div>
@@ -34,6 +38,7 @@
                         <th>Coin Name</th>
                         <th>Percentage Standard Deviation</th>
                         <th>Trend Line Gradient</th>
+                        <th>Is Outlier</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -42,6 +47,7 @@
                         <td>{{ts_data.coin_name}}</td>
                         <td>{{ts_data.percentage_std}}%</td>
                         <td>{{ts_data.line_of_best_fit_coefficient}}</td>
+                        <td>{{ts_data.is_outlier}}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -50,7 +56,7 @@
     </div>
 </div>
 <script>
-    window.coinNames = {{ market_analysis.coin_names | tojson | safe }};
+    window.coinData = {{ market_analysis.ts_data | tojson | safe }};
 </script>
 <script src="{{ url_for('static', filename='bundle.js') }}"></script>
 {% endblock %}

@@ -79,11 +79,12 @@ class TimeSeriesSummary(Base):
     line_of_best_fit_coefficient: Mapped[float] = mapped_column(Float())
     line_of_best_fit_offset: Mapped[float] = mapped_column(Float())
     time_offset: Mapped[int] = mapped_column(Integer())
-
     modes: Mapped[List["TimeSeriesMode"]] = relationship(
         back_populates="summary",
         cascade="all, delete",
     )
+
+    is_outlier: Mapped[bool] = mapped_column(Boolean(), default=False)
 
     market_analysis_id: Mapped[int] = mapped_column(
         ForeignKey("market_analysis.market_analysis_id", ondelete="CASCADE"), init=False

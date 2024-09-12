@@ -9,6 +9,8 @@ from web.decorators import format_date, format_numeric
 class TimeSeriesSummaryViewModel:
     summary_id: int
     coin_name: str
+    is_an_outlier: str
+    is_outlier: bool
     __percentage_std: float
     __line_of_best_fit_coefficient: float
 
@@ -25,6 +27,8 @@ class TimeSeriesSummaryViewModel:
     def __init__(self, ts_summary: TimeSeriesSummary):
         self.summary_id = ts_summary.summary_id
         self.coin_name = ts_summary.coin_name
+        self.is_an_outlier = "Yes" if ts_summary.is_outlier else "No"
+        self.is_outlier = ts_summary.is_outlier
         self.__percentage_std = ts_summary.percentage_std
         self.__line_of_best_fit_coefficient = (
             ts_summary.normalized_line_of_best_fit_coefficient
@@ -36,7 +40,6 @@ class MarketAnalysisViewModel:
     __timestamp: int
     confidence_description: str
     requires_update: str
-    coin_names: str
     ts_data: List[TimeSeriesSummaryViewModel]
 
     @property
@@ -48,7 +51,6 @@ class MarketAnalysisViewModel:
         self.__timestamp = market_analysis.creation_time_ms
         self.confidence_description = market_analysis.rating.rating_description
         self.requires_update = "Yes" if requires_update else "No"
-        self.coin_names = [ts_data.coin_name for ts_data in market_analysis.ts_data]
         self.ts_data = [
             TimeSeriesSummaryViewModel(ts_data) for ts_data in market_analysis.ts_data
         ]
