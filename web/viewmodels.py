@@ -9,7 +9,7 @@ from web.decorators import format_date, format_numeric
 class TimeSeriesSummaryViewModel:
     summary_id: int
     coin_name: str
-    is_an_outlier: str
+    value_offset: float
     is_outlier: bool
     __percentage_std: float
     __line_of_best_fit_coefficient: float
@@ -27,7 +27,7 @@ class TimeSeriesSummaryViewModel:
     def __init__(self, ts_summary: TimeSeriesSummary):
         self.summary_id = ts_summary.summary_id
         self.coin_name = ts_summary.coin_name
-        self.is_an_outlier = "Yes" if ts_summary.is_outlier else "No"
+        self.value_offset = ts_summary.value_24_hours_ago
         self.is_outlier = ts_summary.is_outlier
         self.__percentage_std = ts_summary.percentage_std
         self.__line_of_best_fit_coefficient = (

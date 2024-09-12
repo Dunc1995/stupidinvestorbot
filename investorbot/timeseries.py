@@ -83,6 +83,7 @@ def get_coin_time_series_summary(
     mean = stats["v"].mean()
     std = stats["v"].std()
     modes = stats["v"].mode()
+    value_24_hours_ago = stats["v"].iloc[0]
     percentage_std = float(std) / float(mean)
 
     return TimeSeriesSummary(
@@ -93,6 +94,7 @@ def get_coin_time_series_summary(
         percentage_std=percentage_std,
         line_of_best_fit_coefficient=a,
         line_of_best_fit_offset=b,
+        value_24_hours_ago=value_24_hours_ago,
         time_offset=time_offset,
     )
 

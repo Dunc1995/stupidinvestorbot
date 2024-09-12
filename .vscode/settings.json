@@ -3,6 +3,7 @@
         "apscheduler",
         "argh",
         "chartjs",
+        "iloc",
         "investorbot",
         "joinedload",
         "Plotly",

@@ -9,9 +9,9 @@ let outliersToggle = document.getElementById('toggle-outliers');
 
 
 const getRandomColour = () => {
-    const red = Math.random() * 255.0;
-    const green = Math.random() * 255.0;
-    const blue = Math.random() * 255.0;
+    const red = 60.0 + Math.random() * 195.0;
+    const green = 60.0 + Math.random() * 195.0;
+    const blue = 60.0 + Math.random() * 195.0;
 
     return `rgb(${red}, ${green}, ${blue})`
 }
@@ -35,16 +35,16 @@ const getTimeSeriesData = async () => {
         let count = 0;
         const coinName = coinData['coin_name'];
         const isOutlier = coinData['is_outlier'];
+        const valueOffset = coinData['value_offset'];
 
         let tsData = await fetchData(coinName);
         let truncatedData = [];
         let tsDataRaw = tsData.result.data;
 
-        let firstEntry = tsDataRaw[tsDataRaw.length - 1]
-        let allData = tsDataRaw.map(dataPoint => { return { 'x': dataPoint.t, 'y': dataPoint.v / firstEntry.v } });
+        let allData = tsDataRaw.map(dataPoint => { return { 'x': dataPoint.t, 'y': dataPoint.v / valueOffset } });
 
         for (let tsDat of allData) {
-            if (count % 20 === 0) {
+            if (count % 10 === 0) {
                 truncatedData.push(tsDat);
             }
             count += 1;
@@ -90,7 +90,7 @@ const generateGraph = (plotData) => {
             },
             elements: {
                 line: {
-                    borderWidth: 1
+                    borderWidth: 1.5
                 },
                 point: {
                     borderWidth: 0,
