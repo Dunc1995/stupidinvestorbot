@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import type { timeSeriesSummary } from "./models";
+    import type { timeSeriesSummary } from "../../lib/models";
     import Chart from "chart.js/auto";
     import "chartjs-adapter-date-fns";
 
@@ -66,6 +66,7 @@
     };
 
     const generateGraph = (plotData: any) => {
+        const graphElement: any = document.getElementById("graph-display");
         const config: any = {
             type: "line",
             data: plotData,
@@ -98,8 +99,6 @@
             },
         };
 
-        const graphElement: any = document.getElementById("graph-display");
-
         return new Chart(graphElement, config);
     };
 
@@ -109,7 +108,5 @@
     });
 </script>
 
-<figure>
-    <canvas id="graph-display" class="rounded" style="width:800px;height:500px;"
-    ></canvas>
-</figure>
+<canvas id="graph-display" class="rounded" style="width:800px;height:500px;"
+></canvas>
