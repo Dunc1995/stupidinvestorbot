@@ -8,9 +8,9 @@
     let result: any;
 
     const getRandomColour = () => {
-        const red = 60.0 + Math.random() * 195.0;
-        const green = 60.0 + Math.random() * 195.0;
-        const blue = 60.0 + Math.random() * 195.0;
+        const red = Math.random() * 195.0;
+        const green = Math.random() * 195.0;
+        const blue = Math.random() * 195.0;
 
         return `rgb(${red}, ${green}, ${blue})`;
     };
@@ -100,7 +100,10 @@
             },
         };
 
-        return new Chart(canvasElement, config);
+        const chart = new Chart(canvasElement, config);
+        chart.destroy = chart.destroy.bind(chart);
+
+        return chart;
     };
 
     onMount(async (): Promise<any> => {
