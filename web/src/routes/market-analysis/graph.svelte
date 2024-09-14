@@ -5,6 +5,7 @@
     import "chartjs-adapter-date-fns";
 
     export let coinData: timeSeriesSummary[];
+    let result: any;
 
     const getRandomColour = () => {
         const red = 60.0 + Math.random() * 195.0;
@@ -65,11 +66,10 @@
         return data;
     };
 
-    const generateGraph = (plotData: any) => {
-        const graphElement: any = document.getElementById("graph-display");
+    const generateGraph = (canvasElement: HTMLCanvasElement): any => {
         const config: any = {
             type: "line",
-            data: plotData,
+            data: result,
             options: {
                 plugins: {
                     legend: {
@@ -99,14 +99,23 @@
             },
         };
 
-        return new Chart(graphElement, config);
+        return new Chart(canvasElement, config);
     };
 
-    onMount(async () => {
-        let result = await getTimeSeriesData();
-        console.log(generateGraph(result));
+    onMount(async (): Promise<any> => {
+        result = await getTimeSeriesData();
     });
 </script>
 
-<canvas id="graph-display" class="rounded" style="width:800px;height:500px;"
-></canvas>
+<figure>
+    {#if result}
+        <canvas
+            id="graph-display"
+            class="rounded"
+            style="width:800px;height:500px;"
+            use:generateGraph
+        ></canvas>
+    {:else}
+        <span class="loading loading-ring loading-lg"></span>
+    {/if}
+</figure>

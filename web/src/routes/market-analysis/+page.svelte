@@ -4,9 +4,10 @@
     import type { PageData } from "./$types";
 
     export let data: PageData;
+    const coinData = data.result;
 </script>
 
 <div>
-    <Graph coinData={data.result}></Graph>
-    <Table coinData={data.result}></Table>
+    <Graph {coinData}></Graph>
+    <Table {coinData}></Table>
 </div>
