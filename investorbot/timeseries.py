@@ -136,12 +136,10 @@ def get_market_analysis_rating(
 
 
 def get_outliers_in_time_series_data(
-    ts_data: List[TimeSeriesSummary],
+    ts_data: List[TimeSeriesSummary], property_to_check: str, value_to_set: str
 ) -> List[TimeSeriesSummary]:
 
-    ordered_data = list(
-        sorted(ts_data, key=lambda x: x.normalized_line_of_best_fit_coefficient)
-    )
+    ordered_data = list(sorted(ts_data, key=lambda x: getattr(x, property_to_check)))
 
     ts_count = len(ordered_data)
 
@@ -149,12 +147,8 @@ def get_outliers_in_time_series_data(
     first_quartile_index = math.floor(0.25 * ts_count)
     third_quartile_index = math.floor(0.75 * ts_count)
 
-    first_quartile = ordered_data[
-        first_quartile_index
-    ].normalized_line_of_best_fit_coefficient
-    third_quartile = ordered_data[
-        third_quartile_index
-    ].normalized_line_of_best_fit_coefficient
+    first_quartile = getattr(ordered_data[first_quartile_index], property_to_check)
+    third_quartile = getattr(ordered_data[third_quartile_index], property_to_check)
 
     inter_quartile_range = third_quartile - first_quartile
 
@@ -163,9 +157,9 @@ def get_outliers_in_time_series_data(
 
     for data in ordered_data:
         if (
-            data.normalized_line_of_best_fit_coefficient > upper_boundary
-            or data.normalized_line_of_best_fit_coefficient < lower_boundary
+            getattr(data, property_to_check) > upper_boundary
+            or getattr(data, property_to_check) < lower_boundary
         ):
-            data.is_outlier = True
+            setattr(data, value_to_set, True)
 
     return ordered_data

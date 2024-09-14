@@ -85,7 +85,8 @@ class TimeSeriesSummary(Base):
         cascade="all, delete",
     )
 
-    is_outlier: Mapped[bool] = mapped_column(Boolean(), default=False)
+    is_outlier_in_gradient: Mapped[bool] = mapped_column(Boolean(), default=False)
+    is_outlier_in_offset: Mapped[bool] = mapped_column(Boolean(), default=False)
 
     market_analysis_id: Mapped[int] = mapped_column(
         ForeignKey("market_analysis.market_analysis_id", ondelete="CASCADE"), init=False
@@ -101,6 +102,10 @@ class TimeSeriesSummary(Base):
         time. The normalized line_of_best_fit_offset doesn't need to be calculated as it will always
         be 1 (100%) when time is zero (t=0)."""
         return self.line_of_best_fit_coefficient / self.line_of_best_fit_offset
+
+    @property
+    def normalized_value_24_hours_ago(self):
+        return self.value_24_hours_ago / self.line_of_best_fit_offset
 
 
 class TimeSeriesMode(Base):

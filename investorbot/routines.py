@@ -70,7 +70,17 @@ def refresh_market_analysis_routine() -> MarketAnalysis:
 
         ts_summaries.append(ts_summary)
 
-    final_ts_summaries = timeseries.get_outliers_in_time_series_data(ts_summaries)
+    ts_summaries_first_iter = timeseries.get_outliers_in_time_series_data(
+        ts_summaries,
+        "normalized_line_of_best_fit_coefficient",
+        "is_outlier_in_gradient",
+    )
+
+    final_ts_summaries = timeseries.get_outliers_in_time_series_data(
+        ts_summaries_first_iter,
+        "normalized_value_24_hours_ago",
+        "is_outlier_in_offset",
+    )
 
     rating_thresholds = app_service.get_rating_thresholds()
 

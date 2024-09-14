@@ -30,7 +30,8 @@ export const timeSeriesSummary = sqliteTable('time_series_data', {
     lineOfBestFitOffset: numeric('line_of_best_fit_offset'),
     value24HoursAgo: numeric('value_24_hours_ago'),
     timeOffset: numeric('time_offset'),
-    isOutlier: integer('is_outlier', { mode: 'boolean' }).notNull().default(false),
+    isOutlierInGradient: integer('is_outlier_in_gradient', { mode: 'boolean' }).notNull().default(false),
+    isOutlierInOffset: integer('is_outlier_in_offset', { mode: 'boolean' }).notNull().default(false),
     marketAnalysisId: integer('market_analysis_id').references(() => marketAnalysis.marketAnalysisId)
 })
 

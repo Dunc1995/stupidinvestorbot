@@ -32,7 +32,8 @@
             coinData.map(async (coinData) => {
                 let count = 0;
                 const coinName = coinData.coinName ?? "";
-                const isOutlier = coinData.isOutlier;
+                const isOutlier =
+                    coinData.isOutlierInGradient || coinData.isOutlierInOffset;
                 const valueOffset: any = coinData.value24HoursAgo;
 
                 let tsData = await fetchData(coinName);
