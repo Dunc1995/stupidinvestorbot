@@ -107,15 +107,13 @@
     });
 </script>
 
-<figure>
-    {#if result}
-        <canvas
-            id="graph-display"
-            class="rounded"
-            style="width:800px;height:500px;"
-            use:generateGraph
-        ></canvas>
-    {:else}
-        <span class="loading loading-ring loading-lg"></span>
-    {/if}
-</figure>
+{#if result}
+    <canvas
+        id="graph-display"
+        class="rounded"
+        style="width:800px;height:500px;"
+        use:generateGraph
+    ></canvas>
+{:else}
+    <span class="loading loading-ring loading-lg"></span>
+{/if}
