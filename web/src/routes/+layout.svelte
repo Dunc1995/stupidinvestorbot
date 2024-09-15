@@ -1,4 +1,4 @@
-<div class="navbar bg-base-100">
+<div class="navbar bg-neutral text-neutral-content">
     <div class="navbar-start">
         <div class="dropdown">
             <div tabindex="0" role="button" class="btn btn-ghost btn-circle">
@@ -18,7 +18,7 @@
                 </svg>
             </div>
             <ul
-                class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
+                class="menu menu-sm dropdown-content bg-neutral text-neutral-content rounded-box z-[1] mt-3 w-52 p-2 shadow"
             >
                 <li><a href="/">Home</a></li>
                 <li><a href="/market-analysis">Market Analysis</a></li>
@@ -28,4 +28,4 @@
     <div class="navbar-center"><a href="/">Stupid Investor Bot</a></div>
     <div class="navbar-end"></div>
 </div>
-<div class="container mx-auto"><slot /></div>
+<slot />

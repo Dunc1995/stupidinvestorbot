@@ -1,16 +1,20 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import type { timeSeriesSummary } from "../../lib/models";
     import Chart from "chart.js/auto";
     import "chartjs-adapter-date-fns";
+    import type { TableRow } from "$lib/types";
 
-    export let coinData: timeSeriesSummary[];
+    export let coinData: TableRow[];
+    export let chartData: Chart | undefined;
     let result: any;
 
     const getRandomColour = () => {
-        const red = Math.random() * 195.0;
-        const green = Math.random() * 195.0;
-        const blue = Math.random() * 195.0;
+        const baseColour = 40.0;
+        const colourVariability = 160.0;
+
+        const red = baseColour + Math.random() * colourVariability;
+        const green = baseColour + Math.random() * colourVariability;
+        const blue = baseColour + Math.random() * colourVariability;
 
         return `rgb(${red}, ${green}, ${blue})`;
     };
@@ -30,11 +34,14 @@
 
         await Promise.all(
             coinData.map(async (coinData) => {
+                let rowData = coinData.data;
+
                 let count = 0;
-                const coinName = coinData.coinName ?? "";
+                const coinName = rowData.coinName ?? "";
                 const isOutlier =
-                    coinData.isOutlierInGradient || coinData.isOutlierInOffset;
-                const valueOffset: any = coinData.value24HoursAgo;
+                    rowData.isOutlierInGradient || rowData.isOutlierInOffset;
+                const isRising = Number(rowData.lineOfBestFitCoefficient) > 0.0;
+                const valueOffset: any = rowData.value24HoursAgo;
 
                 let tsData = await fetchData(coinName);
                 let truncatedData = [];
@@ -52,10 +59,12 @@
                 }
 
                 const dataSeries = {
+                    summaryId: rowData.summaryId,
                     label: coinName,
                     data: truncatedData,
                     borderColor: getRandomColour(),
                     isOutlier: isOutlier,
+                    isRising: isRising,
                     borderDash: isOutlier ? [4, 4] : undefined,
                     tension: isOutlier ? 0.1 : 0.5,
                 };
@@ -103,7 +112,7 @@
         const chart = new Chart(canvasElement, config);
         chart.destroy = chart.destroy.bind(chart);
 
-        return chart;
+        chartData = chart;
     };
 
     onMount(async (): Promise<any> => {
@@ -115,7 +124,7 @@
     <canvas
         id="graph-display"
         class="rounded"
-        style="width:800px;height:500px;"
+        style="width:500px;height:500px;"
         use:generateGraph
     ></canvas>
 {:else}
