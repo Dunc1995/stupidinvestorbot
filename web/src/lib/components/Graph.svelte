@@ -40,7 +40,10 @@
                 const coinName = rowData.coinName ?? "";
                 const isOutlier =
                     rowData.isOutlierInGradient || rowData.isOutlierInOffset;
-                const isRising = Number(rowData.lineOfBestFitCoefficient) > 0.0;
+                const isRising =
+                    Number(rowData.lineOfBestFitCoefficient) >= 0.0;
+                const isFalling =
+                    Number(rowData.lineOfBestFitCoefficient) < 0.0;
                 const valueOffset: any = rowData.value24HoursAgo;
 
                 let tsData = await fetchData(coinName);
@@ -65,6 +68,7 @@
                     borderColor: getRandomColour(),
                     isOutlier: isOutlier,
                     isRising: isRising,
+                    isFalling: isFalling,
                     borderDash: isOutlier ? [4, 4] : undefined,
                     tension: isOutlier ? 0.1 : 0.5,
                 };
