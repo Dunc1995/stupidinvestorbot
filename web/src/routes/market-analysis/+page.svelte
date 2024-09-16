@@ -5,8 +5,10 @@
     import type { PageData } from "./$types";
     import type Chart from "chart.js/auto";
     import type { TableRow } from "$lib/types";
+    import type { marketAnalysis } from "$lib/schema";
     export let data: PageData;
 
+    let marketAnalysis: marketAnalysis | undefined = data.result;
     let coinData: TableRow[] = data.result?.timeSeriesSummary.map((x) => {
         return {
             isActive: true,

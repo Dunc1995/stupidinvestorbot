@@ -1,4 +1,4 @@
-import type { timeSeriesSummary } from "./models"
+import type { timeSeriesSummary } from "./schema"
 
 export type TableRow = {
     isActive: boolean,
