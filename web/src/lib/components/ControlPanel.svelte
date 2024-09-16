@@ -14,8 +14,8 @@
     let isNotOutlierChecked = false;
 </script>
 
-{#if chartData}
-    <div class="dropdown">
+<div class="dropdown dropdown-end float-right">
+    {#if chartData}
         <div role="button" tabindex="0" class="btn m-1">
             <FilterIcon /> Filters
         </div>
@@ -69,9 +69,7 @@
                 ></ControlPanelCheckbox>
             </li>
         </ul>
-    </div>
-{:else}
-    <div class="dropdown">
+    {:else}
         <div role="button" class="btn m-1">
             <FilterIcon />
             <span class="loading loading-dots loading-md"></span>
@@ -79,5 +77,5 @@
         <ul
             class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow"
         ></ul>
-    </div>
-{/if}
+    {/if}
+</div>

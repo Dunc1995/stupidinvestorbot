@@ -7,7 +7,7 @@
 </script>
 
 <h2>Statistics</h2>
-<table class="table table-xs">
+<table class="table table-xs text-center text-wrap">
     <!-- head -->
     <thead>
         <tr>

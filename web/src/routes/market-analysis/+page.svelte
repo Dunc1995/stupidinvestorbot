@@ -21,7 +21,20 @@
         throw new ReferenceError("Time series analysis data was not found.");
 </script>
 
-<div class="container mx-auto pt-2">
+<div class="container mx-auto pt-2 pb-2">
+    <article class="p-5 prose-sm">
+        <h1>Market Analysis</h1>
+        <p>
+            Behind the scenes, a collection of python scripts perform data
+            processing on the coins as shown below to collate statistical
+            properties for each coin.
+        </p>
+        <p>
+            This information is used to get a general yardstick measurement to
+            try and predict which coins are most likely to increase in value in
+            a short timeframe.
+        </p>
+    </article>
     <ControlPanel bind:coinData bind:chartData></ControlPanel>
     <div class="flex w-full flex-col lg:flex-row pt-2">
         <div
@@ -29,6 +42,7 @@
         >
             <Graph bind:coinData bind:chartData></Graph>
         </div>
+
         <div class="divider lg:divider-horizontal"></div>
         <div
             class="card bg-base-300 rounded-box grid h-200 p-2 flex-grow place-items-center overflow-x-auto"
