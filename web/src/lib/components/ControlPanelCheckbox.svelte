@@ -5,6 +5,7 @@
     export let labelName: string;
     export let propertyToToggle: string = "";
     export let isChecked: boolean;
+    export let invert: boolean = false;
     export let coinData: TableRow[];
     export let chartData: Chart | undefined;
 
@@ -19,6 +20,8 @@
             let propertyToggle = propertyToToggle
                 ? graphData[propertyToToggle]
                 : true;
+
+            if (invert) propertyToggle = !propertyToggle;
 
             let isVisible = isChecked && propertyToggle;
 

@@ -2,8 +2,7 @@
     import type { TableRow } from "$lib/types";
     import type { Chart } from "chart.js";
     import ControlPanelCheckbox from "./ControlPanelCheckbox.svelte";
-    import GraphIcon from "./GraphIcon.svelte";
-    import { afterUpdate, beforeUpdate } from "svelte";
+    import FilterIcon from "./FilterIcon.svelte";
 
     export let coinData: TableRow[];
     export let chartData: Chart | undefined;
@@ -12,13 +11,17 @@
     let isFallingChecked = false;
     let isRisingChecked = false;
     let isOutlierChecked = false;
+    let isNotOutlierChecked = false;
 </script>
 
 {#if chartData}
-    <details class="dropdown">
-        <summary class="btn m-1"><GraphIcon />Controls</summary>
+    <div class="dropdown">
+        <div role="button" tabindex="0" class="btn m-1">
+            <FilterIcon /> Filters
+        </div>
         <ul
-            class="menu dropdown-content bg-base-100 rounded-box z-[1] w-52 p-2 shadow"
+            class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow"
+            tabindex="-1"
         >
             <li>
                 <ControlPanelCheckbox
@@ -33,6 +36,16 @@
                     labelName="Show Outliers"
                     propertyToToggle="isOutlier"
                     bind:isChecked={isOutlierChecked}
+                    bind:coinData
+                    bind:chartData
+                ></ControlPanelCheckbox>
+            </li>
+            <li>
+                <ControlPanelCheckbox
+                    labelName="Hide Outliers"
+                    propertyToToggle="isOutlier"
+                    invert={true}
+                    bind:isChecked={isNotOutlierChecked}
                     bind:coinData
                     bind:chartData
                 ></ControlPanelCheckbox>
@@ -56,12 +69,15 @@
                 ></ControlPanelCheckbox>
             </li>
         </ul>
-    </details>
+    </div>
 {:else}
-    <details class="dropdown">
-        <summary class="btn m-1">
-            <GraphIcon />
+    <div class="dropdown">
+        <div role="button" class="btn m-1">
+            <FilterIcon />
             <span class="loading loading-dots loading-md"></span>
-        </summary>
-    </details>
+        </div>
+        <ul
+            class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow"
+        ></ul>
+    </div>
 {/if}
