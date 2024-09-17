@@ -6,7 +6,9 @@
                 My attempt at generating some passive income, whilst living on a
                 budget in New Zealand.
             </p>
-            <button class="btn btn-primary">View Architecture</button>
+            <a href="/about"
+                ><button class="btn btn-primary">View Architecture</button></a
+            >
         </div>
     </div>
 </div>

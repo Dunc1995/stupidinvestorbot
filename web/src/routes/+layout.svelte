@@ -15,6 +15,7 @@
                 class="menu menu-sm dropdown-content bg-neutral text-neutral-content rounded-box z-[1] mt-3 w-52 p-2 shadow"
             >
                 <li><a href="/">Home</a></li>
+                <li><a href="/about">About</a></li>
                 <li><a href="/market-analysis">Market Analysis</a></li>
             </ul>
         </div>
