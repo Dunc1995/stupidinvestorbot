@@ -9,7 +9,11 @@
 
     let isDisplayAllChecked = true;
     let isFallingChecked = false;
+    let isFallingNominalChecked = false;
+    let isFallingOutlierChecked = false;
     let isRisingChecked = false;
+    let isRisingNominalChecked = false;
+    let isRisingOutlierChecked = false;
     let isOutlierChecked = false;
     let isNotOutlierChecked = false;
 </script>
@@ -52,7 +56,7 @@
             </li>
             <li>
                 <ControlPanelCheckbox
-                    labelName="Is Rising"
+                    labelName="All Rising Trends"
                     propertyToToggle="isRising"
                     bind:isChecked={isRisingChecked}
                     bind:coinData
@@ -61,9 +65,45 @@
             </li>
             <li>
                 <ControlPanelCheckbox
-                    labelName="Is Falling"
+                    labelName="Rising Nominal Trends"
+                    propertyToToggle="isRisingNominal"
+                    bind:isChecked={isRisingNominalChecked}
+                    bind:coinData
+                    bind:chartData
+                ></ControlPanelCheckbox>
+            </li>
+            <li>
+                <ControlPanelCheckbox
+                    labelName="Rising Outlier Trends"
+                    propertyToToggle="isRisingOutlier"
+                    bind:isChecked={isRisingOutlierChecked}
+                    bind:coinData
+                    bind:chartData
+                ></ControlPanelCheckbox>
+            </li>
+            <li>
+                <ControlPanelCheckbox
+                    labelName="All Fallings Trends"
                     propertyToToggle="isFalling"
                     bind:isChecked={isFallingChecked}
+                    bind:coinData
+                    bind:chartData
+                ></ControlPanelCheckbox>
+            </li>
+            <li>
+                <ControlPanelCheckbox
+                    labelName="Falling Nominal Trends"
+                    propertyToToggle="isFallingNominal"
+                    bind:isChecked={isFallingNominalChecked}
+                    bind:coinData
+                    bind:chartData
+                ></ControlPanelCheckbox>
+            </li>
+            <li>
+                <ControlPanelCheckbox
+                    labelName="Falling Outlier Trends"
+                    propertyToToggle="isFallingOutlier"
+                    bind:isChecked={isFallingOutlierChecked}
                     bind:coinData
                     bind:chartData
                 ></ControlPanelCheckbox>

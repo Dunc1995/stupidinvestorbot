@@ -44,6 +44,14 @@
                     Number(rowData.lineOfBestFitCoefficient) >= 0.0;
                 const isFalling =
                     Number(rowData.lineOfBestFitCoefficient) < 0.0;
+
+                const graphProperties = {
+                    isRisingNominal: isRising && !isOutlier,
+                    isRisingOutlier: isRising && isOutlier,
+                    isFallingNominal: isFalling && !isOutlier,
+                    isFallingOutlier: isFalling && isOutlier,
+                };
+
                 const valueOffset: any = rowData.value24HoursAgo;
 
                 let tsData = await fetchData(coinName);
@@ -71,6 +79,7 @@
                     isFalling: isFalling,
                     borderDash: isOutlier ? [4, 4] : undefined,
                     tension: isOutlier ? 0.1 : 0.5,
+                    ...graphProperties,
                 };
 
                 data.datasets.push(dataSeries);
