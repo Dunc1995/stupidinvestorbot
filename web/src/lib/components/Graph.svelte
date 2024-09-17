@@ -39,7 +39,9 @@
                 let count = 0;
                 const coinName = rowData.coinName ?? "";
                 const isOutlier =
-                    rowData.isOutlierInGradient || rowData.isOutlierInOffset;
+                    rowData.isOutlierInGradient ||
+                    rowData.isOutlierInOffset ||
+                    rowData.isOutlierInDeviation;
                 const isRising =
                     Number(rowData.lineOfBestFitCoefficient) >= 0.0;
                 const isFalling =

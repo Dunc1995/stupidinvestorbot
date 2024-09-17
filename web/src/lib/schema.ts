@@ -10,14 +10,29 @@ export const coinProperties = sqliteTable('coin_properties', {
 });
 
 
+export const coinSelectionCriteria = sqliteTable('coin_selection_criteria', {
+    ratingId: integer('rating_id').primaryKey(),
+    ratingDescription: text('rating_description'),
+})
+
+
+export const coinSelectionCriteriaRelations = relations(coinSelectionCriteria, ({ many }) => ({
+    marketAnalyses: many(timeSeriesSummary),
+}));
+
+
 export const marketAnalysis = sqliteTable('market_analysis', {
     marketAnalysisId: integer('market_analysis_id').primaryKey(),
     confidenceRatingId: integer('confidence_rating_id'),
     creationTimeMs: integer('creation_time_ms')
 })
 
-export const marketAnalysisRelations = relations(marketAnalysis, ({ many }) => ({
+export const marketAnalysisRelations = relations(marketAnalysis, ({ many, one }) => ({
     timeSeriesSummary: many(timeSeriesSummary),
+    rating: one(coinSelectionCriteria, {
+        fields: [marketAnalysis.confidenceRatingId],
+        references: [coinSelectionCriteria.ratingId],
+    })
 }));
 
 export const timeSeriesSummary = sqliteTable('time_series_data', {
@@ -32,6 +47,7 @@ export const timeSeriesSummary = sqliteTable('time_series_data', {
     timeOffset: numeric('time_offset'),
     isOutlierInGradient: integer('is_outlier_in_gradient', { mode: 'boolean' }).notNull().default(false),
     isOutlierInOffset: integer('is_outlier_in_offset', { mode: 'boolean' }).notNull().default(false),
+    isOutlierInDeviation: integer('is_outlier_in_deviation', { mode: 'boolean' }).notNull().default(false),
     marketAnalysisId: integer('market_analysis_id').references(() => marketAnalysis.marketAnalysisId)
 })
 
@@ -44,3 +60,4 @@ export const timeSeriesSummaryRelations = relations(timeSeriesSummary, ({ one })
 
 export type marketAnalysis = typeof marketAnalysis.$inferSelect;
 export type timeSeriesSummary = typeof timeSeriesSummary.$inferSelect;
+export type coinSelectionCriteria = typeof coinSelectionCriteria.$inferSelect;

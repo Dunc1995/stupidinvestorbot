@@ -14,8 +14,9 @@
             <th></th>
             <th>Coin Name</th>
             <th>Normalized Gradient</th>
-            <th>Is Outlier in Gradient</th>
-            <th>Is Outlier in Offset</th>
+            <th>STD Outlier</th>
+            <th>Gradient Outlier</th>
+            <th>Offset Outlier</th>
         </tr>
     </thead>
     <tbody>
@@ -29,6 +30,7 @@
                         Number(tableRow.data.value24HoursAgo)
                     ).toFixed(5)}</td
                 >
+                <td>{tableRow.data.isOutlierInDeviation}</td>
                 <td>{tableRow.data.isOutlierInGradient}</td>
                 <td>{tableRow.data.isOutlierInOffset}</td>
             </tr>

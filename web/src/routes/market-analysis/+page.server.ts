@@ -5,6 +5,7 @@ export const load = (async () => {
     const result = await dbClient.query.marketAnalysis.findFirst({
         with: {
             timeSeriesSummary: true,
+            rating: true
         },
     });
 

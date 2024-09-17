@@ -87,6 +87,7 @@ class TimeSeriesSummary(Base):
 
     is_outlier_in_gradient: Mapped[bool] = mapped_column(Boolean(), default=False)
     is_outlier_in_offset: Mapped[bool] = mapped_column(Boolean(), default=False)
+    is_outlier_in_deviation: Mapped[bool] = mapped_column(Boolean(), default=False)
 
     market_analysis_id: Mapped[int] = mapped_column(
         ForeignKey("market_analysis.market_analysis_id", ondelete="CASCADE"), init=False
@@ -106,6 +107,10 @@ class TimeSeriesSummary(Base):
     @property
     def normalized_value_24_hours_ago(self):
         return self.value_24_hours_ago / self.line_of_best_fit_offset
+
+    @property
+    def normalized_std(self):
+        return (self.mean + self.std) / self.mean
 
 
 class TimeSeriesMode(Base):

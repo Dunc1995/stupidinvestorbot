@@ -70,17 +70,38 @@ def refresh_market_analysis_routine() -> MarketAnalysis:
 
         ts_summaries.append(ts_summary)
 
+    # TODO find a way to pass property names using the TimeSeriesSummary class rather than
+    # hardcoding strings.
     ts_summaries_first_iter = timeseries.get_outliers_in_time_series_data(
         ts_summaries,
         "normalized_line_of_best_fit_coefficient",
         "is_outlier_in_gradient",
     )
 
-    final_ts_summaries = timeseries.get_outliers_in_time_series_data(
+    ts_summaries_second_iter = timeseries.get_outliers_in_time_series_data(
         ts_summaries_first_iter,
         "normalized_value_24_hours_ago",
         "is_outlier_in_offset",
     )
+
+    gradient_outliers = [
+        ts_summary
+        for ts_summary in ts_summaries_second_iter
+        if ts_summary.is_outlier_in_gradient
+    ]
+    deviation_candidates = [
+        ts_summary
+        for ts_summary in ts_summaries_second_iter
+        if not ts_summary.is_outlier_in_gradient
+    ]
+
+    deviation_subset = timeseries.get_outliers_in_time_series_data(
+        deviation_candidates,
+        "normalized_std",
+        "is_outlier_in_deviation",
+    )
+
+    final_ts_summaries = gradient_outliers + deviation_subset
 
     rating_thresholds = app_service.get_rating_thresholds()
 
