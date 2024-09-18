@@ -55,7 +55,6 @@ def refresh_market_analysis_routine() -> MarketAnalysis:
     in the application database via the TimeSeriesSummary models."""
 
     ts_summaries = []
-    app_service.delete_existing_time_series()
 
     for latest_trade in crypto_service.get_latest_trades():
         logger.info(f"Fetching latest 24hr dataset for {latest_trade.coin_name}.")

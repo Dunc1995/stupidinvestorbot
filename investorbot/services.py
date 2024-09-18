@@ -224,25 +224,18 @@ class AppService:
         return ts_data
 
     def __get_market_analysis(self) -> MarketAnalysis | None:
-        items_list = []
         session = self.session
 
-        query = session.query(MarketAnalysis).options(
-            joinedload(MarketAnalysis.ts_data).subqueryload(TimeSeriesSummary.modes)
+        latest_market_analysis = (
+            session.query(MarketAnalysis)
+            .options(
+                joinedload(MarketAnalysis.ts_data).subqueryload(TimeSeriesSummary.modes)
+            )
+            .order_by(MarketAnalysis.market_analysis_id.desc())
+            .first()
         )
 
-        for item in session.scalars(query):
-            items_list.append(item)
-
-        list_length = len(items_list)
-
-        # TODO enable this to handle multiple market analysis entries
-        if list_length > 1:
-            raise NotImplementedError(
-                "Investor bot can only handle one market analysis in its database currently."
-            )
-
-        return items_list[0] if list_length == 1 else None
+        return latest_market_analysis
 
     def get_market_analysis(self) -> Tuple[MarketAnalysis, bool]:
         """If the latest time series data is older than an hour, then this method will return true
