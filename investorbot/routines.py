@@ -180,22 +180,39 @@ def sell_coin_routine():
     SELL orders will then be placed for coin balances that have met the minimum return threshold -
     e.g. 101 percent of the original BuyOrder value."""
 
+    # Get all buy orders that have been placed by the app.
     buy_orders = app_service.get_all_buy_orders()
 
     for buy_order in buy_orders:
+        # Get order details from Crypto.com - at this the point the order could be in various states
+        # such as: 'EXPIRED', 'CANCELED', 'FILLED', etc. - in other words the order may not yet be
+        # in a state to sell.
         order_detail = crypto_service.get_order_detail(buy_order.buy_order_id)
+
+        # Attempt to fetch the user's current balance for a particular coin. coin_balance will be
+        # None here if the order has not yet been filled and the user has none of the currency in
+        # question.
         coin_balance = crypto_service.get_coin_balance(order_detail.coin_name)
 
+        # coin_is_sellable is a binary 'True' if the buy order is sellable, 'False' if not.
+        # validation_result is used to access reasons as to why the buy order is currently not
+        # sellable.
         coin_is_sellable, validation_result = validation.is_coin_sellable(
             buy_order, order_detail, coin_balance
         )
 
+        # If the buy order has been cancelled, there's no reason to store the order id in the
+        # database, hence delete any reference to the order.
         if validation_result.order_has_been_cancelled:
             app_service.delete_buy_order(buy_order.buy_order_id)
 
+        # No further action required if the buy order cannot be sold at this time.
         if not coin_is_sellable:
             continue
 
+        # TODO potentially use websockets here to track the price.
+        #
+        # region Potential Web Socket Routine
         latest_trade = crypto_service.get_latest_trade(buy_order.coin_name)
 
         value_ratio = latest_trade.price / buy_order.price_per_coin
@@ -213,3 +230,4 @@ def sell_coin_routine():
             buy_order.buy_order_id, coin_sale
         )
         app_service.add_item(sell_order)
+        # endregion
