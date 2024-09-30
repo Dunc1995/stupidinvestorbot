@@ -2,8 +2,6 @@
     import type { TableRow } from "$lib/types";
 
     export let coinData: TableRow[];
-
-    console.log(coinData);
 </script>
 
 <h2>Statistics</h2>
@@ -11,7 +9,6 @@
     <!-- head -->
     <thead>
         <tr>
-            <th></th>
             <th>Coin Name</th>
             <th>Normalized Gradient</th>
             <th>STD Outlier</th>
@@ -21,9 +18,15 @@
     </thead>
     <tbody>
         {#each coinData as tableRow}
-            <tr class={tableRow.isActive ? "" : "text-neutral-400"}>
-                <th>{tableRow.data.summaryId}</th>
-                <td>{tableRow.data.coinName}</td>
+            <tr
+                id={tableRow.data.coinName}
+                class={tableRow.isActive ? "hover" : "text-neutral-400"}
+            >
+                <td
+                    ><a href="/market-analysis/{tableRow.data.coinName}"
+                        >{tableRow.data.coinName}</a
+                    ></td
+                >
                 <td
                     >{(
                         Number(tableRow.data.lineOfBestFitCoefficient) /
