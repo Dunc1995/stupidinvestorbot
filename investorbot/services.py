@@ -57,9 +57,7 @@ class CryptoService:
         )
 
         return (
-            mappings.json_to_position_balance(balance)
-            if balance is not None
-            else balance
+            mappings.json_to_position_balance(balance) if balance is not None else None
         )
 
     def get_usd_balance(self) -> float:
