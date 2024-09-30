@@ -97,6 +97,9 @@ class TimeSeriesSummary(Base):
         back_populates="ts_data", init=False
     )
 
+    # TODO Store these values as columns
+    #
+    # TODO Revise which values to use to 'normalize' the datasets
     @property
     def normalized_line_of_best_fit_coefficient(self):
         """Represents the percentage change when calculating the trend value at any given point in
@@ -104,6 +107,7 @@ class TimeSeriesSummary(Base):
         be 1 (100%) when time is zero (t=0)."""
         return self.line_of_best_fit_coefficient / self.line_of_best_fit_offset
 
+    # TODO Rename to hourly
     @property
     def normalized_value_24_hours_ago(self):
         return self.value_24_hours_ago / self.line_of_best_fit_offset
