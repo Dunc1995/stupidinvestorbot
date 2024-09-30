@@ -60,7 +60,7 @@ def refresh_market_analysis_routine() -> MarketAnalysis:
         logger.info(f"Fetching latest 24hr dataset for {latest_trade.coin_name}.")
 
         time_series_data = crypto_service.get_coin_time_series_data(
-            latest_trade.coin_name
+            latest_trade.coin_name, 1
         )
 
         ts_summary = timeseries.get_coin_time_series_summary(
