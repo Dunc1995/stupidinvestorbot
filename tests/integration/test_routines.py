@@ -70,7 +70,7 @@ class TestRoutines(unittest.TestCase):
             get_mock_response("ts_data/ftm"),
         ]
 
-        refresh_market_analysis_routine()
+        refresh_market_analysis_routine(hours=24)
 
         market_analysis, _ = self.mock_db_service_routines.get_market_analysis()
 

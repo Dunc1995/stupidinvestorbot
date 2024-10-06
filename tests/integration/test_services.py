@@ -87,6 +87,7 @@ class TestAppService(unittest.TestCase):
             0.001,
             11.0,
             21314314,
+            120,
             [TimeSeriesMode(11.0), TimeSeriesMode(12.0), TimeSeriesMode(13.0)],
         )
 
