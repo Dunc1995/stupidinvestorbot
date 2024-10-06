@@ -19,9 +19,9 @@
         return `rgb(${red}, ${green}, ${blue})`;
     };
 
-    const fetchData = async (coinName: string) => {
+    const fetchData = async (coinName: string, dataCount: number) => {
         const tsData = await fetch(
-            `https://api.crypto.com/exchange/v1/public/get-valuations?instrument_name=${coinName}&valuation_type=mark_price&count=2880`,
+            `https://api.crypto.com/exchange/v1/public/get-valuations?instrument_name=${coinName}&valuation_type=mark_price&count=${dataCount}`,
         );
 
         return tsData.json();
@@ -54,9 +54,12 @@
                     isFallingOutlier: isFalling && isOutlier,
                 };
 
-                const valueOffset: any = rowData.value24HoursAgo;
+                const valueOffset: any = rowData.startingValue;
 
-                let tsData = await fetchData(coinName);
+                let tsData = await fetchData(
+                    coinName,
+                    rowData.datasetCount ?? 2880,
+                );
                 let truncatedData = [];
                 let tsDataRaw = tsData.result.data;
 

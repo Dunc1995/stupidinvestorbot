@@ -78,8 +78,9 @@ class TimeSeriesSummary(Base):
     percentage_std: Mapped[float] = mapped_column(Float())
     line_of_best_fit_coefficient: Mapped[float] = mapped_column(Float())
     line_of_best_fit_offset: Mapped[float] = mapped_column(Float())
-    value_24_hours_ago: Mapped[float] = mapped_column(Float())
+    starting_value: Mapped[float] = mapped_column(Float())
     time_offset: Mapped[int] = mapped_column(Integer())
+    dataset_count: Mapped[int] = mapped_column(Integer())
     modes: Mapped[List["TimeSeriesMode"]] = relationship(
         back_populates="summary",
         cascade="all, delete",
@@ -107,10 +108,9 @@ class TimeSeriesSummary(Base):
         be 1 (100%) when time is zero (t=0)."""
         return self.line_of_best_fit_coefficient / self.line_of_best_fit_offset
 
-    # TODO Rename to hourly
     @property
-    def normalized_value_24_hours_ago(self):
-        return self.value_24_hours_ago / self.line_of_best_fit_offset
+    def normalized_starting_value(self):
+        return self.starting_value / self.line_of_best_fit_offset
 
     @property
     def normalized_std(self):

@@ -59,11 +59,11 @@ def routine(name="Unnamed Routine"):
     useful when multiple routines are being triggered concurrently."""
 
     def routine_internal(func):
-        def wrapper():
+        def wrapper(**kwargs):
             printed_name = name.upper()
             logger.info(f">>>---START {printed_name} ROUTINE---<<<")
             try:
-                func()
+                func(**kwargs)
             except HTTPError as http_error:
                 logger.fatal(http_error)
 

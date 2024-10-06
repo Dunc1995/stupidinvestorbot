@@ -91,7 +91,6 @@ class CryptoService:
 
         return trades
 
-    # TODO write class for valuation data
     def get_coin_time_series_data(self, coin_name: str, hours=24) -> dict:
         return self.market.get_valuation(coin_name, "mark_price", hours)
 

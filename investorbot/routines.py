@@ -1,4 +1,6 @@
 import logging
+
+from argh import arg
 from investorbot.constants import (
     INVESTMENT_INCREMENTS,
     DEFAULT_LOGS_NAME,
@@ -48,19 +50,27 @@ def cancel_orders_routine():
         logger.info("No cancellable orders found.")
 
 
+@arg(
+    "hours",
+    default=24,
+    help="The number of hour's worth of data required for the market analysis.",
+)
 @routine("Market Analysis")
-def refresh_market_analysis_routine() -> MarketAnalysis:
+def refresh_market_analysis_routine(hours: int) -> MarketAnalysis:
     """Fetches time series data from the Crypto API and calculates various parameters according to
     each dataset - e.g. median, mean, modes, line-of-best-fit, etc. - these values are then stored
     in the application database via the TimeSeriesSummary models."""
 
     ts_summaries = []
+    hours_int = int(hours)
 
     for latest_trade in crypto_service.get_latest_trades():
-        logger.info(f"Fetching latest 24hr dataset for {latest_trade.coin_name}.")
+        logger.info(
+            f"Fetching latest {hours_int} hour's worth of data for {latest_trade.coin_name}."
+        )
 
         time_series_data = crypto_service.get_coin_time_series_data(
-            latest_trade.coin_name, 1
+            latest_trade.coin_name, hours_int
         )
 
         ts_summary = timeseries.get_coin_time_series_summary(
@@ -79,7 +89,7 @@ def refresh_market_analysis_routine() -> MarketAnalysis:
 
     ts_summaries_second_iter = timeseries.get_outliers_in_time_series_data(
         ts_summaries_first_iter,
-        "normalized_value_24_hours_ago",
+        "normalized_starting_value",
         "is_outlier_in_offset",
     )
 

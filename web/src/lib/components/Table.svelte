@@ -30,7 +30,7 @@
                 <td
                     >{(
                         Number(tableRow.data.lineOfBestFitCoefficient) /
-                        Number(tableRow.data.value24HoursAgo)
+                        Number(tableRow.data.startingValue)
                     ).toFixed(5)}</td
                 >
                 <td>{tableRow.data.isOutlierInDeviation}</td>

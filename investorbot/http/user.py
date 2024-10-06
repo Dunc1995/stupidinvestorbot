@@ -81,13 +81,5 @@ class UserHttpClient(AuthenticatedHttpClient):
             **self.post_request("get-order-detail", {"client_oid": str(client_oid)})
         )
 
-    def get_trades(self, instrument_name: str) -> dict:
-        # TODO I suspect this will be needed if multiple trades are triggered by one buy or sell
-        # order. Can remove if the app runs for a decent amount of time without error.
-
-        return self.post_request(
-            "get-trades", {"instrument_name": instrument_name, "limit": 20}
-        )
-
     def cancel_order(self, order_id: int):
         return self.post_request("cancel-order", {"client_oid": str(order_id)})
