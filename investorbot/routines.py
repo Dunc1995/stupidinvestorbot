@@ -153,7 +153,7 @@ def buy_coin_routine():
             logger.info("Maximum number of coin investments reached.")
             break
 
-        if not is_coin_purchaseable():
+        if not is_coin_purchaseable(ts_summary, options):
             logger.info(f"Rejected {ts_summary.coin_name}")
             continue
 
