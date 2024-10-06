@@ -6,6 +6,8 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import MappedAsDataclass
 
+from investorbot.enums import TrendLineState
+
 
 class Base(MappedAsDataclass, DeclarativeBase):
     pass
@@ -75,16 +77,28 @@ class TimeSeriesSummary(Base):
     coin_name: Mapped[str] = mapped_column(String())
     mean: Mapped[float] = mapped_column(Float())
     std: Mapped[float] = mapped_column(Float())
-    percentage_std: Mapped[float] = mapped_column(Float())
+
     line_of_best_fit_coefficient: Mapped[float] = mapped_column(Float())
     line_of_best_fit_offset: Mapped[float] = mapped_column(Float())
     starting_value: Mapped[float] = mapped_column(Float())
+
+    # normalized values are used to compare coins - i.e. work with percentage change rather than
+    # actual values.
+    normalized_line_of_best_fit_coefficient: Mapped[float] = mapped_column(Float())
+    normalized_starting_value: Mapped[float] = mapped_column(Float())
+    normalized_std: Mapped[float] = mapped_column(Float())
+
     time_offset: Mapped[int] = mapped_column(Integer())
     dataset_count: Mapped[int] = mapped_column(Integer())
     modes: Mapped[List["TimeSeriesMode"]] = relationship(
         back_populates="summary",
         cascade="all, delete",
     )
+
+    trend_state: Mapped[bool] = mapped_column(
+        String(), default=TrendLineState.UNKNOWN.value
+    )
+    is_volatile: Mapped[bool] = mapped_column(Boolean(), default=False)
 
     is_outlier_in_gradient: Mapped[bool] = mapped_column(Boolean(), default=False)
     is_outlier_in_offset: Mapped[bool] = mapped_column(Boolean(), default=False)
@@ -97,24 +111,6 @@ class TimeSeriesSummary(Base):
     market_analysis: Mapped[Optional["MarketAnalysis"]] = relationship(
         back_populates="ts_data", init=False
     )
-
-    # TODO Store these values as columns
-    #
-    # TODO Revise which values to use to 'normalize' the datasets
-    @property
-    def normalized_line_of_best_fit_coefficient(self):
-        """Represents the percentage change when calculating the trend value at any given point in
-        time. The normalized line_of_best_fit_offset doesn't need to be calculated as it will always
-        be 1 (100%) when time is zero (t=0)."""
-        return self.line_of_best_fit_coefficient / self.line_of_best_fit_offset
-
-    @property
-    def normalized_starting_value(self):
-        return self.starting_value / self.line_of_best_fit_offset
-
-    @property
-    def normalized_std(self):
-        return (self.mean + self.std) / self.mean
 
 
 class TimeSeriesMode(Base):

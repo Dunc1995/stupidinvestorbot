@@ -40,7 +40,6 @@ export const timeSeriesSummary = sqliteTable('time_series_data', {
     coinName: text('coin_name'),
     mean: numeric('mean'),
     std: numeric('std'),
-    percentageStd: numeric('percentage_std'),
     lineOfBestFitCoefficient: numeric('line_of_best_fit_coefficient'),
     lineOfBestFitOffset: numeric('line_of_best_fit_offset'),
     startingValue: numeric('starting_value'),

@@ -17,3 +17,10 @@ class ConfidenceRating(Enum):
     UNDECIDED = 3
     LITTLE_CONFIDENCE = 4
     NO_CONFIDENCE = 5
+
+
+class TrendLineState(Enum):
+    RISING = "RISING"
+    FLAT = "FLAT"
+    FALLING = "FALLING"
+    UNKNOWN = "UNKNOWN"

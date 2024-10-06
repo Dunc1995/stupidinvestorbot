@@ -7,9 +7,9 @@ from investorbot.constants import (
 )
 from investorbot import crypto_service, app_service
 from investorbot.decorators import routine
-from investorbot.enums import ConfidenceRating, OrderStatus
+from investorbot.enums import OrderStatus
 from investorbot.models import MarketAnalysis, TimeSeriesSummary
-from investorbot.validation import LatestTradeValidator
+from investorbot.validation import is_coin_purchaseable
 from investorbot.structs.egress import CoinPurchase, CoinSale
 import investorbot.timeseries as timeseries
 import investorbot.validation as validation
@@ -146,12 +146,6 @@ def buy_coin_routine():
 
     options = market_analysis.rating
 
-    if market_analysis.rating.rating_id == ConfidenceRating.NO_CONFIDENCE.value:
-        logger.warn(
-            "No confidence in the current market. Not investing at this point in time."
-        )
-        return
-
     for ts_summary in market_analysis.ts_data:
         latest_trade = crypto_service.get_latest_trade(ts_summary.coin_name)
 
@@ -159,9 +153,7 @@ def buy_coin_routine():
             logger.info("Maximum number of coin investments reached.")
             break
 
-        validator = LatestTradeValidator(latest_trade, ts_summary, options)
-
-        if not validator.is_valid_for_purchase():
+        if not is_coin_purchaseable():
             logger.info(f"Rejected {ts_summary.coin_name}")
             continue
 

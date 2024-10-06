@@ -6,8 +6,12 @@ import pandas as pd
 from pandas import DataFrame
 import numpy as np
 
-from investorbot.constants import DEFAULT_LOGS_NAME
-from investorbot.enums import ConfidenceRating
+from investorbot.constants import (
+    DEFAULT_LOGS_NAME,
+    INVESTOR_APP_FLATNESS_THRESHOLD,
+    INVESTOR_APP_VOLATILITY_THRESHOLD,
+)
+from investorbot.enums import ConfidenceRating, TrendLineState
 from investorbot.models import TimeSeriesMode, TimeSeriesSummary
 from investorbot.structs.internal import RatingThreshold
 
@@ -24,6 +28,10 @@ def convert_ms_time_to_hours(value: int, offset=0):
     return float(result)
 
 
+def ts_data_count_to_hours(data_count: int) -> float:
+    return float((24 / 2880) * data_count)
+
+
 def get_trend_value(
     trend_line_coefficient: float | DataFrame,
     hour_in_time: float,
@@ -33,6 +41,32 @@ def get_trend_value(
     trend_value = trend_line_coefficient * hour_in_time + trend_line_offset
 
     return trend_value
+
+
+def get_trend_line_price_percentage_change(
+    normalized_gradient: float, data_count: int
+) -> float:
+    hours = ts_data_count_to_hours(data_count)
+
+    value_at_now = get_trend_value(normalized_gradient, hours, 1)
+
+    return (value_at_now) - 1.0
+
+
+def get_trend_line_state(trend_line_price_percentage_change: float) -> str:
+    state = TrendLineState.UNKNOWN
+
+    if (
+        trend_line_price_percentage_change < INVESTOR_APP_FLATNESS_THRESHOLD
+        and trend_line_price_percentage_change > -INVESTOR_APP_FLATNESS_THRESHOLD
+    ):
+        state = TrendLineState.FLAT
+    elif trend_line_price_percentage_change >= INVESTOR_APP_FLATNESS_THRESHOLD:
+        state = TrendLineState.RISING
+    elif trend_line_price_percentage_change <= -INVESTOR_APP_FLATNESS_THRESHOLD:
+        state = TrendLineState.FALLING
+
+    return state.value
 
 
 def get_time_series_data_frame(time_series_data: dict) -> Tuple[DataFrame, int]:
@@ -85,17 +119,32 @@ def get_coin_time_series_summary(
     modes = stats["v"].mode()
     starting_value = stats["v"].iloc[0]
     dataset_count = len(stats)
-    percentage_std = float(std) / float(mean)
+
+    normalized_line_of_best_fit_coefficient = a / b
+    normalized_starting_value = starting_value / b
+    normalized_std = float(std) / float(mean)
+    is_volatile = (
+        normalized_std >= INVESTOR_APP_VOLATILITY_THRESHOLD
+        or normalized_std <= -INVESTOR_APP_VOLATILITY_THRESHOLD
+    )
+
+    trend_line_percentage_change = get_trend_line_price_percentage_change(
+        normalized_line_of_best_fit_coefficient, dataset_count
+    )
 
     return TimeSeriesSummary(
         coin_name=coin_name,
         mean=mean,
         modes=[TimeSeriesMode(mode=float(mode_value)) for mode_value in modes],
         std=std,
-        percentage_std=percentage_std,
         line_of_best_fit_coefficient=a,
         line_of_best_fit_offset=b,
         starting_value=starting_value,
+        normalized_line_of_best_fit_coefficient=normalized_line_of_best_fit_coefficient,
+        normalized_starting_value=normalized_starting_value,
+        normalized_std=normalized_std,
+        trend_state=get_trend_line_state(trend_line_percentage_change),
+        is_volatile=is_volatile,
         dataset_count=dataset_count,
         time_offset=time_offset,
     )

@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, Mock, patch
 import uuid
 
 from investorbot import mappings
+from investorbot.enums import TrendLineState
 from investorbot.structs.ingress import InstrumentJson
 from investorbot.services import AppService, CryptoService
 from investorbot.models import (
@@ -82,13 +83,16 @@ class TestAppService(unittest.TestCase):
             coin_name,
             12.0,
             0.5,
-            0.001,
             12434134,
             0.001,
             11.0,
+            0.0,
+            0.0,
+            0.0,
             21314314,
             120,
             [TimeSeriesMode(11.0), TimeSeriesMode(12.0), TimeSeriesMode(13.0)],
+            TrendLineState.UNKNOWN.value,
         )
 
         ts_summary.market_analysis_id = -1

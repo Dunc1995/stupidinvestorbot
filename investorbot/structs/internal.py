@@ -46,7 +46,7 @@ class OrderDetail:
         currency = self.coin_name.split("_")[0]
 
         if self.fee_currency != currency:
-            logger.warn(
+            logger.warning(
                 f"{currency} has been used to calculate the fee for {self.coin_name}. Unable"
                 + " to calculate fee deduction. You may still be able to proceed with selling this"
                 + " order if your wallet balance allows."
