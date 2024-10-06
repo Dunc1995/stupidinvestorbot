@@ -28,7 +28,8 @@
             "request": "launch",
             "module": "investorbot",
             "args": [
-                "refresh-market-analysis-routine"
+                "refresh-market-analysis-routine",
+                "24"
             ]
         },
         {

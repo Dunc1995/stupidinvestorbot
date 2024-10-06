@@ -8,7 +8,7 @@ from investorbot.constants import (
 from investorbot import crypto_service, app_service
 from investorbot.decorators import routine
 from investorbot.enums import ConfidenceRating, OrderStatus
-from investorbot.models import MarketAnalysis
+from investorbot.models import MarketAnalysis, TimeSeriesSummary
 from investorbot.validation import LatestTradeValidator
 from investorbot.structs.egress import CoinPurchase, CoinSale
 import investorbot.timeseries as timeseries
@@ -79,18 +79,16 @@ def refresh_market_analysis_routine(hours: int) -> MarketAnalysis:
 
         ts_summaries.append(ts_summary)
 
-    # TODO find a way to pass property names using the TimeSeriesSummary class rather than
-    # hardcoding strings.
     ts_summaries_first_iter = timeseries.get_outliers_in_time_series_data(
         ts_summaries,
-        "normalized_line_of_best_fit_coefficient",
-        "is_outlier_in_gradient",
+        TimeSeriesSummary.normalized_line_of_best_fit_coefficient.key,
+        TimeSeriesSummary.is_outlier_in_gradient.key,
     )
 
     ts_summaries_second_iter = timeseries.get_outliers_in_time_series_data(
         ts_summaries_first_iter,
-        "normalized_starting_value",
-        "is_outlier_in_offset",
+        TimeSeriesSummary.normalized_starting_value.key,
+        TimeSeriesSummary.is_outlier_in_offset.key,
     )
 
     gradient_outliers = [
@@ -106,8 +104,8 @@ def refresh_market_analysis_routine(hours: int) -> MarketAnalysis:
 
     deviation_subset = timeseries.get_outliers_in_time_series_data(
         deviation_candidates,
-        "normalized_std",
-        "is_outlier_in_deviation",
+        TimeSeriesSummary.normalized_std.key,
+        TimeSeriesSummary.is_outlier_in_deviation.key,
     )
 
     final_ts_summaries = gradient_outliers + deviation_subset
