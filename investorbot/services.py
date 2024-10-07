@@ -33,7 +33,7 @@ from investorbot.models import (
     SellOrder,
     TimeSeriesSummary,
 )
-from investorbot.timeseries import time_now, convert_ms_time_to_hours
+from investorbot.analysis import time_now, convert_ms_time_to_hours
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
 

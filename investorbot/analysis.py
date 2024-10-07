@@ -11,11 +11,98 @@ from investorbot.constants import (
     INVESTOR_APP_FLATNESS_THRESHOLD,
     INVESTOR_APP_VOLATILITY_THRESHOLD,
 )
-from investorbot.enums import MarketCharacterization, TrendLineState
-from investorbot.models import TimeSeriesMode, TimeSeriesSummary
-from investorbot.structs.internal import RatingThreshold
+from investorbot.enums import MarketCharacterization, OrderStatus, TrendLineState
+from investorbot.models import (
+    BuyOrder,
+    CoinSelectionCriteria,
+    TimeSeriesMode,
+    TimeSeriesSummary,
+)
+from investorbot.structs.internal import (
+    OrderDetail,
+    PositionBalance,
+    RatingThreshold,
+    SaleValidationResult,
+)
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
+
+
+def is_coin_purchaseable(
+    summary: TimeSeriesSummary, options: CoinSelectionCriteria
+) -> bool:
+    criteria = []
+
+    if options.coin_should_be_volatile:
+        criteria.append(summary.is_volatile)
+
+    if options.coin_should_be_nominal:
+        criteria.append(not summary.is_outlier_in_gradient)
+
+    if options.coin_should_be_an_outlier:
+        criteria.append(summary.is_outlier_in_gradient)
+
+    if options.trend_line_should_be_falling:
+        criteria.append(summary.is_trend_falling)
+
+    if options.trend_line_should_be_flat:
+        criteria.append(summary.is_trend_flat)
+
+    if options.trend_line_should_be_rising:
+        criteria.append(summary.is_trend_rising)
+
+    if options.trend_line_should_be_flat_or_rising:
+        criteria.append(summary.is_trend_flat or summary.is_trend_rising)
+
+    return all(i for i in criteria)
+
+
+def is_coin_sellable(
+    buy_order: BuyOrder, order_detail: OrderDetail, coin_balance: PositionBalance | None
+) -> Tuple[bool, SaleValidationResult]:
+    no_coin_balance = coin_balance is None
+    order_balance_has_already_been_sold = buy_order.sell_order is not None
+    order_has_been_cancelled = order_detail.status == OrderStatus.CANCELED.value
+    order_has_not_been_filled = order_detail.status != OrderStatus.FILLED.value
+    wallet_balance_is_not_sufficient = (
+        coin_balance.sellable_quantity < order_detail.order_quantity_minus_fee
+        if coin_balance is not None
+        else True
+    )
+
+    return not any(
+        [
+            no_coin_balance,
+            order_balance_has_already_been_sold,
+            order_has_been_cancelled,
+            order_has_not_been_filled,
+            wallet_balance_is_not_sufficient,
+        ]
+    ), SaleValidationResult(
+        no_coin_balance,
+        order_balance_has_already_been_sold,
+        order_has_been_cancelled,
+        order_has_not_been_filled,
+        wallet_balance_is_not_sufficient,
+    )
+
+
+def __hours_since_order(order: OrderDetail) -> float:
+    t_now = time_now()
+
+    time_of_order = order.time_created_ms
+    milliseconds_since_order = t_now - time_of_order
+    return milliseconds_since_order / (1000 * 60 * 60)
+
+
+def __get_minimum_acceptable_value_ratio(order: OrderDetail) -> float:
+    # TODO make this configurable as DecayEquationParameters or similar. High confidence in the
+    # market should result in slower decay rate.
+    return 0.98 + 0.03 ** ((0.01 * __hours_since_order(order)) + 1.0)
+
+
+def is_value_ratio_sufficient(value_ratio: float, order: OrderDetail) -> bool:
+    return value_ratio >= __get_minimum_acceptable_value_ratio(order)
 
 
 def time_now():

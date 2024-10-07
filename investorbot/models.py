@@ -179,7 +179,7 @@ class CoinSelectionCriteria(Base):
 
     coin_should_be_volatile: Mapped[bool] = mapped_column(Boolean(), default=False)
     coin_should_be_an_outlier: Mapped[bool] = mapped_column(Boolean(), default=False)
-    coin_should_be_an_nominal: Mapped[bool] = mapped_column(Boolean(), default=False)
+    coin_should_be_nominal: Mapped[bool] = mapped_column(Boolean(), default=False)
 
     trend_line_should_be_flat: Mapped[bool] = mapped_column(Boolean(), default=False)
     trend_line_should_be_rising: Mapped[bool] = mapped_column(Boolean(), default=False)

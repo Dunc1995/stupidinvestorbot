@@ -9,10 +9,9 @@ from investorbot import crypto_service, app_service
 from investorbot.decorators import routine
 from investorbot.enums import OrderStatus
 from investorbot.models import MarketAnalysis, TimeSeriesSummary
-from investorbot.validation import is_coin_purchaseable
+from investorbot.analysis import is_coin_purchaseable
 from investorbot.structs.egress import CoinPurchase, CoinSale
-import investorbot.timeseries as timeseries
-import investorbot.validation as validation
+import investorbot.analysis as analysis
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
 logging.basicConfig(level=logging.INFO)
@@ -30,8 +29,8 @@ def cancel_orders_routine():
         buy_order_id = order.buy_order_id
         order_detail = crypto_service.get_order_detail(buy_order_id)
 
-        current_time = timeseries.time_now()
-        age = timeseries.convert_ms_time_to_hours(
+        current_time = analysis.time_now()
+        age = analysis.convert_ms_time_to_hours(
             current_time - order_detail.time_created_ms
         )
 
@@ -73,19 +72,19 @@ def refresh_market_analysis_routine(hours: int) -> MarketAnalysis:
             latest_trade.coin_name, hours_int
         )
 
-        ts_summary = timeseries.get_coin_time_series_summary(
+        ts_summary = analysis.get_coin_time_series_summary(
             latest_trade.coin_name, time_series_data
         )
 
         ts_summaries.append(ts_summary)
 
-    ts_summaries_first_iter = timeseries.get_outliers_in_time_series_data(
+    ts_summaries_first_iter = analysis.get_outliers_in_time_series_data(
         ts_summaries,
         TimeSeriesSummary.normalized_line_of_best_fit_coefficient.key,
         TimeSeriesSummary.is_outlier_in_gradient.key,
     )
 
-    ts_summaries_second_iter = timeseries.get_outliers_in_time_series_data(
+    ts_summaries_second_iter = analysis.get_outliers_in_time_series_data(
         ts_summaries_first_iter,
         TimeSeriesSummary.normalized_starting_value.key,
         TimeSeriesSummary.is_outlier_in_offset.key,
@@ -102,7 +101,7 @@ def refresh_market_analysis_routine(hours: int) -> MarketAnalysis:
         if not ts_summary.is_outlier_in_gradient
     ]
 
-    deviation_subset = timeseries.get_outliers_in_time_series_data(
+    deviation_subset = analysis.get_outliers_in_time_series_data(
         deviation_candidates,
         TimeSeriesSummary.normalized_std.key,
         TimeSeriesSummary.is_outlier_in_deviation.key,
@@ -112,12 +111,12 @@ def refresh_market_analysis_routine(hours: int) -> MarketAnalysis:
 
     rating_thresholds = app_service.get_rating_thresholds()
 
-    confidence_rating = timeseries.get_market_analysis_rating(
+    confidence_rating = analysis.get_market_analysis_rating(
         final_ts_summaries, rating_thresholds
     )
 
     market_analysis = MarketAnalysis(
-        confidence_rating.value, timeseries.time_now(), final_ts_summaries
+        confidence_rating.value, analysis.time_now(), final_ts_summaries
     )
 
     app_service.add_item(market_analysis)
@@ -197,7 +196,7 @@ def sell_coin_routine():
         # coin_is_sellable is a binary 'True' if the buy order is sellable, 'False' if not.
         # validation_result is used to access reasons as to why the buy order is currently not
         # sellable.
-        coin_is_sellable, validation_result = validation.is_coin_sellable(
+        coin_is_sellable, validation_result = analysis.is_coin_sellable(
             buy_order, order_detail, coin_balance
         )
 
@@ -217,7 +216,7 @@ def sell_coin_routine():
 
         value_ratio = latest_trade.price / buy_order.price_per_coin
 
-        if not validation.is_value_ratio_sufficient(value_ratio, order_detail):
+        if not analysis.is_value_ratio_sufficient(value_ratio, order_detail):
             continue
 
         coin_sale = CoinSale(

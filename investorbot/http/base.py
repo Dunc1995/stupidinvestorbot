@@ -9,7 +9,7 @@ import requests
 from os import path
 from pathlib import Path
 from urllib.parse import urlparse
-from investorbot.timeseries import time_now
+from investorbot.analysis import time_now
 from investorbot.constants import DEFAULT_LOGS_NAME, INVESTOR_APP_ENVIRONMENT
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
