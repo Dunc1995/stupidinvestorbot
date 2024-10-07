@@ -25,5 +25,4 @@ DEFAULT_LOGS_NAME = "investor_bot_client"
 
 # TODO Add this to CoinSelectionCriteria
 INVESTMENT_INCREMENTS = 5.0
-# TODO Add this to CoinSelectionCriteria
 MAX_COINS = 4

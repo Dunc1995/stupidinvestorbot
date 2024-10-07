@@ -82,8 +82,8 @@ class TimeSeriesSummary(Base):
     line_of_best_fit_offset: Mapped[float] = mapped_column(Float())
     starting_value: Mapped[float] = mapped_column(Float())
 
-    # normalized values are used to compare coins - i.e. work with percentage change rather than
-    # actual values.
+    # Normalized values are used to compare coins - i.e. work with percentage change rather than
+    # actual values that are of different scales.
     normalized_line_of_best_fit_coefficient: Mapped[float] = mapped_column(Float())
     normalized_starting_value: Mapped[float] = mapped_column(Float())
     normalized_std: Mapped[float] = mapped_column(Float())
@@ -170,27 +170,23 @@ class CoinSelectionCriteria(Base):
 
     rating_description: Mapped[str] = mapped_column(String())
     rating_upper_threshold: Mapped[float] = mapped_column(Float())
-    rating_upper_unbounded: Mapped[bool] = mapped_column(Boolean())
     rating_lower_threshold: Mapped[float] = mapped_column(Float())
-    rating_lower_unbounded: Mapped[bool] = mapped_column(Boolean())
+    minimum_order_value_usd: Mapped[float] = mapped_column(Float())
+    maximum_number_of_orders: Mapped[int] = mapped_column(Integer())
 
-    trade_needs_to_be_within_mean_and_upper_bound: Mapped[bool] = mapped_column(
-        Boolean()
+    rating_upper_unbounded: Mapped[bool] = mapped_column(Boolean(), default=False)
+    rating_lower_unbounded: Mapped[bool] = mapped_column(Boolean(), default=False)
+
+    coin_should_be_volatile: Mapped[bool] = mapped_column(Boolean(), default=False)
+    coin_should_be_an_outlier: Mapped[bool] = mapped_column(Boolean(), default=False)
+    coin_should_be_an_nominal: Mapped[bool] = mapped_column(Boolean(), default=False)
+
+    trend_line_should_be_flat: Mapped[bool] = mapped_column(Boolean(), default=False)
+    trend_line_should_be_rising: Mapped[bool] = mapped_column(Boolean(), default=False)
+    trend_line_should_be_falling: Mapped[bool] = mapped_column(Boolean(), default=False)
+    trend_line_should_be_flat_or_rising: Mapped[bool] = mapped_column(
+        Boolean(), default=False
     )
-    trade_needs_to_be_within_mean_and_lower_bound: Mapped[bool] = mapped_column(
-        Boolean()
-    )
-    standard_deviation_threshold_should_exceed_threshold: Mapped[bool] = mapped_column(
-        Boolean()
-    )
-    standard_deviation_threshold: Mapped[float] = mapped_column(Float())
-    trend_line_percentage_threshold: Mapped[float] = mapped_column(Float())
-    """Trend line percentage threshold is used to characterise whether a line is rising, falling or
-    flat."""
-    trend_line_should_be_flat: Mapped[bool] = mapped_column(Boolean())
-    trend_line_should_be_rising: Mapped[bool] = mapped_column(Boolean())
-    trend_line_should_be_falling: Mapped[bool] = mapped_column(Boolean())
-    trend_line_should_be_flat_or_rising: Mapped[bool] = mapped_column(Boolean())
 
     confidence_entries: Mapped[List["MarketAnalysis"]] = relationship(
         back_populates="rating", cascade="all, delete", init=False

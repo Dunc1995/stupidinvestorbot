@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, Mock, patch
 
 from investorbot.services import AppService, CryptoService
 from investorbot.db import init_db, app_service
-from investorbot.enums import ConfidenceRating
+from investorbot.enums import MarketCharacterization
 from investorbot.models import BuyOrder
 from investorbot.routines import (
     buy_coin_routine,
@@ -87,7 +87,7 @@ class TestRoutines(unittest.TestCase):
         self.assertIsNotNone(market_analysis.rating, "Rating was found to be None.")
         self.assertEqual(
             market_analysis.confidence_rating_id,
-            ConfidenceRating.MODERATE_CONFIDENCE.value,
+            MarketCharacterization.RISING.value,
             "Confidence rating is not correct.",
         )
 

@@ -2,101 +2,10 @@ import logging
 
 from investorbot import app_service, crypto_service
 from investorbot.constants import DEFAULT_LOGS_NAME
-from investorbot.enums import ConfidenceRating
+from investorbot.enums import MarketCharacterization
 from investorbot.models import CoinSelectionCriteria
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
-
-
-HIGH_CONFIDENCE = {
-    "rating_id": ConfidenceRating.HIGH_CONFIDENCE.value,
-    "rating_description": "High Confidence",
-    "rating_upper_threshold": -1.0,
-    "rating_upper_unbounded": True,
-    "rating_lower_threshold": 0.02,
-    "rating_lower_unbounded": False,
-    "trade_needs_to_be_within_mean_and_upper_bound": False,
-    "trade_needs_to_be_within_mean_and_lower_bound": True,
-    "standard_deviation_threshold_should_exceed_threshold": True,
-    "standard_deviation_threshold": 0.03,
-    "trend_line_percentage_threshold": 0.005,
-    "trend_line_should_be_flat": False,
-    "trend_line_should_be_rising": True,
-    "trend_line_should_be_falling": False,
-    "trend_line_should_be_flat_or_rising": False,
-}
-
-MODERATE_CONFIDENCE = {
-    "rating_id": ConfidenceRating.MODERATE_CONFIDENCE.value,
-    "rating_description": "Moderate Confidence",
-    "rating_upper_threshold": 0.02,
-    "rating_upper_unbounded": False,
-    "rating_lower_threshold": 0.002,
-    "rating_lower_unbounded": False,
-    "trade_needs_to_be_within_mean_and_upper_bound": False,
-    "trade_needs_to_be_within_mean_and_lower_bound": True,
-    "standard_deviation_threshold_should_exceed_threshold": True,
-    "standard_deviation_threshold": 0.025,
-    "trend_line_percentage_threshold": 0.001,
-    "trend_line_should_be_flat": False,
-    "trend_line_should_be_rising": True,
-    "trend_line_should_be_falling": False,
-    "trend_line_should_be_flat_or_rising": False,
-}
-
-UNDECIDED = {
-    "rating_id": ConfidenceRating.UNDECIDED.value,
-    "rating_description": "Unsure",
-    "rating_upper_threshold": 0.002,
-    "rating_upper_unbounded": False,
-    "rating_lower_threshold": -0.002,
-    "rating_lower_unbounded": False,
-    "trade_needs_to_be_within_mean_and_upper_bound": False,
-    "trade_needs_to_be_within_mean_and_lower_bound": True,
-    "standard_deviation_threshold_should_exceed_threshold": True,
-    "standard_deviation_threshold": 0.02,
-    "trend_line_percentage_threshold": 0.002,
-    "trend_line_should_be_flat": False,
-    "trend_line_should_be_rising": False,
-    "trend_line_should_be_falling": False,
-    "trend_line_should_be_flat_or_rising": True,
-}
-
-LITTLE_CONFIDENCE = {
-    "rating_id": ConfidenceRating.LITTLE_CONFIDENCE.value,
-    "rating_description": "Low Confidence",
-    "rating_upper_threshold": -0.002,
-    "rating_upper_unbounded": False,
-    "rating_lower_threshold": -0.02,
-    "rating_lower_unbounded": False,
-    "trade_needs_to_be_within_mean_and_upper_bound": False,
-    "trade_needs_to_be_within_mean_and_lower_bound": True,
-    "standard_deviation_threshold_should_exceed_threshold": True,
-    "standard_deviation_threshold": 0.02,
-    "trend_line_percentage_threshold": 0.005,
-    "trend_line_should_be_flat": False,
-    "trend_line_should_be_rising": False,
-    "trend_line_should_be_falling": False,
-    "trend_line_should_be_flat_or_rising": True,
-}
-
-NO_CONFIDENCE = {
-    "rating_id": ConfidenceRating.NO_CONFIDENCE.value,
-    "rating_description": "No Confidence - Do not Invest",
-    "rating_upper_threshold": -0.02,
-    "rating_upper_unbounded": False,
-    "rating_lower_threshold": -1.0,
-    "rating_lower_unbounded": True,
-    "trade_needs_to_be_within_mean_and_upper_bound": False,
-    "trade_needs_to_be_within_mean_and_lower_bound": False,
-    "standard_deviation_threshold_should_exceed_threshold": False,
-    "standard_deviation_threshold": 0.02,
-    "trend_line_percentage_threshold": 0.005,
-    "trend_line_should_be_flat": False,
-    "trend_line_should_be_rising": False,
-    "trend_line_should_be_falling": False,
-    "trend_line_should_be_flat_or_rising": False,
-}
 
 
 def init_db():
@@ -104,11 +13,57 @@ def init_db():
 
     coin_properties = crypto_service.get_coin_properties()
     market_analysis_ratings = [
-        CoinSelectionCriteria(**HIGH_CONFIDENCE),
-        CoinSelectionCriteria(**MODERATE_CONFIDENCE),
-        CoinSelectionCriteria(**UNDECIDED),
-        CoinSelectionCriteria(**LITTLE_CONFIDENCE),
-        CoinSelectionCriteria(**NO_CONFIDENCE),
+        CoinSelectionCriteria(
+            rating_id=MarketCharacterization.RISING_RAPIDLY.value,
+            rating_description="High Confidence",
+            rating_upper_threshold=-1.0,
+            rating_upper_unbounded=True,
+            rating_lower_threshold=0.02,
+            coin_should_be_an_outlier=True,
+            trend_line_should_be_rising=True,
+            maximum_number_of_orders=1,
+            minimum_order_value_usd=25.0,
+        ),
+        CoinSelectionCriteria(
+            rating_id=MarketCharacterization.RISING.value,
+            rating_description="Moderate Confidence",
+            rating_upper_threshold=0.02,
+            rating_lower_threshold=0.002,
+            trend_line_should_be_rising=True,
+            coin_should_be_an_nominal=True,
+            maximum_number_of_orders=2,
+            minimum_order_value_usd=20.0,
+        ),
+        CoinSelectionCriteria(
+            rating_id=MarketCharacterization.FLAT.value,
+            rating_description="Unsure",
+            rating_upper_threshold=0.002,
+            rating_lower_threshold=-0.002,
+            trend_line_should_be_flat_or_rising=True,
+            coin_should_be_an_nominal=True,
+            coin_should_be_volatile=True,
+            maximum_number_of_orders=3,
+            minimum_order_value_usd=15.0,
+        ),
+        CoinSelectionCriteria(
+            rating_id=MarketCharacterization.FALLING.value,
+            rating_description="Low Confidence",
+            rating_upper_threshold=-0.002,
+            rating_lower_threshold=-0.02,
+            coin_should_be_an_nominal=True,
+            maximum_number_of_orders=4,
+            minimum_order_value_usd=10.0,
+        ),
+        CoinSelectionCriteria(
+            rating_id=MarketCharacterization.FALLING_RAPIDLY.value,
+            rating_description="Very Low Confidence",
+            rating_upper_threshold=-0.02,
+            rating_lower_threshold=-1.0,
+            rating_lower_unbounded=True,
+            coin_should_be_an_nominal=True,
+            maximum_number_of_orders=5,
+            minimum_order_value_usd=5.0,
+        ),
     ]
 
     app_service.add_items(coin_properties)

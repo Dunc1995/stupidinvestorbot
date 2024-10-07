@@ -11,7 +11,7 @@ from investorbot.constants import (
     INVESTOR_APP_FLATNESS_THRESHOLD,
     INVESTOR_APP_VOLATILITY_THRESHOLD,
 )
-from investorbot.enums import ConfidenceRating, TrendLineState
+from investorbot.enums import MarketCharacterization, TrendLineState
 from investorbot.models import TimeSeriesMode, TimeSeriesSummary
 from investorbot.structs.internal import RatingThreshold
 
@@ -152,7 +152,7 @@ def get_coin_time_series_summary(
 
 def get_market_analysis_rating(
     ts_data: List[TimeSeriesSummary], rating_thresholds: List[RatingThreshold]
-) -> ConfidenceRating:
+) -> MarketCharacterization:
     """For a given set of time series summaries, calculate the market trend across all coins."""
 
     ratings = []
@@ -162,6 +162,8 @@ def get_market_analysis_rating(
     df["value_at_zero"] = get_trend_value(
         df["line_of_best_fit_coefficient"], 0.0, df["line_of_best_fit_offset"]
     )
+
+    # TODO don't hardcode 24 hours here
     df["value_at_now"] = get_trend_value(
         df["line_of_best_fit_coefficient"], 24.0, df["line_of_best_fit_offset"]
     )
@@ -174,7 +176,7 @@ def get_market_analysis_rating(
 
     for rating_threshold in rating_thresholds:
         if rating_threshold.is_in_bounds(median_value):
-            rating_id = ConfidenceRating(rating_threshold.rating_id)
+            rating_id = MarketCharacterization(rating_threshold.rating_id)
             ratings.append(rating_id)
 
     if len(ratings) > 1:

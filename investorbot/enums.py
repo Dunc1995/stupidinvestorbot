@@ -11,12 +11,12 @@ class OrderStatus(Enum):
     EXPIRED = "EXPIRED"
 
 
-class ConfidenceRating(Enum):
-    HIGH_CONFIDENCE = 1
-    MODERATE_CONFIDENCE = 2
-    UNDECIDED = 3
-    LITTLE_CONFIDENCE = 4
-    NO_CONFIDENCE = 5
+class MarketCharacterization(Enum):
+    RISING_RAPIDLY = 1
+    RISING = 2
+    FLAT = 3
+    FALLING = 4
+    FALLING_RAPIDLY = 5
 
 
 class TrendLineState(Enum):
