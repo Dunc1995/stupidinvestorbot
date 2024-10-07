@@ -43,16 +43,19 @@ def is_coin_purchaseable(
         criteria.append(summary.is_outlier_in_gradient)
 
     if options.trend_line_should_be_falling:
-        criteria.append(summary.is_trend_falling)
+        criteria.append(summary.trend_state == TrendLineState.FALLING.value)
 
     if options.trend_line_should_be_flat:
-        criteria.append(summary.is_trend_flat)
+        criteria.append(summary.trend_state == TrendLineState.FLAT.value)
 
     if options.trend_line_should_be_rising:
-        criteria.append(summary.is_trend_rising)
+        criteria.append(summary.trend_state == TrendLineState.RISING.value)
 
     if options.trend_line_should_be_flat_or_rising:
-        criteria.append(summary.is_trend_flat or summary.is_trend_rising)
+        criteria.append(
+            summary.trend_state == TrendLineState.FLAT.value
+            or summary.trend_state == TrendLineState.RISING.value
+        )
 
     return all(i for i in criteria)
 

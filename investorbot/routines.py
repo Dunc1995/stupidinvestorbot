@@ -119,6 +119,11 @@ def refresh_market_analysis_routine(hours: int) -> MarketAnalysis:
         confidence_rating.value, analysis.time_now(), final_ts_summaries
     )
 
+    options = app_service.get_selection_criteria(confidence_rating.value)
+
+    for ts_summary in market_analysis.ts_data:
+        ts_summary.is_purchaseable = analysis.is_coin_purchaseable(ts_summary, options)
+
     app_service.add_item(market_analysis)
     market_analysis, _ = app_service.get_market_analysis()
 

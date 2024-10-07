@@ -282,3 +282,12 @@ class AppService:
             mappings.coin_selection_to_rating_threshold(criteria)
             for criteria in coin_selection_criteria
         ]
+
+    def get_selection_criteria(self, selection_id: int) -> CoinSelectionCriteria | None:
+        session = self.session
+
+        query = sqlalchemy.select(CoinSelectionCriteria).where(
+            CoinSelectionCriteria.rating_id == selection_id
+        )
+
+        return session.scalar(query)
