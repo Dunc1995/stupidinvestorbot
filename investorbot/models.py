@@ -65,6 +65,7 @@ class SellOrder(Base):
     )
 
 
+# TODO maybe split this into two entities - too much back and forth in the analysis routine.
 class TimeSeriesSummary(Base):
     """Data container for storing basic statistical properties after analyzing time series data for
     a particular coin."""
@@ -74,6 +75,7 @@ class TimeSeriesSummary(Base):
     summary_id: Mapped[int] = mapped_column(
         primary_key=True, autoincrement=True, init=False
     )
+
     coin_name: Mapped[str] = mapped_column(String())
     mean: Mapped[float] = mapped_column(Float())
     std: Mapped[float] = mapped_column(Float())
@@ -95,6 +97,9 @@ class TimeSeriesSummary(Base):
         cascade="all, delete",
     )
 
+    initial_ranking: Mapped[int] = mapped_column(Integer(), default=-1)
+    final_ranking: Mapped[int] = mapped_column(Integer(), default=-1)
+
     trend_state: Mapped[bool] = mapped_column(
         String(), default=TrendLineState.UNKNOWN.value
     )
@@ -103,7 +108,6 @@ class TimeSeriesSummary(Base):
     is_outlier_in_gradient: Mapped[bool] = mapped_column(Boolean(), default=False)
     is_outlier_in_offset: Mapped[bool] = mapped_column(Boolean(), default=False)
     is_outlier_in_deviation: Mapped[bool] = mapped_column(Boolean(), default=False)
-    is_purchaseable: Mapped[bool] = mapped_column(Boolean(), default=False)
 
     market_analysis_id: Mapped[int] = mapped_column(
         ForeignKey("market_analysis.market_analysis_id", ondelete="CASCADE"), init=False
@@ -185,9 +189,6 @@ class CoinSelectionCriteria(Base):
     trend_line_should_be_flat: Mapped[bool] = mapped_column(Boolean(), default=False)
     trend_line_should_be_rising: Mapped[bool] = mapped_column(Boolean(), default=False)
     trend_line_should_be_falling: Mapped[bool] = mapped_column(Boolean(), default=False)
-    trend_line_should_be_flat_or_rising: Mapped[bool] = mapped_column(
-        Boolean(), default=False
-    )
 
     confidence_entries: Mapped[List["MarketAnalysis"]] = relationship(
         back_populates="rating", cascade="all, delete", init=False

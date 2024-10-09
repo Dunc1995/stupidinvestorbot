@@ -9,7 +9,7 @@ from investorbot import crypto_service, app_service
 from investorbot.decorators import routine
 from investorbot.enums import OrderStatus
 from investorbot.models import MarketAnalysis, TimeSeriesSummary
-from investorbot.analysis import is_coin_purchaseable
+from investorbot.analysis import get_final_ranking
 from investorbot.structs.egress import CoinPurchase, CoinSale
 import investorbot.analysis as analysis
 
@@ -49,6 +49,7 @@ def cancel_orders_routine():
         logger.info("No cancellable orders found.")
 
 
+# TODO this method really needs refactoring.
 @arg(
     "hours",
     default=24,
@@ -83,6 +84,14 @@ def refresh_market_analysis_routine(hours: int) -> MarketAnalysis:
         TimeSeriesSummary.normalized_line_of_best_fit_coefficient.key,
         TimeSeriesSummary.is_outlier_in_gradient.key,
     )
+
+    # TODO this relies on ts_summaries_first_iter being ordered by the initial TODO
+    # get_outliers_in_time_series_data call. Probably not the most reliable.
+    rank = 0
+    for ts_summary in ts_summaries_first_iter:
+        ts_summary.initial_ranking = rank
+
+        rank += 1
 
     ts_summaries_second_iter = analysis.get_outliers_in_time_series_data(
         ts_summaries_first_iter,
@@ -122,7 +131,7 @@ def refresh_market_analysis_routine(hours: int) -> MarketAnalysis:
     options = app_service.get_selection_criteria(confidence_rating.value)
 
     for ts_summary in market_analysis.ts_data:
-        ts_summary.is_purchaseable = analysis.is_coin_purchaseable(ts_summary, options)
+        ts_summary.final_ranking = analysis.get_final_ranking(ts_summary, options)
 
     app_service.add_item(market_analysis)
     market_analysis, _ = app_service.get_market_analysis()
@@ -157,7 +166,7 @@ def buy_coin_routine():
             logger.info("Maximum number of coin investments reached.")
             break
 
-        if not is_coin_purchaseable(ts_summary, options):
+        if not get_final_ranking(ts_summary, options):
             logger.info(f"Rejected {ts_summary.coin_name}")
             continue
 

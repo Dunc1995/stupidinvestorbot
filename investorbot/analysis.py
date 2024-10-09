@@ -28,68 +28,6 @@ from investorbot.structs.internal import (
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
 
-def is_coin_purchaseable(
-    summary: TimeSeriesSummary, options: CoinSelectionCriteria
-) -> bool:
-    criteria = []
-
-    if options.coin_should_be_volatile:
-        criteria.append(summary.is_volatile)
-
-    if options.coin_should_be_nominal:
-        criteria.append(not summary.is_outlier_in_gradient)
-
-    if options.coin_should_be_an_outlier:
-        criteria.append(summary.is_outlier_in_gradient)
-
-    if options.trend_line_should_be_falling:
-        criteria.append(summary.trend_state == TrendLineState.FALLING.value)
-
-    if options.trend_line_should_be_flat:
-        criteria.append(summary.trend_state == TrendLineState.FLAT.value)
-
-    if options.trend_line_should_be_rising:
-        criteria.append(summary.trend_state == TrendLineState.RISING.value)
-
-    if options.trend_line_should_be_flat_or_rising:
-        criteria.append(
-            summary.trend_state == TrendLineState.FLAT.value
-            or summary.trend_state == TrendLineState.RISING.value
-        )
-
-    return all(i for i in criteria)
-
-
-def is_coin_sellable(
-    buy_order: BuyOrder, order_detail: OrderDetail, coin_balance: PositionBalance | None
-) -> Tuple[bool, SaleValidationResult]:
-    no_coin_balance = coin_balance is None
-    order_balance_has_already_been_sold = buy_order.sell_order is not None
-    order_has_been_cancelled = order_detail.status == OrderStatus.CANCELED.value
-    order_has_not_been_filled = order_detail.status != OrderStatus.FILLED.value
-    wallet_balance_is_not_sufficient = (
-        coin_balance.sellable_quantity < order_detail.order_quantity_minus_fee
-        if coin_balance is not None
-        else True
-    )
-
-    return not any(
-        [
-            no_coin_balance,
-            order_balance_has_already_been_sold,
-            order_has_been_cancelled,
-            order_has_not_been_filled,
-            wallet_balance_is_not_sufficient,
-        ]
-    ), SaleValidationResult(
-        no_coin_balance,
-        order_balance_has_already_been_sold,
-        order_has_been_cancelled,
-        order_has_not_been_filled,
-        wallet_balance_is_not_sufficient,
-    )
-
-
 def __hours_since_order(order: OrderDetail) -> float:
     t_now = time_now()
 
@@ -306,3 +244,69 @@ def get_outliers_in_time_series_data(
             setattr(data, value_to_set, True)
 
     return ordered_data
+
+
+# ! Want to keep analysis methods separate from classes, but not sure I like this method being here.
+def get_final_ranking(
+    summary: TimeSeriesSummary, options: CoinSelectionCriteria
+) -> int:
+    ranking = summary.initial_ranking
+
+    if options.coin_should_be_volatile and summary.is_volatile:
+        ranking = 10 * ranking
+
+    if options.coin_should_be_nominal and not summary.is_outlier_in_gradient:
+        ranking = 10 * ranking
+
+    if options.coin_should_be_an_outlier and summary.is_outlier_in_gradient:
+        ranking = 10 * ranking
+
+    if (
+        options.trend_line_should_be_falling
+        and summary.trend_state == TrendLineState.FALLING.value
+    ):
+        ranking = 10 * ranking
+
+    if (
+        options.trend_line_should_be_flat
+        and summary.trend_state == TrendLineState.FLAT.value
+    ):
+        ranking = 10 * ranking
+
+    if (
+        options.trend_line_should_be_rising
+        and summary.trend_state == TrendLineState.RISING.value
+    ):
+        ranking = 10 * ranking
+
+    return ranking
+
+
+def is_coin_sellable(
+    buy_order: BuyOrder, order_detail: OrderDetail, coin_balance: PositionBalance | None
+) -> Tuple[bool, SaleValidationResult]:
+    no_coin_balance = coin_balance is None
+    order_balance_has_already_been_sold = buy_order.sell_order is not None
+    order_has_been_cancelled = order_detail.status == OrderStatus.CANCELED.value
+    order_has_not_been_filled = order_detail.status != OrderStatus.FILLED.value
+    wallet_balance_is_not_sufficient = (
+        coin_balance.sellable_quantity < order_detail.order_quantity_minus_fee
+        if coin_balance is not None
+        else True
+    )
+
+    return not any(
+        [
+            no_coin_balance,
+            order_balance_has_already_been_sold,
+            order_has_been_cancelled,
+            order_has_not_been_filled,
+            wallet_balance_is_not_sufficient,
+        ]
+    ), SaleValidationResult(
+        no_coin_balance,
+        order_balance_has_already_been_sold,
+        order_has_been_cancelled,
+        order_has_not_been_filled,
+        wallet_balance_is_not_sufficient,
+    )
