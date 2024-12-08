@@ -64,68 +64,40 @@ def refresh_market_analysis_routine(hours: int) -> MarketAnalysis:
     ts_summaries = []
     hours_int = int(hours)
 
+    # Rating thresholds are basically a constant - they only exist in the database to the make the
+    # app configurable.
+    rating_thresholds = app_service.get_rating_thresholds()
+
+    # Get latest trade prices for all instruments being sold at high trading volume and with USD.
+    # TODO Parameterize trading currency rather than hardcoding USD. Also parameterize trading
+    # volume threshold - this is being done implicitly at the moment.
     for latest_trade in crypto_service.get_latest_trades():
         logger.info(
             f"Fetching latest {hours_int} hour's worth of data for {latest_trade.coin_name}."
         )
 
+        # Time series data refers to x number of hours' worth of data for a particular instrument or
+        # 'coin'.
         time_series_data = crypto_service.get_coin_time_series_data(
             latest_trade.coin_name, hours_int
         )
 
+        # Convert timeseries data into summary object.
         ts_summary = analysis.get_coin_time_series_summary(
             latest_trade.coin_name, time_series_data
         )
 
+        # Add to the list of summary objects.
         ts_summaries.append(ts_summary)
 
-    ts_summaries_first_iter = analysis.get_outliers_in_time_series_data(
-        ts_summaries,
-        TimeSeriesSummary.normalized_line_of_best_fit_coefficient.key,
-        TimeSeriesSummary.is_outlier_in_gradient.key,
-    )
-
-    # TODO this relies on ts_summaries_first_iter being ordered by the initial TODO
-    # get_outliers_in_time_series_data call. Probably not the most reliable.
-    rank = 0
-    for ts_summary in ts_summaries_first_iter:
-        ts_summary.initial_ranking = rank
-
-        rank += 1
-
-    ts_summaries_second_iter = analysis.get_outliers_in_time_series_data(
-        ts_summaries_first_iter,
-        TimeSeriesSummary.normalized_starting_value.key,
-        TimeSeriesSummary.is_outlier_in_offset.key,
-    )
-
-    gradient_outliers = [
-        ts_summary
-        for ts_summary in ts_summaries_second_iter
-        if ts_summary.is_outlier_in_gradient
-    ]
-    deviation_candidates = [
-        ts_summary
-        for ts_summary in ts_summaries_second_iter
-        if not ts_summary.is_outlier_in_gradient
-    ]
-
-    deviation_subset = analysis.get_outliers_in_time_series_data(
-        deviation_candidates,
-        TimeSeriesSummary.normalized_std.key,
-        TimeSeriesSummary.is_outlier_in_deviation.key,
-    )
-
-    final_ts_summaries = gradient_outliers + deviation_subset
-
-    rating_thresholds = app_service.get_rating_thresholds()
+    completed_ts_summaries = analysis.assign_outlier_properties(ts_summaries)
 
     confidence_rating = analysis.get_market_analysis_rating(
-        final_ts_summaries, rating_thresholds
+        completed_ts_summaries, rating_thresholds
     )
 
     market_analysis = MarketAnalysis(
-        confidence_rating.value, analysis.time_now(), final_ts_summaries
+        confidence_rating.value, analysis.time_now(), completed_ts_summaries
     )
 
     options = app_service.get_selection_criteria(confidence_rating.value)

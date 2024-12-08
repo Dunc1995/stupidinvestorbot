@@ -246,6 +246,48 @@ def get_outliers_in_time_series_data(
     return ordered_data
 
 
+def assign_outlier_properties(
+    ts_summaries: TimeSeriesSummary,
+) -> List[TimeSeriesSummary]:
+    ts_summaries_first_iter = get_outliers_in_time_series_data(
+        ts_summaries,
+        TimeSeriesSummary.normalized_line_of_best_fit_coefficient.key,
+        TimeSeriesSummary.is_outlier_in_gradient.key,
+    )
+
+    #! Ranking order here is contingent on the initial get_outliers_in_time_series_data call above.
+    rank = 0
+    for ts_summary in ts_summaries_first_iter:
+        ts_summary.initial_ranking = rank
+
+        rank += 1
+
+    ts_summaries_second_iter = get_outliers_in_time_series_data(
+        ts_summaries_first_iter,
+        TimeSeriesSummary.normalized_starting_value.key,
+        TimeSeriesSummary.is_outlier_in_offset.key,
+    )
+
+    gradient_outliers = [
+        ts_summary
+        for ts_summary in ts_summaries_second_iter
+        if ts_summary.is_outlier_in_gradient
+    ]
+    deviation_candidates = [
+        ts_summary
+        for ts_summary in ts_summaries_second_iter
+        if not ts_summary.is_outlier_in_gradient
+    ]
+
+    deviation_subset = get_outliers_in_time_series_data(
+        deviation_candidates,
+        TimeSeriesSummary.normalized_std.key,
+        TimeSeriesSummary.is_outlier_in_deviation.key,
+    )
+
+    return gradient_outliers + deviation_subset
+
+
 # ! Want to keep analysis methods separate from classes, but not sure I like this method being here.
 def get_final_ranking(
     summary: TimeSeriesSummary, options: CoinSelectionCriteria
