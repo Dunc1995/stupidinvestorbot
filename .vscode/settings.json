@@ -6,6 +6,7 @@
         "iloc",
         "investorbot",
         "joinedload",
+        "ondelete",
         "Plotly",
         "sqlalchemy",
         "stupidinvestorbot",

@@ -24,7 +24,7 @@ class MarketHttpClient(HttpClient):
 
         result = sorted(
             data, key=lambda x: tuple(x.percentage_change_24h)
-        )  # TODO write test for sorting behaviour - this is pretty implicit
+        )  # TODO write test for sorting behavior - this is pretty implicit
         result.reverse()
 
         return result

@@ -7,9 +7,7 @@ from investorbot.constants import (
 )
 from investorbot import crypto_service, app_service
 from investorbot.decorators import routine
-from investorbot.enums import OrderStatus
-from investorbot.models import MarketAnalysis, TimeSeriesSummary
-from investorbot.analysis import get_final_ranking
+from investorbot.models import MarketAnalysis
 from investorbot.structs.egress import CoinPurchase, CoinSale
 import investorbot.analysis as analysis
 
@@ -17,60 +15,12 @@ logger = logging.getLogger(DEFAULT_LOGS_NAME)
 logging.basicConfig(level=logging.INFO)
 
 
-@routine("Check Orders for Cancellation")
-def cancel_orders_routine():
-    """If any orders are taking too long to succeed, this routine will cancel the order and remove
-    any reference to the unsuccessful order from the application database."""
-
-    no_deletions = True
-    orders = app_service.get_all_buy_orders()
-
-    for order in orders:
-        buy_order_id = order.buy_order_id
-        order_detail = crypto_service.get_order_detail(buy_order_id)
-
-        current_time = analysis.time_now()
-        age = analysis.convert_ms_time_to_hours(
-            current_time - order_detail.time_created_ms
-        )
-
-        if age > 0.15 and order_detail.status == OrderStatus.ACTIVE.value:
-            logger.info(f"Cancelling order {buy_order_id}")
-            result = crypto_service.user.cancel_order(buy_order_id)
-            app_service.delete_buy_order(buy_order_id)
-
-            logger.info(str(result))
-            no_deletions = False
-        elif OrderStatus.CANCELED.value == order_detail.status:
-            logger.info(f"Removing order {buy_order_id} as it has been cancelled.")
-            app_service.delete_buy_order(buy_order_id)
-
-    if no_deletions:
-        logger.info("No cancellable orders found.")
-
-
-# TODO this method really needs refactoring.
-@arg(
-    "hours",
-    default=24,
-    help="The number of hour's worth of data required for the market analysis.",
-)
-@routine("Market Analysis")
-def refresh_market_analysis_routine(hours: int) -> MarketAnalysis:
-    """Fetches time series data from the Crypto API and calculates various parameters according to
-    each dataset - e.g. median, mean, modes, line-of-best-fit, etc. - these values are then stored
-    in the application database via the TimeSeriesSummary models."""
-
+def get_initial_ts_summaries(hours_int):
     ts_summaries = []
-    hours_int = int(hours)
-
-    # Rating thresholds are basically a constant - they only exist in the database to the make the
-    # app configurable.
-    rating_thresholds = app_service.get_rating_thresholds()
 
     # Get latest trade prices for all instruments being sold at high trading volume and with USD.
     # TODO Parameterize trading currency rather than hardcoding USD. Also parameterize trading
-    # volume threshold - this is being done implicitly at the moment.
+    # volume threshold - this is being done implicitly in get_latest_trades currently.
     for latest_trade in crypto_service.get_latest_trades():
         logger.info(
             f"Fetching latest {hours_int} hour's worth of data for {latest_trade.coin_name}."
@@ -90,22 +40,54 @@ def refresh_market_analysis_routine(hours: int) -> MarketAnalysis:
         # Add to the list of summary objects.
         ts_summaries.append(ts_summary)
 
-    completed_ts_summaries = analysis.assign_outlier_properties(ts_summaries)
+    return ts_summaries
 
+
+@arg(
+    "hours",
+    default=24,
+    help="The number of hour's worth of data required for the market analysis.",
+)
+@routine("Market Analysis")
+def refresh_market_analysis_routine(hours: int) -> MarketAnalysis:
+    """Fetches time series data from the Crypto API and calculates various parameters according to
+    each dataset - e.g. median, mean, modes, line-of-best-fit, etc. - these values are then stored
+    in the application database via the TimeSeriesSummary models."""
+
+    hours_int = int(hours)
+    initial_ts_summaries = get_initial_ts_summaries(hours_int)
+
+    # Rating thresholds are basically a constant - they only exist in the database to the make the
+    # app configurable. FIXME - Rating thresholds are a subset of coin_selection_criteria -
+    # unnecessarily complicated.
+    rating_thresholds = app_service.get_rating_thresholds()
+
+    # Compare coins and attribute outlier properties to coins with any kind of weird property.
+    partially_complete_ts_summaries = analysis.assign_outlier_properties(
+        initial_ts_summaries
+    )
+
+    # Assign the market analysis with a confidence rating to quantify how well the market is doing.
     confidence_rating = analysis.get_market_analysis_rating(
-        completed_ts_summaries, rating_thresholds
+        partially_complete_ts_summaries, rating_thresholds
     )
 
-    market_analysis = MarketAnalysis(
-        confidence_rating.value, analysis.time_now(), completed_ts_summaries
-    )
-
+    # Fetch the selection criteria based on current market confidence.
     options = app_service.get_selection_criteria(confidence_rating.value)
 
-    for ts_summary in market_analysis.ts_data:
-        ts_summary.final_ranking = analysis.get_final_ranking(ts_summary, options)
+    # Use selection criteria to apply weightings to each coin's rank.
+    complete_ts_summaries = analysis.assign_weighted_rankings(
+        partially_complete_ts_summaries, options
+    )
+
+    # Create the final market analysis object to add to the db.
+    market_analysis = MarketAnalysis(
+        confidence_rating.value, analysis.time_now(), complete_ts_summaries
+    )
 
     app_service.add_item(market_analysis)
+
+    # Refetch the market analysis here to ensure ORM model is in sync with database.
     market_analysis, _ = app_service.get_market_analysis()
 
     return market_analysis
@@ -138,9 +120,8 @@ def buy_coin_routine():
             logger.info("Maximum number of coin investments reached.")
             break
 
-        if not get_final_ranking(ts_summary, options):
-            logger.info(f"Rejected {ts_summary.coin_name}")
-            continue
+        # if not assign_weighted_rankings(ts_summary, options): logger.info(f"Rejected
+        #     {ts_summary.coin_name}") continue
 
         coin_name = latest_trade.coin_name
 

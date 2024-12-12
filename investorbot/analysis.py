@@ -288,40 +288,43 @@ def assign_outlier_properties(
     return gradient_outliers + deviation_subset
 
 
-# ! Want to keep analysis methods separate from classes, but not sure I like this method being here.
-def get_final_ranking(
-    summary: TimeSeriesSummary, options: CoinSelectionCriteria
+def assign_weighted_rankings(
+    summaries: List[TimeSeriesSummary], options: CoinSelectionCriteria
 ) -> int:
-    ranking = summary.initial_ranking
 
-    if options.coin_should_be_volatile and summary.is_volatile:
-        ranking = 10 * ranking
+    for summary in summaries:
+        ranking = summary.initial_ranking
 
-    if options.coin_should_be_nominal and not summary.is_outlier_in_gradient:
-        ranking = 10 * ranking
+        if options.coin_should_be_volatile and summary.is_volatile:
+            ranking = 10 * ranking
 
-    if options.coin_should_be_an_outlier and summary.is_outlier_in_gradient:
-        ranking = 10 * ranking
+        if options.coin_should_be_nominal and not summary.is_outlier_in_gradient:
+            ranking = 10 * ranking
 
-    if (
-        options.trend_line_should_be_falling
-        and summary.trend_state == TrendLineState.FALLING.value
-    ):
-        ranking = 10 * ranking
+        if options.coin_should_be_an_outlier and summary.is_outlier_in_gradient:
+            ranking = 10 * ranking
 
-    if (
-        options.trend_line_should_be_flat
-        and summary.trend_state == TrendLineState.FLAT.value
-    ):
-        ranking = 10 * ranking
+        if (
+            options.trend_line_should_be_falling
+            and summary.trend_state == TrendLineState.FALLING.value
+        ):
+            ranking = 10 * ranking
 
-    if (
-        options.trend_line_should_be_rising
-        and summary.trend_state == TrendLineState.RISING.value
-    ):
-        ranking = 10 * ranking
+        if (
+            options.trend_line_should_be_flat
+            and summary.trend_state == TrendLineState.FLAT.value
+        ):
+            ranking = 10 * ranking
 
-    return ranking
+        if (
+            options.trend_line_should_be_rising
+            and summary.trend_state == TrendLineState.RISING.value
+        ):
+            ranking = 10 * ranking
+
+        summary.final_ranking = ranking
+
+    return summaries
 
 
 def is_coin_sellable(

@@ -1,7 +1,6 @@
 import argh
 from investorbot.routines import (
     buy_coin_routine,
-    cancel_orders_routine,
     sell_coin_routine,
     refresh_market_analysis_routine,
 )
@@ -11,7 +10,6 @@ if __name__ == "__main__":
     argh.dispatch_commands(
         [
             init_db,
-            cancel_orders_routine,
             buy_coin_routine,
             sell_coin_routine,
             refresh_market_analysis_routine,
