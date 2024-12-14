@@ -68,12 +68,18 @@ class CryptoService:
         return usd_balance
 
     def get_investable_coin_count(self) -> int:
+        user_total_balance = self.user.get_balance()
         user_balance = self.get_usd_balance()
 
-        number_of_coins_to_invest = math.floor(user_balance / INVESTMENT_INCREMENTS)
+        percentage_to_invest = (
+            user_balance / float(user_total_balance.total_cash_balance) - 0.5
+        )  # TODO make configurable
 
-        if number_of_coins_to_invest > MAX_COINS:
-            number_of_coins_to_invest = MAX_COINS
+        number_of_coins_to_invest = (
+            math.floor(user_balance * percentage_to_invest / INVESTMENT_INCREMENTS)
+            if percentage_to_invest > 0
+            else 0
+        )
 
         return number_of_coins_to_invest
 

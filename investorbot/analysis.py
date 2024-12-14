@@ -131,7 +131,8 @@ def get_line_of_best_fit(df: DataFrame):
 
 
 def get_coin_time_series_summary(
-    coin_name: str, time_series_data: dict
+    coin_name: str,
+    time_series_data: dict,
 ) -> TimeSeriesSummary:
     """Uses pandas to get basic statistical parameters to describe the input JSON time series
     data."""
@@ -255,13 +256,6 @@ def assign_outlier_properties(
         TimeSeriesSummary.is_outlier_in_gradient.key,
     )
 
-    #! Ranking order here is contingent on the initial get_outliers_in_time_series_data call above.
-    rank = 0
-    for ts_summary in ts_summaries_first_iter:
-        ts_summary.initial_ranking = rank
-
-        rank += 1
-
     ts_summaries_second_iter = get_outliers_in_time_series_data(
         ts_summaries_first_iter,
         TimeSeriesSummary.normalized_starting_value.key,
@@ -291,36 +285,24 @@ def assign_outlier_properties(
 def assign_weighted_rankings(
     summaries: List[TimeSeriesSummary], options: CoinSelectionCriteria
 ) -> int:
-
     for summary in summaries:
         ranking = summary.initial_ranking
 
-        if options.coin_should_be_volatile and summary.is_volatile:
-            ranking = 10 * ranking
-
-        if options.coin_should_be_nominal and not summary.is_outlier_in_gradient:
-            ranking = 10 * ranking
-
-        if options.coin_should_be_an_outlier and summary.is_outlier_in_gradient:
-            ranking = 10 * ranking
-
-        if (
+        params = [
+            options.coin_should_be_volatile and summary.is_volatile,
+            options.coin_should_be_nominal and not summary.is_outlier_in_gradient,
+            options.coin_should_be_an_outlier and summary.is_outlier_in_gradient,
             options.trend_line_should_be_falling
-            and summary.trend_state == TrendLineState.FALLING.value
-        ):
-            ranking = 10 * ranking
-
-        if (
+            and summary.trend_state == TrendLineState.FALLING.value,
             options.trend_line_should_be_flat
-            and summary.trend_state == TrendLineState.FLAT.value
-        ):
-            ranking = 10 * ranking
-
-        if (
+            and summary.trend_state == TrendLineState.FLAT.value,
             options.trend_line_should_be_rising
-            and summary.trend_state == TrendLineState.RISING.value
-        ):
-            ranking = 10 * ranking
+            and summary.trend_state == TrendLineState.RISING.value,
+        ]
+
+        for param in params:
+            if param:
+                ranking += 100
 
         summary.final_ranking = ranking
 
@@ -330,7 +312,7 @@ def assign_weighted_rankings(
 def is_coin_sellable(
     buy_order: BuyOrder, order_detail: OrderDetail, coin_balance: PositionBalance | None
 ) -> Tuple[bool, SaleValidationResult]:
-    no_coin_balance = coin_balance is None
+    no_coin_balance = coin_balance is None or coin_balance.quantity == 0.0
     order_balance_has_already_been_sold = buy_order.sell_order is not None
     order_has_been_cancelled = order_detail.status == OrderStatus.CANCELED.value
     order_has_not_been_filled = order_detail.status != OrderStatus.FILLED.value

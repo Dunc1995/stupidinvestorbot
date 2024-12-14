@@ -43,6 +43,26 @@ def get_initial_ts_summaries(hours_int):
     return ts_summaries
 
 
+def get_coins_to_purchase():
+    coin_count = crypto_service.get_investable_coin_count()
+
+    log_message = (
+        f"Searching for {coin_count} coins to invest in at ${INVESTMENT_INCREMENTS} each"
+        if coin_count > 0
+        else "Coin investments at capacity."
+    )
+
+    logger.info(log_message)
+
+    return (
+        [latest_trade.coin_name for latest_trade in crypto_service.get_latest_trades()][
+            -coin_count:
+        ]
+        if coin_count > 0
+        else []
+    )
+
+
 @arg(
     "hours",
     default=24,
@@ -100,28 +120,15 @@ def buy_coin_routine():
     Rulesets are to be determined by the app's confidence in the market."""
 
     purchase_count = 0
-    coin_count = crypto_service.get_investable_coin_count()
+    coin_names = get_coins_to_purchase()
+    coin_count = len(coin_names)
 
-    logger.info(
-        f"Searching for {coin_count} coins to invest in at ${INVESTMENT_INCREMENTS} each"
-    )
-
-    market_analysis, is_market_analysis_old = app_service.get_market_analysis()
-
-    if is_market_analysis_old:
-        market_analysis = refresh_market_analysis_routine()
-
-    options = market_analysis.rating
-
-    for ts_summary in market_analysis.ts_data:
-        latest_trade = crypto_service.get_latest_trade(ts_summary.coin_name)
+    for coin_name in coin_names:
+        latest_trade = crypto_service.get_latest_trade(coin_name)
 
         if purchase_count == coin_count:
             logger.info("Maximum number of coin investments reached.")
             break
-
-        # if not assign_weighted_rankings(ts_summary, options): logger.info(f"Rejected
-        #     {ts_summary.coin_name}") continue
 
         coin_name = latest_trade.coin_name
 
@@ -174,6 +181,7 @@ def sell_coin_routine():
 
         # No further action required if the buy order cannot be sold at this time.
         if not coin_is_sellable:
+            logger.info("Buy Order cannot be sold at this point in time.")
             continue
 
         # TODO potentially use websockets here to track the price.
@@ -184,6 +192,7 @@ def sell_coin_routine():
         value_ratio = latest_trade.price / buy_order.price_per_coin
 
         if not analysis.is_value_ratio_sufficient(value_ratio, order_detail):
+            logger.info(f"Value ratio {value_ratio} not sufficient.")
             continue
 
         coin_sale = CoinSale(

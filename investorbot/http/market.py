@@ -23,7 +23,9 @@ class MarketHttpClient(HttpClient):
         ]
 
         result = sorted(
-            data, key=lambda x: tuple(x.percentage_change_24h)
+            data,
+            key=lambda x: float(x.percentage_change_24h)
+            * float(x.total_traded_volume_usd_24h),
         )  # TODO write test for sorting behavior - this is pretty implicit
         result.reverse()
 
