@@ -6,6 +6,7 @@
         "iloc",
         "investorbot",
         "joinedload",
+        "marketsimulator",
         "ondelete",
         "Plotly",
         "sqlalchemy",

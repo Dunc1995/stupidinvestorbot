@@ -1,0 +1,7 @@
+import os
+
+MARKET_SIMULATOR_APP_PATH = os.environ.get("MARKET_SIMULATOR_APP_PATH")
+
+MARKET_SIMULATOR_APP_DB_CONNECTION = (
+    f"sqlite:///{MARKET_SIMULATOR_APP_PATH}market_simulator.db"
+)
