@@ -1,17 +1,19 @@
 from typing import List
 import sqlalchemy
 from sqlalchemy import Engine
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from marketsimulator.constants import MARKET_SIMULATOR_APP_DB_CONNECTION
-from marketsimulator.models import Base
+from marketsimulator.models import Base, Instrument
 
 
 class MarketSimulatorService:
     __engine: Engine
 
     def __init__(self, connection_string=MARKET_SIMULATOR_APP_DB_CONNECTION):
-        self.__engine = sqlalchemy.create_engine(connection_string)
+        self.__engine = sqlalchemy.create_engine(
+            connection_string, pool_size=40, max_overflow=0
+        )
 
     @property
     def session(self) -> Session:
@@ -39,3 +41,14 @@ class MarketSimulatorService:
             items_list.append(item)
 
         return items_list
+
+    def get_valuation(self, coin_name: str) -> Instrument:
+        session = self.session
+
+        query = (
+            sqlalchemy.select(Instrument)
+            .where(Instrument.symbol == coin_name)
+            .options(joinedload(Instrument.valuation))
+        )
+
+        return session.scalar(query)

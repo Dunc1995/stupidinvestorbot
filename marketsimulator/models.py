@@ -1,4 +1,5 @@
-from sqlalchemy import Boolean, ForeignKey, String, Integer, Float
+from typing import List, Optional
+from sqlalchemy import Boolean, ForeignKey, String, Integer, Float, Null
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
@@ -73,8 +74,12 @@ class Instrument(Base):
     beta_product: Mapped[bool] = mapped_column(Boolean())
     margin_buy_enabled: Mapped[bool] = mapped_column(Boolean())
     margin_sell_enabled: Mapped[bool] = mapped_column(Boolean())
-    contract_size: Mapped[str] = mapped_column(String())
-    underlying_symbol: Mapped[str] = mapped_column(String())
+    contract_size: Mapped[str] = mapped_column(String(), init=False, default="")
+    underlying_symbol: Mapped[str] = mapped_column(String(), init=False, default="")
+
+    valuation: Mapped[List["ValuationData"]] = relationship(
+        back_populates="instrument", cascade="all, delete", init=False
+    )
 
 
 class Order(Base):
@@ -132,3 +137,21 @@ class Ticker(Base):
     k: Mapped[str] = mapped_column(String())
     oi: Mapped[str] = mapped_column(String())
     t: Mapped[int] = mapped_column(String())
+
+
+class ValuationData(Base):
+    __tablename__ = "valuation_data"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, init=False)
+    instrument_name: Mapped[str] = mapped_column(
+        ForeignKey("instruments.symbol", ondelete="CASCADE")
+    )
+    t: Mapped[str] = mapped_column(String())
+    v: Mapped[str] = mapped_column(String())
+
+    instrument: Mapped[Optional[Instrument]] = relationship(
+        back_populates="valuation", init=False
+    )
+
+    def to_dict(self) -> dict:
+        return {"t": int(self.t), "v": self.v}

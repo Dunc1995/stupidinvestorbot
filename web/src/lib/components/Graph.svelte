@@ -21,7 +21,7 @@
 
     const fetchData = async (coinName: string, dataCount: number) => {
         const tsData = await fetch(
-            `https://api.crypto.com/exchange/v1/public/get-valuations?instrument_name=${coinName}&valuation_type=mark_price&count=${dataCount}`,
+            `http://127.0.0.1:5001/public/get-valuations?instrument_name=${coinName}&valuation_type=mark_price&count=${dataCount}`,
         );
 
         return tsData.json();

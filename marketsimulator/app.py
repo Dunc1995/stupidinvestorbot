@@ -1,10 +1,31 @@
 import atexit
-from flask import Flask
+import time
+from flask import Flask, request, jsonify
+
 from apscheduler.schedulers.background import BackgroundScheduler
+import numpy as np
+from marketsimulator import market_simulator_service
+from marketsimulator.models import ValuationData
+
+current_value = 5.0
 
 
-def placeholder() -> str:
-    print("Hello world")
+def add_data() -> str:
+    instrument = "BTC_USD"
+    global current_value
+
+    current_time = round(time.time() * 1000)
+
+    mu, sigma = 0.002, 0.01  # mean and standard deviation
+    s = np.random.normal(loc=mu, scale=sigma)
+
+    new_value = current_value * (1 + s)
+
+    market_simulator_service.add_item(
+        ValuationData(instrument, current_time, new_value)
+    )
+    current_value = new_value
+    print(current_value)
 
 
 app = Flask(__name__)
@@ -12,10 +33,10 @@ app = Flask(__name__)
 scheduler = BackgroundScheduler()
 
 scheduler.add_job(
-    func=placeholder,
+    func=add_data,
     trigger="interval",
-    seconds=3,
-    name="placeholder",
+    seconds=5,
+    name="add_data",
 )
 scheduler.start()
 
@@ -41,7 +62,31 @@ def get_instruments():
 
 @app.route("/public/get-valuations")
 def get_valuations():
-    return {"hello": "world"}
+    instrument_name = request.args.get("instrument_name")
+
+    valuation = market_simulator_service.get_valuation(instrument_name)
+
+    print(valuation)
+
+    response = jsonify(
+        {
+            "id": -1,
+            "method": "public/get-valuations",
+            "code": 0,
+            "result": {
+                "data": (
+                    [value.to_dict() for value in valuation.valuation]
+                    if valuation is not None
+                    else []
+                ),
+                "instrument_name": instrument_name,
+            },
+        }
+    )
+
+    response.headers.add("Access-Control-Allow-Origin", "*")
+
+    return response
 
 
 @app.route("/private/user_balance")
