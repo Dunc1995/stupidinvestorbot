@@ -182,7 +182,7 @@ def sell_coin_routine():
 
         # No further action required if the buy order cannot be sold at this time.
         if not coin_is_sellable:
-            logger.info("Buy Order cannot be sold at this point in time.")
+            logger.info(validation_result.reasoning(buy_order.coin_name))
             continue
 
         # TODO potentially use websockets here to track the price.

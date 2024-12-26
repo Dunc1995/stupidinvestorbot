@@ -85,3 +85,23 @@ class SaleValidationResult:
     order_has_been_cancelled: bool
     order_has_not_been_filled: bool
     wallet_balance_is_not_sufficient: bool
+
+    def reasoning(self, coin_name: str) -> str:
+        message = f"{coin_name} cannot be sold because:\n"
+
+        if self.no_coin_balance:
+            message += "- You do not have enough available balance.\n"
+
+        if self.order_balance_has_already_been_sold:
+            message += "- Buy order has already been sold.\n"
+
+        if self.order_has_been_cancelled:
+            message += "- The buy order has been cancelled.\n"
+
+        if self.order_has_not_been_filled:
+            message += "- Buy order is still pending.\n"
+
+        if self.wallet_balance_is_not_sufficient:
+            message += "- Wallet balance is not sufficient.\n"
+
+        return message
