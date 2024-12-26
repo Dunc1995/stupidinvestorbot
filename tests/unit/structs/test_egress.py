@@ -33,3 +33,10 @@ class TestCoinSale(unittest.TestCase):
 
         self.assertEqual(coin_sale.quantity, "765400")
         self.assertEqual(coin_sale.price_per_coin, "0.000014")
+
+    def test_coin_sale_returns_correct_values_case_four(self):
+        coin_properties = CoinProperties("AAVE_USD", 0.001, 3, 0.001, 3)
+        coin_sale = CoinSale(coin_properties, 369.0, 0.0269325)
+
+        self.assertEqual(coin_sale.quantity, "0.026")
+        self.assertEqual(coin_sale.price_per_coin, "369.0")
