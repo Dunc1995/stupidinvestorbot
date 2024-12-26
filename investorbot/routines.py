@@ -1,6 +1,7 @@
 import logging
 
 from argh import arg
+from requests import HTTPError
 from investorbot.constants import (
     INVESTMENT_INCREMENTS,
     DEFAULT_LOGS_NAME,
@@ -201,8 +202,16 @@ def sell_coin_routine():
             order_detail.order_quantity_minus_fee,
         )
 
-        sell_order = crypto_service.place_coin_sell_order(
-            buy_order.buy_order_id, coin_sale
-        )
-        app_service.add_item(sell_order)
+        try:
+            sell_order = crypto_service.place_coin_sell_order(
+                buy_order.buy_order_id, coin_sale
+            )
+            app_service.add_item(sell_order)
+        except HTTPError as http_error:
+            #! FIXME need to find the specific error here rather than hiding 500 errors.
+            if http_error.response.status_code != 500:
+                raise http_error
+            else:
+                logger.warning(http_error)
+                logger.info("Continuing with routine...")
         # endregion
