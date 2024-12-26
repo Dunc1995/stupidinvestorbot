@@ -5,7 +5,7 @@ ARG CRYPTO_KEY
 ARG CRYPTO_SECRET_KEY
 
 # Create app directory
-WORKDIR /app
+WORKDIR /investorbot
 
 ENV AWS_DEFAULT_REGION=eu-west-1
 
@@ -15,6 +15,6 @@ COPY ./requirements.txt ./
 RUN pip install -r requirements.txt
 
 # Bundle app source
-COPY . /app
+COPY . /investorbot
 
 EXPOSE 8080
