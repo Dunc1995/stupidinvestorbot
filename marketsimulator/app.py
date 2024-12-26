@@ -1,31 +1,9 @@
 import atexit
-import time
 from flask import Flask, request, jsonify
 
 from apscheduler.schedulers.background import BackgroundScheduler
-import numpy as np
 from marketsimulator import market_simulator_service
-from marketsimulator.models import ValuationData
-
-current_value = 5.0
-
-
-def add_data() -> str:
-    instrument = "BTC_USD"
-    global current_value
-
-    current_time = round(time.time() * 1000)
-
-    mu, sigma = 0.002, 0.01  # mean and standard deviation
-    s = np.random.normal(loc=mu, scale=sigma)
-
-    new_value = current_value * (1 + s)
-
-    market_simulator_service.add_item(
-        ValuationData(instrument, current_time, new_value)
-    )
-    current_value = new_value
-    print(current_value)
+from marketsimulator.db import add_ts_data
 
 
 app = Flask(__name__)
@@ -33,10 +11,10 @@ app = Flask(__name__)
 scheduler = BackgroundScheduler()
 
 scheduler.add_job(
-    func=add_data,
+    func=add_ts_data,
     trigger="interval",
     seconds=5,
-    name="add_data",
+    name="add_ts_data",
 )
 scheduler.start()
 

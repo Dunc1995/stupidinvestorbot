@@ -74,8 +74,10 @@ class Instrument(Base):
     beta_product: Mapped[bool] = mapped_column(Boolean())
     margin_buy_enabled: Mapped[bool] = mapped_column(Boolean())
     margin_sell_enabled: Mapped[bool] = mapped_column(Boolean())
-    contract_size: Mapped[str] = mapped_column(String(), init=False, default="")
-    underlying_symbol: Mapped[str] = mapped_column(String(), init=False, default="")
+    contract_size: Mapped[str] = mapped_column(String(), nullable=True, default=None)
+    underlying_symbol: Mapped[str] = mapped_column(
+        String(), nullable=True, default=None
+    )
 
     valuation: Mapped[List["ValuationData"]] = relationship(
         back_populates="instrument", cascade="all, delete", init=False
@@ -146,12 +148,12 @@ class ValuationData(Base):
     instrument_name: Mapped[str] = mapped_column(
         ForeignKey("instruments.symbol", ondelete="CASCADE")
     )
-    t: Mapped[str] = mapped_column(String())
-    v: Mapped[str] = mapped_column(String())
+    t: Mapped[int] = mapped_column(Integer())
+    v: Mapped[float] = mapped_column(Float())
 
     instrument: Mapped[Optional[Instrument]] = relationship(
         back_populates="valuation", init=False
     )
 
     def to_dict(self) -> dict:
-        return {"t": int(self.t), "v": self.v}
+        return {"t": self.t, "v": self.v}
