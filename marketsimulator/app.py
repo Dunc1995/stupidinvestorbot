@@ -19,8 +19,12 @@ scheduler.add_job(
 scheduler.start()
 
 
-# Shut down the scheduler when exiting the app
+def placeholder_exit():
+    print("EXITED")
+
+
 atexit.register(lambda: scheduler.shutdown())
+atexit.register(placeholder_exit)
 
 
 @app.route("/")

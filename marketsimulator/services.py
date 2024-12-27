@@ -12,7 +12,7 @@ class MarketSimulatorService:
 
     def __init__(self, connection_string=MARKET_SIMULATOR_APP_DB_CONNECTION):
         self.__engine = sqlalchemy.create_engine(
-            connection_string, pool_size=40, max_overflow=0
+            connection_string, pool_size=200, max_overflow=0
         )
 
     @property

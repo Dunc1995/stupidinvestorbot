@@ -6,6 +6,8 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import MappedAsDataclass
 
+from marketsimulator.structs import ValuationDataInMemory
+
 
 class Base(MappedAsDataclass, DeclarativeBase):
     pass
@@ -137,7 +139,7 @@ class Ticker(Base):
     c: Mapped[str] = mapped_column(String())
     b: Mapped[str] = mapped_column(String())
     k: Mapped[str] = mapped_column(String())
-    oi: Mapped[str] = mapped_column(String())
+    oi: Mapped[str] = mapped_column(String(), nullable=True)
     t: Mapped[int] = mapped_column(String())
 
 
@@ -157,3 +159,7 @@ class ValuationData(Base):
 
     def to_dict(self) -> dict:
         return {"t": self.t, "v": self.v}
+
+    @staticmethod
+    def from_memory(valuation: ValuationDataInMemory):
+        return ValuationData(valuation.instrument_name, valuation.t, valuation.v)
