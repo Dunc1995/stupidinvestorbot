@@ -10,7 +10,7 @@
     <ul>
         {% for link in internal_links %}
         <li>
-            <a href="{{ link }}">{{ link }}</a>
+            <a href="{{ link.link }}">{{ link.link }}</a> | {{ link.description }}
         </li>
         {% endfor %}
     </ul>

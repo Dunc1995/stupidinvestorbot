@@ -1,5 +1,5 @@
 import atexit
-from flask import Flask, json, render_template
+from flask import Flask, json, render_template, request
 from investorbot import app_service, crypto_service
 import investorbot.routines as routines
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -37,8 +37,17 @@ atexit.register(lambda: scheduler.shutdown())
 @app.route("/")
 def index():
     # return {"latest-trades": "http://127.0.0.1:5000/get-latest-trades"}
-    internal_links = ["/get-latest-trades"]
-    crypto_dot_com_links = ["/get-tickers"]
+    internal_links = [
+        {
+            "link": "/get-latest-trades",
+            "description": "derived from '/get-tickers'",
+        }
+    ]
+    crypto_dot_com_links = [
+        "/get-tickers",
+        "/get-valuations?instrument_name=BTC_USD&valuation_type=mark_price&count=2880",
+        "/user-balance",
+    ]
 
     return render_template(
         "index.html",
@@ -55,3 +64,16 @@ def get_latest_trades():
 @app.route("/get-tickers")
 def get_tickers():
     return crypto_service.market.get_usd_tickers()
+
+
+@app.route("/get-valuations")
+def get_valuations():
+    instrument_name = request.args.get("instrument_name")
+    valuation_type = request.args.get("valuation_type")
+
+    return crypto_service.market.get_valuation(instrument_name, valuation_type)
+
+
+@app.route("/user-balance")
+def get_user_balance():
+    return crypto_service.user.get_balance().__dict__
