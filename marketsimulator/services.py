@@ -4,7 +4,8 @@ from sqlalchemy import Engine
 from sqlalchemy.orm import Session, joinedload
 
 from marketsimulator.constants import MARKET_SIMULATOR_APP_DB_CONNECTION
-from marketsimulator.models import Base, Instrument
+from marketsimulator.models import Base, Instrument, Ticker
+from marketsimulator.structs import ValuationDataInMemory
 
 
 class MarketSimulatorService:
@@ -41,6 +42,24 @@ class MarketSimulatorService:
             items_list.append(item)
 
         return items_list
+
+    def update_tickers(self, current_ticker_values: ValuationDataInMemory):
+
+        with self.session as session:
+            query = sqlalchemy.select(Ticker)
+            for ticker in session.scalars(query):
+
+                current_params = next(
+                    (x for x in current_ticker_values if x.instrument_name == ticker.i),
+                    None,
+                )
+
+                ticker.a = current_params.v
+                ticker.t = current_params.t
+
+            session.commit()
+
+        print("Tickers Updated!")
 
     def get_valuation(self, coin_name: str) -> Instrument:
         session = self.session

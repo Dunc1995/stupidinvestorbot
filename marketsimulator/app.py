@@ -3,7 +3,7 @@ from flask import Flask, request, jsonify
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from marketsimulator import market_simulator_service
-from marketsimulator.db import add_ts_data
+from marketsimulator.db import add_ts_data, update_tickers
 
 
 app = Flask(__name__)
@@ -18,13 +18,8 @@ scheduler.add_job(
 )
 scheduler.start()
 
-
-def placeholder_exit():
-    print("EXITED")
-
-
 atexit.register(lambda: scheduler.shutdown())
-atexit.register(placeholder_exit)
+atexit.register(update_tickers)
 
 
 @app.route("/")

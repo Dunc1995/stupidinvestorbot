@@ -48,3 +48,9 @@ def add_ts_data() -> str:
         [ValuationData.from_memory(new_value) for new_value in new_values]
     )
     current_ticker_values = new_values
+
+
+def update_tickers():
+    global current_ticker_values
+
+    market_simulator_service.update_tickers(current_ticker_values)
