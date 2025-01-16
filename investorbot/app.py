@@ -4,6 +4,8 @@ from investorbot import app_service, crypto_service
 import investorbot.routines as routines
 from apscheduler.schedulers.background import BackgroundScheduler
 
+# from investorbot.smtp import send_test_email
+
 app = Flask(__name__)
 
 scheduler = BackgroundScheduler()
@@ -41,7 +43,11 @@ def index():
         {
             "link": "/get-latest-trades",
             "description": "derived from '/get-tickers'",
-        }
+        },
+        {
+            "link": "/test-smtp",
+            "description": "sends a test email to bot owner.",
+        },
     ]
     crypto_dot_com_links = [
         "/get-tickers",
@@ -59,6 +65,12 @@ def index():
 @app.route("/get-latest-trades")
 def get_latest_trades():
     return crypto_service.get_latest_trades()
+
+
+@app.route("/test-smtp")
+def send_test_email_link():
+
+    return {"message": "email sent"}
 
 
 @app.route("/get-tickers")

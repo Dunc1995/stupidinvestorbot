@@ -6,6 +6,7 @@ from investorbot.routines import (
     refresh_market_analysis_routine,
 )
 from investorbot.db import init_db
+from investorbot.smtp import send_test_email
 from investorbot.websocket import send_message
 
 if __name__ == "__main__":
@@ -16,6 +17,7 @@ if __name__ == "__main__":
             buy_coin_routine,
             sell_coin_routine,
             refresh_market_analysis_routine,
+            send_test_email,
             send_message,
         ]
     )

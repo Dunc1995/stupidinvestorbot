@@ -26,3 +26,8 @@ DEFAULT_LOGS_NAME = "investor_bot_client"
 # TODO Add this to CoinSelectionCriteria
 INVESTMENT_INCREMENTS = 10.0
 MAX_COINS = 4
+
+# SMTP
+SENDER_EMAIL = os.environ.get("SENDER_EMAIL")
+SENDER_PASSWORD = os.environ.get("SENDER_PASSWORD")
+RECIPIENT_EMAIL = os.environ.get("RECIPIENT_EMAIL")
