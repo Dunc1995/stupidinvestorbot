@@ -1,5 +1,18 @@
 <h1>Utils</h1>
 <section>
+    <h2>API Data</h2>
+    <p>
+        Follow these links to inspect raw API data.
+    </p>
+    <ul>
+        {% for link in api_links %}
+        <li>
+            <a href="{{ link }}">{{ link }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</section>
+<section>
     <h2>
         Internal Data
     </h2>
@@ -16,14 +29,16 @@
     </ul>
 </section>
 <section>
-    <h2>API Data</h2>
+    <h2>
+        Functionality Tests
+    </h2>
     <p>
-        Follow these links to inspect raw API data.
+        Limited features can be tested via the following links. DO NOT ABUSE PLEASE
     </p>
     <ul>
-        {% for link in api_links %}
+        {% for link in functionality_links %}
         <li>
-            <a href="{{ link }}">{{ link }}</a>
+            <a href="{{ link.link }}">{{ link.link }}</a> | {{ link.description }}
         </li>
         {% endfor %}
     </ul>

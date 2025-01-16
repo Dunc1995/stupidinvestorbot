@@ -1,7 +1,11 @@
+from datetime import datetime, timedelta
+from email.mime.text import MIMEText
 import logging
 import math
+import smtplib
 from typing import List, Tuple
 
+from jinja2 import Environment, FileSystemLoader
 import sqlalchemy
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session, joinedload
@@ -13,7 +17,11 @@ from investorbot.constants import (
     DEFAULT_LOGS_NAME,
     INVESTMENT_INCREMENTS,
     INVESTOR_APP_DB_CONNECTION,
+    JINJA_ROOT_PATH,
     MAX_COINS,
+    RECIPIENT_EMAIL,
+    SENDER_EMAIL,
+    SENDER_PASSWORD,
 )
 from investorbot.http.market import MarketHttpClient
 from investorbot.http.user import UserHttpClient
@@ -297,3 +305,64 @@ class AppService:
         )
 
         return session.scalar(query)
+
+
+class SmtpService:
+    environment: Environment
+    sender_email: str
+    sender_password: str
+    recipient_email: str
+    start_time: datetime
+
+    def __init__(
+        self,
+        sender_email=SENDER_EMAIL,
+        sender_password=SENDER_PASSWORD,
+        recipient_email=RECIPIENT_EMAIL,
+        jinja_root_path=JINJA_ROOT_PATH,
+    ):
+        self.environment = Environment(loader=FileSystemLoader(jinja_root_path))
+        self.sender_email = sender_email
+        self.sender_password = sender_password
+        self.recipient_email = recipient_email
+        self.start_time = datetime.now()
+
+    def get_template(self, template_name: str) -> str:
+        return self.environment.get_template(f"emails/{template_name}.html")
+
+    def send_email(self, subject: str, template_name: str, **kwargs):
+        sender_email = self.sender_email
+        sender_password = self.sender_password
+        recipient_email = self.recipient_email
+        template = self.get_template(template_name)
+
+        content = template.render(**kwargs)
+
+        html_message = MIMEText(content, "html")
+        html_message["Subject"] = "Investor Bot - " + subject
+        html_message["From"] = sender_email
+        html_message["To"] = recipient_email
+
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, recipient_email, html_message.as_string())
+
+    def send_test_email(self):
+        self.send_email(subject="Test Email", template_name="example")
+
+    def send_heartbeat(self):
+        current_time: datetime = datetime.now()
+        delta: timedelta = current_time - self.start_time
+
+        interval_seconds = delta.total_seconds()
+        interval_minutes = round(interval_seconds / 60)
+
+        unit = "minute" if interval_minutes == 1 else "minutes"
+        uptime = f"{interval_minutes} {unit}"
+
+        self.send_email(
+            subject="Heartbeat",
+            template_name="heartbeat",
+            start_time=self.start_time,
+            uptime=uptime,
+        )
