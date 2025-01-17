@@ -25,6 +25,7 @@ from investorbot.constants import (
 )
 from investorbot.http.market import MarketHttpClient
 from investorbot.http.user import UserHttpClient
+from investorbot.interfaces.services import ICryptoService
 from investorbot.structs.internal import (
     OrderDetail,
     LatestTrade,
@@ -46,7 +47,7 @@ from investorbot.analysis import time_now, convert_ms_time_to_hours
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
 
-class CryptoService:
+class CryptoService(ICryptoService):
     market: MarketHttpClient
     user: UserHttpClient
 
