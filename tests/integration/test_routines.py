@@ -10,7 +10,7 @@ from investorbot.routines import (
     sell_coin_routine,
     refresh_market_analysis_routine,
 )
-from tests.test_investorbot.integration import get_mock_response
+from tests.integration import get_mock_response
 
 
 class TestRoutines(unittest.TestCase):
