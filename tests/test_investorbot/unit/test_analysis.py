@@ -10,7 +10,7 @@ from investorbot.structs.internal import OrderDetail, PositionBalance
 def get_example_data(filename: str) -> dict:
     example_data = None
 
-    with open(f"./tests/unit/fixtures/{filename}", "r") as f:
+    with open(f"./tests/test_investorbot/unit/fixtures/{filename}", "r") as f:
         example_data = json.loads(f.read())["result"]["data"]
 
     return example_data

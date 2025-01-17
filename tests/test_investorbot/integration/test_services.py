@@ -14,7 +14,7 @@ from investorbot.models import (
     TimeSeriesSummary,
 )
 
-from tests.integration import get_mock_response
+from tests.test_investorbot.integration import get_mock_response
 
 
 class TestAppService(unittest.TestCase):
@@ -24,7 +24,9 @@ class TestAppService(unittest.TestCase):
         self.test_service = AppService("sqlite:///:memory:")
         self.test_service.run_migration()
 
-        with open("./tests/integration/fixtures/get-instruments.json", "r") as f:
+        with open(
+            "./tests/test_investorbot/integration/fixtures/get-instruments.json", "r"
+        ) as f:
             instrument_data = json.loads(f.read())["result"]["data"]
 
         instruments = [InstrumentJson(**inst_data) for inst_data in instrument_data]
