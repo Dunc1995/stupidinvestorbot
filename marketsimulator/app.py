@@ -6,24 +6,28 @@ from marketsimulator import market_simulator_service
 
 app = Flask(__name__)
 
-scheduler = BackgroundScheduler()
 
-scheduler.add_job(
-    func=market_simulator_service.add_enumerable_ts_data,
-    trigger="interval",
-    seconds=5,
-    name="add_ts_data",
-)
-scheduler.add_job(
-    func=market_simulator_service.trend_updater,
-    trigger="interval",
-    seconds=15,
-    name="trend_updater",
-)
-scheduler.start()
+def run(host, port):
+    scheduler = BackgroundScheduler()
 
-atexit.register(lambda: scheduler.shutdown())
-atexit.register(market_simulator_service.update_tickers)
+    scheduler.add_job(
+        func=market_simulator_service.add_enumerable_ts_data,
+        trigger="interval",
+        seconds=5,
+        name="add_ts_data",
+    )
+    scheduler.add_job(
+        func=market_simulator_service.trend_updater,
+        trigger="interval",
+        seconds=15,
+        name="trend_updater",
+    )
+    scheduler.start()
+
+    atexit.register(lambda: scheduler.shutdown())
+    atexit.register(market_simulator_service.update_tickers)
+
+    app.run(host, port)
 
 
 @app.route("/")

@@ -23,16 +23,16 @@ services:
       SENDER_PASSWORD: ${SENDER_PASSWORD}
       RECIPIENT_EMAIL: ${RECIPIENT_EMAIL}
     command: [ "sh", "-c", "cd .. && python -m investorbot run-api 0.0.0.0 8080" ]
-  # market-simulator:
-  #   image: market-simulator:latest
-  #   container_name: market-simulator
-  #   build:
-  #     context: ./marketsimulator
-  #     dockerfile: ./Dockerfile
-  #   ports:
-  #     - "8081:8081"
-  #   volumes:
-  #     - $HOME/repos/stupidinvestorbot/market_simulator.db:/marketsimulator/market_simulator.db
-  #   environment:
-  #     MARKET_SIMULATOR_APP_PATH: /marketsimulator/
-  #   command: [ "sh", "-c", "flask --app /marketsimulator/app.py run -h 0.0.0.0 -p 8081" ]
+  market-simulator:
+    image: market-simulator:latest
+    container_name: market-simulator
+    build:
+      context: ./marketsimulator
+      dockerfile: ./Dockerfile
+    ports:
+      - "8081:8081"
+    volumes:
+      - $HOME/repos/stupidinvestorbot/market_simulator.db:/marketsimulator/market_simulator.db
+    environment:
+      MARKET_SIMULATOR_APP_PATH: /marketsimulator/
+    command: [ "sh", "-c", "cd .. && python -m marketsimulator run 0.0.0.0 8081" ]
