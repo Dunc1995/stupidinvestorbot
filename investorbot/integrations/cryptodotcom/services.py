@@ -3,10 +3,12 @@ import math
 from typing import List
 from investorbot.integrations.cryptodotcom import mappings
 from investorbot.constants import (
-    CRYPTO_KEY,
-    CRYPTO_SECRET_KEY,
     DEFAULT_LOGS_NAME,
     INVESTMENT_INCREMENTS,
+)
+from investorbot.integrations.cryptodotcom.constants import (
+    CRYPTO_KEY,
+    CRYPTO_SECRET_KEY,
 )
 from investorbot.integrations.cryptodotcom.http.market import MarketHttpClient
 from investorbot.integrations.cryptodotcom.http.user import UserHttpClient

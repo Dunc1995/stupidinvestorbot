@@ -1,5 +1,5 @@
 from investorbot.models import CoinProperties, CoinSelectionCriteria
-from investorbot.structs.ingress import (
+from investorbot.integrations.cryptodotcom.structs import (
     InstrumentJson,
     OrderDetailJson,
     PositionBalanceJson,

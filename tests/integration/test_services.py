@@ -5,7 +5,7 @@ import uuid
 
 from investorbot.integrations.cryptodotcom import mappings
 from investorbot.enums import TrendLineState
-from investorbot.structs.ingress import InstrumentJson
+from investorbot.integrations.cryptodotcom.structs import InstrumentJson
 from investorbot.services import AppService
 from investorbot.integrations.cryptodotcom.services import CryptoService
 from investorbot.models import (

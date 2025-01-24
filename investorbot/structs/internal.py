@@ -28,6 +28,8 @@ class LatestTrade:
         self.price = float(latest_trade)
 
 
+# TODO revise what's actually required here - closely coupled to crypto.com API
+# TODO I suspect not all properties are needed here.
 @dataclass
 class OrderDetail:
     status: str

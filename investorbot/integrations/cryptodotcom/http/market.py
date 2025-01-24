@@ -1,7 +1,7 @@
 from typing import List
-from investorbot.constants import CRYPTO_MARKET_URL
+from investorbot.integrations.cryptodotcom.constants import CRYPTO_MARKET_URL
 from investorbot.integrations.cryptodotcom.http.base import HttpClient
-from investorbot.structs.ingress import InstrumentJson, TickerJson
+from investorbot.integrations.cryptodotcom.structs import InstrumentJson, TickerJson
 
 
 class MarketHttpClient(HttpClient):

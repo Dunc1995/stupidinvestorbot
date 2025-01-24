@@ -2,9 +2,10 @@ import json
 import logging
 from typing import Dict
 import uuid
-from investorbot.constants import CRYPTO_USER_URL, DEFAULT_LOGS_NAME
+from investorbot.constants import DEFAULT_LOGS_NAME
+from investorbot.integrations.cryptodotcom.constants import CRYPTO_USER_URL
 from investorbot.integrations.cryptodotcom.http.base import AuthenticatedHttpClient
-from investorbot.structs.ingress import (
+from investorbot.integrations.cryptodotcom.structs import (
     OrderJson,
     OrderDetailJson,
     PositionBalanceJson,
