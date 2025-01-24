@@ -86,7 +86,7 @@ class TestTimeseries(unittest.TestCase):
         buy_order = BuyOrder("123", "TON_USD", 6.6274)
 
         order_detail = OrderDetail(
-            OrderStatus.FILLED.value,
+            OrderStatus.COMPLETED.value,
             uuid.uuid4(),
             "TON_USD",
             4.970550,
@@ -111,7 +111,7 @@ class TestTimeseries(unittest.TestCase):
         buy_order = BuyOrder("123", "TON_USD", 6.6274)
 
         order_detail = OrderDetail(
-            OrderStatus.FILLED.value,
+            OrderStatus.COMPLETED.value,
             uuid.uuid4(),
             "TON_USD",
             4.970550,
@@ -138,7 +138,7 @@ class TestTimeseries(unittest.TestCase):
         buy_order = BuyOrder("123", "TON_USD", 6.6274)
 
         order_detail = OrderDetail(
-            OrderStatus.ACTIVE.value,
+            OrderStatus.OTHER.value,
             uuid.uuid4(),
             "TON_USD",
             4.970550,
@@ -165,7 +165,7 @@ class TestTimeseries(unittest.TestCase):
         buy_order = BuyOrder("123", "TON_USD", 6.6274)
 
         order_detail = OrderDetail(
-            OrderStatus.ACTIVE.value,
+            OrderStatus.OTHER.value,
             uuid.uuid4(),
             "TON_USD",
             4.970550,

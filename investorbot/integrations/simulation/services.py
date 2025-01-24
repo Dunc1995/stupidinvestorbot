@@ -4,6 +4,7 @@ import uuid
 
 import sqlalchemy
 from investorbot.constants import INVESTMENT_INCREMENTS
+from investorbot.enums import OrderStatus
 from investorbot.interfaces.services import ICryptoService
 from investorbot.models import BuyOrder, CoinProperties, SellOrder
 from investorbot.services import AppService
@@ -107,7 +108,7 @@ class SimulatedCryptoService(ICryptoService):
         total_value: float = order_spec.price_per_coin * order_spec.quantity
 
         order_detail = OrderDetailSimulated(
-            "FILLED",
+            OrderStatus.COMPLETED.value,
             order_id,
             buy_order.coin_name,
             total_value,
@@ -129,7 +130,7 @@ class SimulatedCryptoService(ICryptoService):
         total_value = coin_sale.price_per_coin * coin_sale.quantity
 
         order_detail = OrderDetailSimulated(
-            "FILLED",
+            OrderStatus.COMPLETED.value,
             sell_order_id,
             coin_sale.coin_name,
             total_value,

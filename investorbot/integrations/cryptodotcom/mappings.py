@@ -1,3 +1,5 @@
+from investorbot.enums import OrderStatus
+from investorbot.integrations.cryptodotcom.enums import OrderDetailStatus
 from investorbot.models import CoinProperties, CoinSelectionCriteria
 from investorbot.integrations.cryptodotcom.structs import (
     InstrumentJson,
@@ -17,8 +19,16 @@ def json_to_position_balance(balance: PositionBalanceJson) -> PositionBalance:
 
 
 def json_to_order_detail(json_data: OrderDetailJson) -> OrderDetail:
+
+    status: str = OrderStatus.OTHER.value
+
+    if json_data.status == OrderDetailStatus.FILLED.value:
+        status = OrderStatus.COMPLETED.value
+    elif json_data.status == OrderDetailStatus.CANCELED.value:
+        status = OrderStatus.CANCELED.value
+
     return OrderDetail(
-        status=json_data.status,
+        status=status,
         order_id=json_data.client_oid,
         coin_name=json_data.instrument_name,
         order_value=float(json_data.order_value),
