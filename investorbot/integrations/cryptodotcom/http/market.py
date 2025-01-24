@@ -1,6 +1,6 @@
 from typing import List
 from investorbot.constants import CRYPTO_MARKET_URL
-from investorbot.http.base import HttpClient
+from investorbot.integrations.cryptodotcom.http.base import HttpClient
 from investorbot.structs.ingress import InstrumentJson, TickerJson
 
 

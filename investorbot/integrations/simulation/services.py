@@ -1,11 +1,16 @@
+import math
 from typing import List
 import uuid
 
 import sqlalchemy
+from investorbot.constants import INVESTMENT_INCREMENTS
 from investorbot.interfaces.services import ICryptoService
 from investorbot.models import BuyOrder, CoinProperties, SellOrder
 from investorbot.services import AppService
-from investorbot.simulation.models import OrderDetailSimulated, PositionBalanceSimulated
+from investorbot.integrations.simulation.models import (
+    OrderDetailSimulated,
+    PositionBalanceSimulated,
+)
 from investorbot.structs.egress import CoinPurchase, CoinSale
 from investorbot.structs.internal import LatestTrade, OrderDetail, PositionBalance
 
@@ -16,6 +21,16 @@ class SimulatedCryptoService(ICryptoService):
 
     def __get_guid(self):
         return str(uuid.uuid4())
+
+    def __get_total_cash_balance(self) -> float:
+        position_balances: List[PositionBalanceSimulated] = []
+        session = self.session
+        query = sqlalchemy.select(PositionBalanceSimulated)
+
+        for item in session.scalars(query):
+            position_balances.append(item)
+
+        return sum(c.market_value for c in position_balances)
 
     def get_coin_balance(self, coin_name: str) -> PositionBalance | None:
         session = self.session
@@ -33,7 +48,19 @@ class SimulatedCryptoService(ICryptoService):
         return usd_balance
 
     def get_investable_coin_count(self) -> int:
-        pass
+        user_balance = self.get_usd_balance()
+
+        percentage_to_invest = (
+            user_balance / self.__get_total_cash_balance() - 0.5
+        )  # TODO make configurable
+
+        number_of_coins_to_invest = (
+            math.floor(user_balance * percentage_to_invest / INVESTMENT_INCREMENTS)
+            if percentage_to_invest > 0
+            else 0
+        )
+
+        return number_of_coins_to_invest
 
     def get_latest_trade(self, coin_name: str) -> LatestTrade:
         # TODO maybe fetch from memory

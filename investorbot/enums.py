@@ -1,6 +1,8 @@
 from enum import Enum
 
 
+# TODO strictly speaking this should be under integrations/cryptodotcom/enums.py
+# TODO make distinction between app and what cryptodotcom requires
 class OrderStatus(Enum):
     NEW = "NEW"
     PENDING = "PENDING"

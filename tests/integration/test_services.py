@@ -3,10 +3,11 @@ import unittest
 from unittest.mock import MagicMock, Mock, patch
 import uuid
 
-from investorbot import mappings
+from investorbot.integrations.cryptodotcom import mappings
 from investorbot.enums import TrendLineState
 from investorbot.structs.ingress import InstrumentJson
-from investorbot.services import AppService, CryptoService
+from investorbot.services import AppService
+from investorbot.integrations.cryptodotcom.services import CryptoService
 from investorbot.models import (
     BuyOrder,
     CoinProperties,
@@ -114,14 +115,17 @@ class TestAppService(unittest.TestCase):
         )
 
 
-@patch("investorbot.http.base.INVESTOR_APP_ENVIRONMENT", "Testing")
+@patch(
+    "investorbot.integrations.cryptodotcom.http.base.INVESTOR_APP_ENVIRONMENT",
+    "Testing",
+)
 class TestCryptoService(unittest.TestCase):
     def setUp(self):
         self.test_crypto_service = CryptoService()
         self.test_crypto_service.user.api_key = "Test984bvwhibwbiytesTy"
         self.test_crypto_service.user.api_secret_key = "Test_ounghTtgwth874hWWWTESTG"
 
-    @patch("investorbot.http.base.requests.post")
+    @patch("investorbot.integrations.cryptodotcom.http.base.requests.post")
     def test_usd_balance_is_retrievable(self, mock_get: MagicMock):
         """Testing get_usd_balance correctly fetches my USD balance from the user balance JSON."""
         mock_get.return_value = Mock(ok=True)

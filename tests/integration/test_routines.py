@@ -1,7 +1,8 @@
 import unittest
 from unittest.mock import MagicMock, Mock, patch
 
-from investorbot.services import AppService, CryptoService
+from investorbot.services import AppService
+from investorbot.integrations.cryptodotcom.services import CryptoService
 from investorbot.db import init_db, app_service
 from investorbot.enums import MarketCharacterization
 from investorbot.models import BuyOrder
@@ -15,7 +16,7 @@ from tests.integration import get_mock_response
 
 class TestRoutines(unittest.TestCase):
 
-    @patch("investorbot.http.base.requests.get")
+    @patch("investorbot.integrations.cryptodotcom.http.base.requests.get")
     def setUp(self, mock_instruments: MagicMock):
         mock_instruments.return_value = Mock(ok=True)
         mock_instruments.return_value.json.return_value = get_mock_response(
@@ -28,7 +29,8 @@ class TestRoutines(unittest.TestCase):
         crypto_service.user.api_secret_key = "Test_ounghTtgwth874hWWWTESTG"
 
         self.patcher_environment = patch(
-            "investorbot.http.base.INVESTOR_APP_ENVIRONMENT", "Testing"
+            "investorbot.integrations.cryptodotcom.http.base.INVESTOR_APP_ENVIRONMENT",
+            "Testing",
         )
         self.patcher_db_app_service = patch("investorbot.db.app_service", app_service)
         self.patcher_routine_app_service = patch(
@@ -49,7 +51,7 @@ class TestRoutines(unittest.TestCase):
 
         init_db()
 
-    @patch("investorbot.http.base.requests.get")
+    @patch("investorbot.integrations.cryptodotcom.http.base.requests.get")
     def test_update_time_series_summaries_routine(self, mock_tickers):
         """The time series summary update routine iterates over time series data periodically and
         stores properties such as median, mean, trend line coefficient, etc. for each coin of
@@ -91,8 +93,8 @@ class TestRoutines(unittest.TestCase):
             "Confidence rating is not correct.",
         )
 
-    @patch("investorbot.http.base.requests.post")
-    @patch("investorbot.http.base.requests.get")
+    @patch("investorbot.integrations.cryptodotcom.http.base.requests.post")
+    @patch("investorbot.integrations.cryptodotcom.http.base.requests.get")
     def test_sell_coin_routine_stores_sell_order(
         self, mock_get_requests, mock_post_requests
     ):
