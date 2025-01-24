@@ -1,0 +1,120 @@
+from typing import List
+import uuid
+
+import sqlalchemy
+from investorbot.interfaces.services import ICryptoService
+from investorbot.models import BuyOrder, CoinProperties, SellOrder
+from investorbot.services import AppService
+from investorbot.simulation.models import OrderDetailSimulated, PositionBalanceSimulated
+from investorbot.structs.egress import CoinPurchase, CoinSale
+from investorbot.structs.internal import LatestTrade, OrderDetail, PositionBalance
+
+
+class SimulatedCryptoService(ICryptoService):
+    def __init__(self, app_service: AppService):
+        self.app_service = app_service
+
+    def __get_guid(self):
+        return str(uuid.uuid4())
+
+    def get_coin_balance(self, coin_name: str) -> PositionBalance | None:
+        session = self.session
+
+        query = sqlalchemy.select(PositionBalanceSimulated).where(
+            PositionBalanceSimulated.coin_name == coin_name
+        )
+        data = session.scalar(query)
+
+        return PositionBalance(**data)
+
+    def get_usd_balance(self) -> float:
+        usd_balance = float(self.get_coin_balance("USD").market_value)
+
+        return usd_balance
+
+    def get_investable_coin_count(self) -> int:
+        pass
+
+    def get_latest_trade(self, coin_name: str) -> LatestTrade:
+        # TODO maybe fetch from memory
+        pass
+
+    def get_latest_trades(self) -> List[LatestTrade]:
+        # TODO maybe fetch from memory
+        pass
+
+    def get_coin_time_series_data(self, coin_name: str, hours=24) -> dict:
+        # TODO maybe fetch from memory
+        pass
+
+    def get_order_detail(self, order_id: str) -> OrderDetail:
+        session = self.session
+
+        query = sqlalchemy.select(OrderDetailSimulated).where(
+            OrderDetailSimulated.order_id == order_id
+        )
+        data = session.scalar(query)
+
+        return OrderDetail(**data)
+
+    def get_coin_properties(self) -> List[CoinProperties]:
+        coin_properties = []
+        session = self.app_service.session
+
+        query = sqlalchemy.select(CoinProperties)
+
+        for item in session.scalars(query):
+            coin_properties.append(item)
+
+        return coin_properties
+
+    def place_coin_buy_order(self, order_spec: CoinPurchase) -> BuyOrder:
+        order_id = self.__get_guid()
+
+        buy_order = BuyOrder(
+            order_id,
+            order_spec.coin_properties.coin_name,
+            order_spec.price_per_coin,
+        )
+
+        total_value: float = order_spec.price_per_coin * order_spec.quantity
+
+        order_detail = OrderDetailSimulated(
+            "FILLED",
+            order_id,
+            buy_order.coin_name,
+            total_value,
+            order_spec.quantity,
+            order_spec.quantity,
+            total_value,
+            0.005 * total_value,
+            buy_order.coin_name.split("_")[0],
+        )
+
+        self.app_service.add_item(order_detail)
+
+        return buy_order
+
+    def place_coin_sell_order(
+        self, buy_order_id: str, coin_sale: CoinSale
+    ) -> SellOrder:
+        sell_order_id = self.__get_guid()
+        total_value = coin_sale.price_per_coin * coin_sale.quantity
+
+        order_detail = OrderDetailSimulated(
+            "FILLED",
+            sell_order_id,
+            coin_sale.coin_name,
+            total_value,
+            coin_sale.quantity,
+            coin_sale.quantity,
+            total_value,
+            0.005 * total_value,
+            coin_sale.coin_name.split("_")[0],
+        )
+
+        self.app_service.add_item(order_detail)
+
+        sell_order = SellOrder(sell_order_id, buy_order_id)
+
+        return sell_order

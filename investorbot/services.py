@@ -42,6 +42,7 @@ from investorbot.models import (
     SellOrder,
     TimeSeriesSummary,
 )
+import investorbot.simulation.models
 from investorbot.analysis import time_now, convert_ms_time_to_hours
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
@@ -149,40 +150,6 @@ class CryptoService(ICryptoService):
         sell_order = SellOrder(order.client_oid, buy_order_id)
 
         return sell_order
-
-
-class SimulatedCryptoService(ICryptoService):
-    def get_coin_balance(self, coin_name: str) -> PositionBalance | None:
-        pass
-
-    def get_usd_balance(self) -> float:
-        pass
-
-    def get_investable_coin_count(self) -> int:
-        pass
-
-    def get_latest_trade(self, coin_name: str) -> LatestTrade:
-        pass
-
-    def get_latest_trades(self) -> List[LatestTrade]:
-        pass
-
-    def get_coin_time_series_data(self, coin_name: str, hours=24) -> dict:
-        pass
-
-    def get_order_detail(self, order_id: str) -> OrderDetail:
-        pass
-
-    def get_coin_properties(self) -> List[CoinProperties]:
-        pass
-
-    def place_coin_buy_order(self, order_spec: CoinPurchase) -> BuyOrder:
-        pass
-
-    def place_coin_sell_order(
-        self, buy_order_id: str, coin_sale: CoinSale
-    ) -> SellOrder:
-        pass
 
 
 class AppService:
