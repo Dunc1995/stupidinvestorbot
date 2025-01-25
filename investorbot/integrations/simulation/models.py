@@ -1,15 +1,20 @@
 from sqlalchemy import Column, DateTime, Float, func, String
 from sqlalchemy.orm import mapped_column, Mapped
-from investorbot.models import Base
+from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import MappedAsDataclass
+
+
+class SimulationBase(MappedAsDataclass, DeclarativeBase):
+    pass
 
 
 class TimestampMixin(object):
     time_creates_ms = Column(DateTime, default=func.now())
 
 
-class OrderDetailSimulated(TimestampMixin, Base):
+class OrderDetailSimulated(TimestampMixin, SimulationBase):
 
-    __tablename__ = "simulated_order_details"
+    __tablename__ = "order_details"
 
     status: Mapped[str] = mapped_column(String())
     order_id: Mapped[str] = mapped_column(primary_key=True)
@@ -22,9 +27,9 @@ class OrderDetailSimulated(TimestampMixin, Base):
     fee_currency: Mapped[str] = mapped_column(String())
 
 
-class PositionBalanceSimulated(Base):
+class PositionBalanceSimulated(SimulationBase):
 
-    __tablename__ = "simulated_position_balance"
+    __tablename__ = "position_balances"
 
     coin_name: Mapped[str] = mapped_column(primary_key=True)
     # TODO don't dedicate a column to market value as fluctuations in market value need to reflect latest prices

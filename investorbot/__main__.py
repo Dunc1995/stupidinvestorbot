@@ -8,6 +8,7 @@ from investorbot.routines import (
 )
 from investorbot.app import run_api
 from investorbot.db import init_db
+from investorbot.integrations.simulation.db import init_simulation_db
 from investorbot.websocket import send_message
 
 
@@ -15,6 +16,7 @@ if __name__ == "__main__":
     argh.dispatch_commands(
         [
             init_db,
+            init_simulation_db,
             get_coins_to_purchase,
             buy_coin_routine,
             sell_coin_routine,

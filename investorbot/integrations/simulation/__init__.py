@@ -1,0 +1,5 @@
+from investorbot.integrations.simulation.constants import SIMULATION_DB_CONNECTION
+from investorbot.integrations.simulation.services import SimulationService
+
+
+simulation_service = SimulationService(SIMULATION_DB_CONNECTION)

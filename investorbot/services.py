@@ -8,11 +8,11 @@ from jinja2 import Environment, FileSystemLoader
 import sqlalchemy
 from sqlalchemy import Engine
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import DeclarativeBase
 
 from investorbot.integrations.cryptodotcom import mappings
 from investorbot.constants import (
     DEFAULT_LOGS_NAME,
-    INVESTOR_APP_DB_CONNECTION,
     JINJA_ROOT_PATH,
     RECIPIENT_EMAIL,
     SENDER_EMAIL,
@@ -29,36 +29,36 @@ from investorbot.models import (
     MarketAnalysis,
     TimeSeriesSummary,
 )
-import investorbot.integrations.simulation.models
 from investorbot.analysis import time_now, convert_ms_time_to_hours
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
 
-class AppService:
+class BaseAppService:
     __engine: Engine
 
-    def __init__(self, connection_string=INVESTOR_APP_DB_CONNECTION):
+    def __init__(self, base: DeclarativeBase, connection_string):
         self.__engine = sqlalchemy.create_engine(connection_string)
+        self.__base = base
 
     @property
     def session(self) -> Session:
         return Session(self.__engine)
 
     def run_migration(self):
-        Base.metadata.create_all(self.__engine)
+        self.__base.metadata.create_all(self.__engine)
 
-    def add_item(self, db_object: Base):
+    def add_item(self, db_object: DeclarativeBase):
         with self.session as session:
             session.add(db_object)
             session.commit()
 
-    def add_items(self, db_objects: List[Base]):
+    def add_items(self, db_objects: List[DeclarativeBase]):
         with self.session as session:
             session.add_all(db_objects)
             session.commit()
 
-    def get_all_items(self, type: Base) -> List[Base]:
+    def get_all_items(self, type: DeclarativeBase) -> List[DeclarativeBase]:
         items_list = []
         session = self.session
 
@@ -67,6 +67,11 @@ class AppService:
             items_list.append(item)
 
         return items_list
+
+
+class AppService(BaseAppService):
+    def __init__(self, connection_string):
+        super().__init__(Base, connection_string)
 
     def get_buy_order(self, buy_order_id: str) -> BuyOrder | None:
         session = self.session

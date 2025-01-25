@@ -7,8 +7,9 @@ from investorbot.constants import INVESTMENT_INCREMENTS
 from investorbot.enums import OrderStatus
 from investorbot.interfaces.services import ICryptoService
 from investorbot.models import BuyOrder, CoinProperties, SellOrder
-from investorbot.services import AppService
+from investorbot.services import AppService, BaseAppService
 from investorbot.integrations.simulation.models import (
+    SimulationBase,
     OrderDetailSimulated,
     PositionBalanceSimulated,
 )
@@ -146,3 +147,9 @@ class SimulatedCryptoService(ICryptoService):
         sell_order = SellOrder(sell_order_id, buy_order_id)
 
         return sell_order
+
+
+class SimulationService(BaseAppService):
+
+    def __init__(self, connection_string):
+        super().__init__(SimulationBase, connection_string)

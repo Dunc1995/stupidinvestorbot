@@ -1,5 +1,9 @@
 import logging
-from investorbot.constants import DEFAULT_LOGS_NAME, INVESTOR_APP_INTEGRATION
+from investorbot.constants import (
+    DEFAULT_LOGS_NAME,
+    INVESTOR_APP_INTEGRATION,
+    INVESTOR_APP_DB_CONNECTION,
+)
 from investorbot.enums import AppIntegration
 from investorbot.interfaces.services import ICryptoService
 from investorbot.services import AppService, SmtpService
@@ -45,5 +49,5 @@ def get_crypto_service(app_service: AppService) -> ICryptoService:
 
 smtp_service = SmtpService()
 
-app_service = AppService()
+app_service = AppService(INVESTOR_APP_DB_CONNECTION)
 crypto_service: ICryptoService = get_crypto_service(app_service)
