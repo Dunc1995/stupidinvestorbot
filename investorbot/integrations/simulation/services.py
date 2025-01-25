@@ -7,7 +7,7 @@ from investorbot.constants import INVESTMENT_INCREMENTS
 from investorbot.enums import OrderStatus
 from investorbot.interfaces.services import ICryptoService
 from investorbot.models import BuyOrder, CoinProperties, SellOrder
-from investorbot.services import AppService, BaseAppService
+from investorbot.services import BaseAppService
 from investorbot.integrations.simulation.models import (
     SimulationBase,
     OrderDetailSimulated,
@@ -18,8 +18,8 @@ from investorbot.structs.internal import LatestTrade, OrderDetail, PositionBalan
 
 
 class SimulatedCryptoService(ICryptoService):
-    def __init__(self, app_service: AppService):
-        self.app_service = app_service
+    def __init__(self, simulation_service: "SimulationService"):
+        self.simulation_service = simulation_service
 
     def __get_guid(self):
         return str(uuid.uuid4())
@@ -88,8 +88,9 @@ class SimulatedCryptoService(ICryptoService):
 
     def get_coin_properties(self) -> List[CoinProperties]:
         coin_properties = []
-        session = self.app_service.session
+        session = self.simulation_service.session
 
+        # FIXME store coin properties as json
         query = sqlalchemy.select(CoinProperties)
 
         for item in session.scalars(query):
@@ -120,7 +121,7 @@ class SimulatedCryptoService(ICryptoService):
             buy_order.coin_name.split("_")[0],
         )
 
-        self.app_service.add_item(order_detail)
+        self.simulation_service.add_item(order_detail)
 
         return buy_order
 
@@ -142,7 +143,7 @@ class SimulatedCryptoService(ICryptoService):
             coin_sale.coin_name.split("_")[0],
         )
 
-        self.app_service.add_item(order_detail)
+        self.simulation_service.add_item(order_detail)
 
         sell_order = SellOrder(sell_order_id, buy_order_id)
 

@@ -1,8 +1,9 @@
 import logging
 
 from investorbot import app_service, crypto_service
-from investorbot.constants import DEFAULT_LOGS_NAME
-from investorbot.enums import MarketCharacterization
+from investorbot.constants import DEFAULT_LOGS_NAME, INVESTOR_APP_INTEGRATION
+from investorbot.enums import AppIntegration, MarketCharacterization
+from investorbot.integrations.simulation.db import init_simulation_db
 from investorbot.models import CoinSelectionCriteria
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
@@ -10,6 +11,9 @@ logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
 def init_db():
     app_service.run_migration()
+
+    if INVESTOR_APP_INTEGRATION == str(AppIntegration.SIMULATED):
+        init_simulation_db()
 
     coin_properties = crypto_service.get_coin_properties()
     market_analysis_ratings = [
