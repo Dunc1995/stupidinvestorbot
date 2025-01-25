@@ -1,6 +1,14 @@
 from enum import Enum
 
 
+class AppIntegration(Enum):
+    SIMULATED = "SIMULATED"
+    CRYPTODOTCOM = "CRYPTODOTCOM"
+
+    def __str__(self):
+        return self.value
+
+
 class OrderStatus(Enum):
     COMPLETED = "COMPLETED"
     CANCELED = "CANCELED"
