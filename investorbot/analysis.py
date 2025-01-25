@@ -101,6 +101,7 @@ def get_trend_line_state(trend_line_price_percentage_change: float) -> str:
     return state.value
 
 
+# FIXME currently coupled to crypto.com API
 def get_time_series_data_frame(time_series_data: dict) -> Tuple[DataFrame, int]:
     """Ingests JSON time series data in the format [{ 'v': 1.0 't': 1.0 }, ... ], converts this to a
     pandas DataFrame and formats the data so that the time axis is measured in hours as oppose to
@@ -123,6 +124,7 @@ def get_time_series_data_frame(time_series_data: dict) -> Tuple[DataFrame, int]:
     return df, time_value_offset
 
 
+# FIXME currently coupled to crypto.com API
 def get_line_of_best_fit(df: DataFrame):
     """Uses numpy to generate simple trend line parameters based on the input DataFrame."""
 
@@ -134,6 +136,7 @@ def get_line_of_best_fit(df: DataFrame):
     return a, b
 
 
+# FIXME currently coupled to crypto.com API (main entry-point)
 def get_coin_time_series_summary(
     coin_name: str,
     time_series_data: dict,
@@ -313,6 +316,7 @@ def assign_weighted_rankings(
     return summaries
 
 
+# TODO not strictly to do with analysis - more app_service related.
 def is_coin_sellable(
     buy_order: BuyOrder, order_detail: OrderDetail, coin_balance: PositionBalance | None
 ) -> Tuple[bool, SaleValidationResult]:
