@@ -5,6 +5,14 @@ import uuid
 import sqlalchemy
 from investorbot.constants import INVESTMENT_INCREMENTS
 from investorbot.enums import OrderStatus
+
+# region coupling to cryptodotcom integration - ideally want complete decoupling but for the purposes
+# of simulating the market this isn't such an issue.
+from investorbot.integrations.cryptodotcom import mappings
+from investorbot.integrations.cryptodotcom.constants import INSTRUMENTS
+from investorbot.integrations.cryptodotcom.structs import InstrumentJson
+
+# endregion
 from investorbot.interfaces.services import ICryptoService
 from investorbot.models import BuyOrder, CoinProperties, SellOrder
 from investorbot.services import BaseAppService
@@ -87,14 +95,10 @@ class SimulatedCryptoService(ICryptoService):
         return OrderDetail(**data)
 
     def get_coin_properties(self) -> List[CoinProperties]:
-        coin_properties = []
-        session = self.simulation_service.session
-
-        # FIXME store coin properties as json
-        query = sqlalchemy.select(CoinProperties)
-
-        for item in session.scalars(query):
-            coin_properties.append(item)
+        coin_properties = [
+            mappings.json_to_coin_properties(InstrumentJson(**coin_properties))
+            for coin_properties in INSTRUMENTS
+        ]
 
         return coin_properties
 
