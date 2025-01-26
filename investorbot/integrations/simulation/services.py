@@ -3,6 +3,7 @@ from typing import List
 import uuid
 
 import sqlalchemy
+from sqlalchemy import func
 from investorbot.constants import INVESTMENT_INCREMENTS
 from investorbot.enums import OrderStatus
 
@@ -43,14 +44,25 @@ class SimulatedCryptoService(ICryptoService):
         return sum(c.market_value for c in position_balances)
 
     def get_coin_balance(self, coin_name: str) -> PositionBalance | None:
-        session = self.session
+        session = self.simulation_service.session
 
-        query = sqlalchemy.select(PositionBalanceSimulated).where(
-            PositionBalanceSimulated.coin_name == coin_name
+        data = (
+            session.query(
+                PositionBalanceSimulated,
+                func.max(PositionBalanceSimulated.time_creates_ms),
+            )
+            .filter(PositionBalanceSimulated.coin_name == coin_name)
+            .first()
         )
-        data = session.scalar(query)
 
-        return PositionBalance(**data)
+        result: PositionBalanceSimulated = data[0]
+
+        return PositionBalance(
+            coin_name=result.coin_name,
+            market_value=result.market_value,
+            quantity=result.quantity,
+            reserved_quantity=result.reserved_quantity,
+        )
 
     def get_usd_balance(self) -> float:
         usd_balance = float(self.get_coin_balance("USD").market_value)

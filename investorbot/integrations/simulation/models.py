@@ -27,11 +27,14 @@ class OrderDetailSimulated(TimestampMixin, SimulationBase):
     fee_currency: Mapped[str] = mapped_column(String())
 
 
-class PositionBalanceSimulated(SimulationBase):
+class PositionBalanceSimulated(TimestampMixin, SimulationBase):
 
     __tablename__ = "position_balances"
 
-    coin_name: Mapped[str] = mapped_column(primary_key=True)
+    balance_id: Mapped[int] = mapped_column(
+        primary_key=True, autoincrement=True, init=False
+    )
+    coin_name: Mapped[str] = mapped_column()
     # TODO don't dedicate a column to market value as fluctuations in market value need to reflect latest prices
     market_value: Mapped[float] = mapped_column(Float())
     quantity: Mapped[float] = mapped_column(Float())
