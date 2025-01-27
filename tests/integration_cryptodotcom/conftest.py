@@ -14,7 +14,8 @@ from investorbot.structs.internal import LatestTrade
 def __get_file_data(filename: str) -> dict | List[dict]:
     example_data = None
 
-    with open(f"./tests/integration/fixtures/{filename}.json", "r") as f:
+    # TODO don't hardcode filepath
+    with open(f"./tests/integration_cryptodotcom/fixtures/{filename}.json", "r") as f:
         example_data = json.loads(f.read())
 
     return example_data
