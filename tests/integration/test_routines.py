@@ -3,11 +3,10 @@ from unittest.mock import MagicMock, Mock, patch
 
 from investorbot.services import AppService
 from investorbot.integrations.cryptodotcom.services import CryptoService
-from investorbot.db import init_db, app_service
+from investorbot.db import init_db
 from investorbot.enums import MarketCharacterization
 from investorbot.models import BuyOrder
 from investorbot.routines import (
-    buy_coin_routine,
     sell_coin_routine,
     refresh_market_analysis_routine,
 )
@@ -28,10 +27,6 @@ class TestRoutines(unittest.TestCase):
         crypto_service.user.api_key = "Test984bvwhibwbiytesTy"
         crypto_service.user.api_secret_key = "Test_ounghTtgwth874hWWWTESTG"
 
-        self.patcher_environment = patch(
-            "investorbot.integrations.cryptodotcom.http.base.INVESTOR_APP_ENVIRONMENT",
-            "Testing",
-        )
         self.patcher_db_app_service = patch("investorbot.db.app_service", app_service)
         self.patcher_routine_app_service = patch(
             "investorbot.routines.app_service", app_service
@@ -40,11 +35,9 @@ class TestRoutines(unittest.TestCase):
             "investorbot.routines.crypto_service", crypto_service
         )
 
-        self.mock_environment = self.patcher_environment.start()
         self.mock_db_service_db = self.patcher_db_app_service.start()
         self.mock_db_service_routines = self.patcher_routine_app_service.start()
         self.mock_routine_crypto_service = self.patcher_routine_crypto_service.start()
-        self.addCleanup(self.patcher_environment.stop)
         self.addCleanup(self.patcher_db_app_service.stop)
         self.addCleanup(self.patcher_routine_app_service.stop)
         self.addCleanup(self.patcher_routine_crypto_service.stop)

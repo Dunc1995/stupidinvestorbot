@@ -36,6 +36,6 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 ./investorbot --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
         flake8 ./web --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Test with unittest
+    - name: Test with pytest
       run: |
-        python -m unittest discover -s "./tests" -p "test_*.py"
+        pytest -c tests/pytest_cryptodotcom.ini

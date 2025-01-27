@@ -188,7 +188,3 @@ class TestTimeseries(unittest.TestCase):
         self.assertFalse(validator.order_has_been_cancelled)
         self.assertFalse(validator.order_balance_has_already_been_sold)
         self.assertFalse(can_sell)
-
-
-if __name__ == "__main__":
-    unittest.main()

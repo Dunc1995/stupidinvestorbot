@@ -1,12 +1,9 @@
-import unittest
-
+from dataclasses import dataclass
 from investorbot.decorators import no_scientific_notation
 
 
-class TestDecorators(unittest.TestCase):
-    def setUp(self):
-        pass
-
+@dataclass
+class ScientificNotationTestObject:
     @property
     @no_scientific_notation
     def small_float_one(self) -> float:
@@ -47,20 +44,21 @@ class TestDecorators(unittest.TestCase):
     def large_integer(self) -> int:
         return 80000000000000
 
-    def test_numerical_values_print_correctly(self):
-        """There are many different edge cases for converting numerical types to strings. I want to
-        ensure here that my no_scientific_notation converts any numerical value to a string that
-        looks like the float as it is written - i.e. no floating point precision weirdness, or
-        scientific notation. This is only really a problem when interacting with the Crypto API."""
-        self.assertEqual(self.small_float_one, "0.0000008")
-        self.assertEqual(self.small_float_two, "0.000343115")
-        self.assertEqual(self.small_float_three, "0.000000031343431")
-        self.assertEqual(self.normal_float, "10.4987")
-        self.assertEqual(self.large_float_one, "80000000000000.0")
-        self.assertEqual(self.large_float_two, "13440900000000.0")
-        self.assertEqual(self.small_integer, "1")
-        self.assertEqual(self.large_integer, "80000000000000")
 
+def test_numerical_values_print_correctly():
+    """There are many different edge cases for converting numerical types to strings. I want to
+    ensure here that my no_scientific_notation converts any numerical value to a string that
+    looks like the float as it is written - i.e. no floating point precision weirdness, or
+    scientific notation. This is only really a problem when interacting with the Crypto API.
+    """
 
-if __name__ == "__main__":
-    unittest.main()
+    obj = ScientificNotationTestObject()
+
+    assert obj.small_float_one == "0.0000008"
+    assert obj.small_float_two == "0.000343115"
+    assert obj.small_float_three == "0.000000031343431"
+    assert obj.normal_float == "10.4987"
+    assert obj.large_float_one == "80000000000000.0"
+    assert obj.large_float_two == "13440900000000.0"
+    assert obj.small_integer == "1"
+    assert obj.large_integer == "80000000000000"
