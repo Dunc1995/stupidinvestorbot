@@ -1,20 +1,14 @@
-import json
-import unittest
-from unittest.mock import MagicMock, Mock, patch
+import math
 import uuid
 
-from investorbot.integrations.cryptodotcom import mappings
+from requests import Response
+
 from investorbot.enums import TrendLineState
-from investorbot.integrations.cryptodotcom.structs import InstrumentJson
-from investorbot.services import AppService
-from investorbot.integrations.cryptodotcom.services import CryptoService
 from investorbot.models import (
     BuyOrder,
     TimeSeriesMode,
     TimeSeriesSummary,
 )
-
-from tests.integration import get_mock_response
 
 
 def test_get_buy_order_will_return_none_when_not_found(mock_app_service):
@@ -93,20 +87,23 @@ def test_time_series_summary_is_retrievable_with_modes(mock_app_service):
     ), "Number of modes doesn't match what was inserted into db."
 
 
-class TestCryptoService(unittest.TestCase):
-    def setUp(self):
-        self.test_crypto_service = CryptoService()
-        self.test_crypto_service.user.api_key = "Test984bvwhibwbiytesTy"
-        self.test_crypto_service.user.api_secret_key = "Test_ounghTtgwth874hWWWTESTG"
+def test_usd_balance_is_retrievable(monkeypatch, mock_crypto_service, get_file_data):
+    """Testing get_usd_balance correctly fetches my USD balance from the user balance JSON."""
 
-    @patch("investorbot.integrations.cryptodotcom.http.base.requests.post")
-    def test_usd_balance_is_retrievable(self, mock_get: MagicMock):
-        """Testing get_usd_balance correctly fetches my USD balance from the user balance JSON."""
-        mock_get.return_value = Mock(ok=True)
-        mock_get.return_value.json.return_value = get_mock_response(
-            "private-user-balance-status-200"
-        )
+    # Method that will replace the only network call made during this test.
+    def mock_post_request(*args, **kwargs) -> dict:
+        """Constructs the expected response inplace of the genuine POST request that would be made
+        to the Crypto.com API."""
+        response = Response()
+        response.status_code = 200
+        response.json = lambda: get_file_data("private-user-balance-status-200")
 
-        usd_balance = self.test_crypto_service.get_usd_balance()
+        return response
 
-        self.assertAlmostEqual(6.221, usd_balance, 3)
+    # Ensure POST request is faked here.
+    monkeypatch.setattr("requests.post", mock_post_request)
+
+    # Expecting a single value to be retrieved from the private-user-balance-status-200 JSON.
+    usd_balance = mock_crypto_service.get_usd_balance()
+
+    assert math.isclose(6.221, usd_balance, rel_tol=1e-3)

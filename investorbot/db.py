@@ -9,14 +9,8 @@ from investorbot.models import CoinSelectionCriteria
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
 
-def init_db():
-    app_service.run_migration()
-
-    if INVESTOR_APP_INTEGRATION == str(AppIntegration.SIMULATED):
-        init_simulation_db()
-
-    coin_properties = crypto_service.get_coin_properties()
-    market_analysis_ratings = [
+def get_market_analysis_ratings():
+    return [
         CoinSelectionCriteria(
             rating_id=MarketCharacterization.RISING_RAPIDLY.value,
             rating_description="High Confidence",
@@ -70,6 +64,16 @@ def init_db():
             minimum_order_value_usd=5.0,
         ),
     ]
+
+
+def init_db():
+    app_service.run_migration()
+
+    if INVESTOR_APP_INTEGRATION == str(AppIntegration.SIMULATED):
+        init_simulation_db()
+
+    coin_properties = crypto_service.get_coin_properties()
+    market_analysis_ratings = get_market_analysis_ratings()
 
     app_service.add_items(coin_properties)
     app_service.add_items(market_analysis_ratings)
