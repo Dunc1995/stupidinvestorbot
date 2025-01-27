@@ -1,6 +1,7 @@
 import logging
 from investorbot.constants import (
     DEFAULT_LOGS_NAME,
+    INVESTOR_APP_ENVIRONMENT,
     INVESTOR_APP_INTEGRATION,
     INVESTOR_APP_DB_CONNECTION,
 )
@@ -42,7 +43,7 @@ def get_crypto_service() -> ICryptoService:
     elif INVESTOR_APP_INTEGRATION == AppIntegration.CRYPTODOTCOM.value:
         __crypto_service = CryptoService()
         logger.info(CRYPTO_DOT_COM_ENVIRONMENT_MESSAGE)
-    else:
+    elif INVESTOR_APP_ENVIRONMENT != "Testing":
         raise EnvironmentError(ENVIRONMENT_ERROR_MESSAGE)
 
     return __crypto_service
