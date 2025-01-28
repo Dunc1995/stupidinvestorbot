@@ -109,6 +109,8 @@ class TestingTime(ITime):
         self.__current_time = datetime.now()
 
     def now(self) -> datetime:
+        """Here I'm simulating the passage of time in a very crude sense. This is to be used
+        whenever the point in time is mostly irrelevant or in simplistic tests."""
         self.__current_time += timedelta(minutes=1)
 
         return self.__current_time
@@ -190,19 +192,17 @@ class SimulatedCryptoService(ICryptoService):
         self.simulation_service.add_item(new_wallet_entry)
 
     def __get_position_balance_adjustment(
-        self, coin_name, quantity_str, price_per_coin_str
+        self, coin_name, quantity_str, price_per_coin_str, fee_pct=0.005
     ):
         quantity = float(quantity_str)
         price_per_coin = float(price_per_coin_str)
 
         total_value: float = float(price_per_coin) * quantity
 
-        fee_amount = 0.005 * quantity
+        net_quantity = (1 - fee_pct) * quantity
+        net_total_value = (1 - fee_pct) * total_value
 
-        net_quantity = (1 - 0.005) * quantity
-
-        # TODO don't hardcode this
-        net_total_value = (1 - 0.005) * total_value
+        fee_amount = fee_pct * quantity
         fee_currency = coin_name.split("_")[0]
 
         return PositionBalanceAdjustmentResult(
