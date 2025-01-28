@@ -75,7 +75,7 @@ def test_wallet_tracks_usd_balance_with_orders(
     coin_sale = CoinSale(
         coin_props,
         2200.0,
-        order_detail.cumulative_quantity - order_detail.cumulative_fee,
+        order_detail.quantity - order_detail.fee,
     )
 
     # Place sell order - this should add to USD balance

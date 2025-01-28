@@ -89,8 +89,6 @@ def test_coin_sale_validator_is_ready_to_sell():
         "TON_USD",
         4.970550,
         0.75,
-        0.75,
-        4.964925,
         0.00225,
         "TON",
         analysis.time_now() - 3_600_000,
@@ -113,8 +111,6 @@ def test_coin_sale_validator_will_not_sell_because_of_wallet_quantity():
         "TON_USD",
         4.970550,
         0.75,
-        0.75,
-        4.964925,
         0.00225,
         "TON",
         analysis.time_now() - 3_600_000,
@@ -142,8 +138,6 @@ def test_coin_sale_validator_will_not_break_on_small_coin_balance():
         4.970550,
         0.75,
         0.00,
-        0.00,
-        0.00,
         "TON",
         analysis.time_now() - 3_600_000,
     )
@@ -154,7 +148,7 @@ def test_coin_sale_validator_will_not_break_on_small_coin_balance():
     )
 
     assert validator.order_has_not_been_filled
-    assert not validator.wallet_balance_is_not_sufficient
+    assert validator.wallet_balance_is_not_sufficient
     assert not can_sell
 
 
@@ -169,8 +163,6 @@ def test_coin_sale_validator_will_not_break_on_normal_coin_balance():
         "TON_USD",
         4.970550,
         0.75,
-        0.00,
-        0.00,
         0.00,
         "TON",
         analysis.time_now() - 3_600_000,

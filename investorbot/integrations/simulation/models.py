@@ -21,9 +21,7 @@ class OrderDetailSimulated(TimestampMixin, SimulationBase):
     coin_name: Mapped[str] = mapped_column(String())
     order_value: Mapped[float] = mapped_column(Float())
     quantity: Mapped[float] = mapped_column(Float())
-    cumulative_quantity: Mapped[float] = mapped_column(Float())
-    cumulative_value: Mapped[float] = mapped_column(Float())
-    cumulative_fee: Mapped[float] = mapped_column(Float())
+    fee: Mapped[float] = mapped_column(Float())
     fee_currency: Mapped[str] = mapped_column(String())
 
 

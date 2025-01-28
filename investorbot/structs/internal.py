@@ -28,8 +28,6 @@ class LatestTrade:
         self.price = float(latest_trade)
 
 
-# TODO revise what's actually required here - closely coupled to crypto.com API
-# TODO I suspect not all properties are needed here.
 @dataclass
 class OrderDetail:
     status: str
@@ -37,9 +35,7 @@ class OrderDetail:
     coin_name: str
     order_value: float
     quantity: float
-    cumulative_quantity: float
-    cumulative_value: float
-    cumulative_fee: float
+    fee: float
     fee_currency: str
     time_created_ms: int
 
@@ -54,7 +50,7 @@ class OrderDetail:
                 + " order if your wallet balance allows."
             )
 
-        return self.cumulative_quantity - self.cumulative_fee
+        return self.quantity - self.fee
 
 
 @dataclass

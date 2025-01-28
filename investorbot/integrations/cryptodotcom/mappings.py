@@ -33,9 +33,7 @@ def json_to_order_detail(json_data: OrderDetailJson) -> OrderDetail:
         coin_name=json_data.instrument_name,
         order_value=float(json_data.order_value),
         quantity=float(json_data.quantity),
-        cumulative_quantity=float(json_data.cumulative_quantity),
-        cumulative_value=float(json_data.cumulative_value),
-        cumulative_fee=float(json_data.cumulative_fee),
+        fee=float(json_data.cumulative_fee),
         fee_currency=json_data.fee_instrument_name,
         time_created_ms=int(json_data.create_time),
     )

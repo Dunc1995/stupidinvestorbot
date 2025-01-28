@@ -113,12 +113,6 @@ class SimulatedCryptoService(ICryptoService):
 
         fee_amount = 0.005 * quantity
 
-        # You'd think cumulative values would account for the order fee,
-        # but in reality these values tend to be equal to the initial order
-        # values when the order has been completed.
-        cumulative_quantity = (1) * quantity
-        cumulative_value = (1) * total_value
-
         net_quantity = (1 - 0.005) * quantity
 
         # TODO don't hardcode this
@@ -126,8 +120,8 @@ class SimulatedCryptoService(ICryptoService):
         fee_currency = coin_name.split("_")[0]
 
         return PositionBalanceAdjustmentResult(
-            cumulative_value,
-            cumulative_quantity,
+            total_value,
+            quantity,
             net_total_value,
             net_quantity,
             fee_amount,
@@ -190,9 +184,7 @@ class SimulatedCryptoService(ICryptoService):
             coin_name=data.coin_name,
             order_value=data.order_value,
             quantity=data.quantity,
-            cumulative_quantity=data.cumulative_quantity,
-            cumulative_value=data.cumulative_value,
-            cumulative_fee=data.cumulative_fee,
+            fee=data.fee,
             fee_currency=data.fee_currency,
             time_created_ms=data.time_creates_ms,
         )
@@ -219,8 +211,8 @@ class SimulatedCryptoService(ICryptoService):
             coin_name, order_spec.quantity, order_spec.price_per_coin
         )
 
-        quantity = result.cumulative_quantity
-        total_value = result.cumulative_value
+        quantity = result.quantity
+        total_value = result.total_value
         net_quantity = result.net_quantity
         net_total_value = result.net_value
         fee_currency = result.fee_currency
@@ -235,9 +227,7 @@ class SimulatedCryptoService(ICryptoService):
             coin_name=coin_name,
             order_value=total_value,
             quantity=quantity,
-            cumulative_value=total_value,
-            cumulative_quantity=quantity,
-            cumulative_fee=fee_amount,
+            fee=fee_amount,
             fee_currency=fee_currency,
         )
 
@@ -256,8 +246,8 @@ class SimulatedCryptoService(ICryptoService):
             coin_name, coin_sale.quantity, coin_sale.price_per_coin
         )
 
-        quantity = result.cumulative_quantity
-        total_value = result.cumulative_value
+        quantity = result.quantity
+        total_value = result.total_value
         net_quantity = result.net_quantity
         net_total_value = result.net_value
         fee_currency = result.fee_currency
@@ -269,13 +259,11 @@ class SimulatedCryptoService(ICryptoService):
         order_detail = OrderDetailSimulated(
             status=OrderStatus.COMPLETED.value,
             order_id=sell_order_id,
-            coin_name=coin_sale.coin_properties.coin_name,
+            coin_name=coin_name,
             order_value=total_value,
             quantity=quantity,
-            cumulative_value=total_value,
-            cumulative_quantity=quantity,
-            cumulative_fee=fee_amount,
-            fee_currency=coin_sale.coin_properties.coin_name.split("_")[0],
+            fee=fee_amount,
+            fee_currency=fee_currency,
         )
 
         self.simulation_service.add_item(order_detail)
