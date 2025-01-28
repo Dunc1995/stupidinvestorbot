@@ -1,9 +1,8 @@
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta
 import math
 from typing import List
 import uuid
 
-import numpy as np
 import sqlalchemy
 from sqlalchemy import func
 from investorbot.constants import INVESTMENT_INCREMENTS
