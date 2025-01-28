@@ -47,10 +47,10 @@ def __test_get_line_of_best_fit(
     offset = round(float(b), t_offset_dec)
 
     assert math.isclose(
-        gradient, t_grad, rel_tol=float(f"1e-{t_grad_dec}")
+        gradient, t_grad, abs_tol=float(f"1e-{t_grad_dec}")
     ), "Line of best fit gradient is incorrect"
     assert math.isclose(
-        offset, t_offset, rel_tol=float(f"1e-{t_offset_dec}")
+        offset, t_offset, abs_tol=float(f"1e-{t_offset_dec}")
     ), "Line of best fit offset is incorrect"
 
 

@@ -1,3 +1,4 @@
+from datetime import timedelta
 import math
 from typing import List
 import uuid
@@ -43,7 +44,7 @@ class SimulatedCryptoService(ICryptoService):
 
         return sum(c.market_value for c in position_balances)
 
-    def get_coin_balance(self, coin_name: str) -> PositionBalance | None:
+    def __get_coin_balance(self, coin_name: str) -> PositionBalanceSimulated | None:
         session = self.simulation_service.session
 
         data = (
@@ -55,7 +56,10 @@ class SimulatedCryptoService(ICryptoService):
             .first()
         )
 
-        result: PositionBalanceSimulated = data[0]
+        return data[0]
+
+    def get_coin_balance(self, coin_name: str) -> PositionBalance | None:
+        result = self.__get_coin_balance(coin_name)
 
         return PositionBalance(
             coin_name=result.coin_name,
@@ -97,14 +101,25 @@ class SimulatedCryptoService(ICryptoService):
         pass
 
     def get_order_detail(self, order_id: str) -> OrderDetail:
-        session = self.session
+        session = self.simulation_service.session
 
         query = sqlalchemy.select(OrderDetailSimulated).where(
             OrderDetailSimulated.order_id == order_id
         )
         data = session.scalar(query)
 
-        return OrderDetail(**data)
+        return OrderDetail(
+            status=data.status,
+            order_id=data.order_id,
+            coin_name=data.coin_name,
+            order_value=data.order_value,
+            quantity=data.quantity,
+            cumulative_quantity=data.cumulative_quantity,
+            cumulative_value=data.cumulative_value,
+            cumulative_fee=data.cumulative_fee,
+            fee_currency=data.fee_currency,
+            time_created_ms=data.time_creates_ms,
+        )
 
     def get_coin_properties(self) -> List[CoinProperties]:
         coin_properties = [
@@ -123,18 +138,41 @@ class SimulatedCryptoService(ICryptoService):
             order_spec.price_per_coin,
         )
 
-        total_value: float = order_spec.price_per_coin * order_spec.quantity
+        quantity = float(order_spec.quantity)
+        total_value: float = float(order_spec.price_per_coin) * quantity
+
+        fee = 0.005 * quantity
+        cumulative_quantity = (1 - 0.005) * quantity
+        cumulative_value = (1 - 0.005) * total_value
+
+        current_position = self.__get_coin_balance("USD")
+
+        new_usd_quantity = current_position.quantity - total_value
+        new_usd_market_value = current_position.market_value - total_value
+
+        wallet_entry = PositionBalanceSimulated(
+            coin_name="USD",
+            market_value=new_usd_market_value,
+            quantity=new_usd_quantity,
+            reserved_quantity=0.0,
+        )
+
+        wallet_entry.time_creates_ms = current_position.time_creates_ms + timedelta(
+            minutes=5
+        )
+
+        self.simulation_service.add_item(wallet_entry)
 
         order_detail = OrderDetailSimulated(
-            OrderStatus.COMPLETED.value,
-            order_id,
-            buy_order.coin_name,
-            total_value,
-            order_spec.quantity,
-            order_spec.quantity,
-            total_value,
-            0.005 * total_value,
-            buy_order.coin_name.split("_")[0],
+            status=OrderStatus.COMPLETED.value,
+            order_id=order_id,
+            coin_name=buy_order.coin_name,
+            order_value=total_value,
+            quantity=quantity,
+            cumulative_value=cumulative_value,
+            cumulative_quantity=cumulative_quantity,
+            cumulative_fee=fee,
+            fee_currency=buy_order.coin_name.split("_")[0],
         )
 
         self.simulation_service.add_item(order_detail)
@@ -145,18 +183,42 @@ class SimulatedCryptoService(ICryptoService):
         self, buy_order_id: str, coin_sale: CoinSale
     ) -> SellOrder:
         sell_order_id = self.__get_guid()
-        total_value = coin_sale.price_per_coin * coin_sale.quantity
+
+        quantity = float(coin_sale.quantity)
+        total_value: float = float(coin_sale.price_per_coin) * quantity
+
+        fee = 0.005 * quantity
+        cumulative_quantity = (1 - 0.005) * quantity
+        cumulative_value = (1 - 0.005) * total_value
+
+        current_position = self.__get_coin_balance("USD")
+
+        new_usd_quantity = current_position.quantity + cumulative_value
+        new_usd_market_value = current_position.market_value + cumulative_value
+
+        wallet_entry = PositionBalanceSimulated(
+            coin_name="USD",
+            market_value=new_usd_market_value,
+            quantity=new_usd_quantity,
+            reserved_quantity=0.0,
+        )
+
+        wallet_entry.time_creates_ms = current_position.time_creates_ms + timedelta(
+            minutes=5
+        )
+
+        self.simulation_service.add_item(wallet_entry)
 
         order_detail = OrderDetailSimulated(
-            OrderStatus.COMPLETED.value,
-            sell_order_id,
-            coin_sale.coin_name,
-            total_value,
-            coin_sale.quantity,
-            coin_sale.quantity,
-            total_value,
-            0.005 * total_value,
-            coin_sale.coin_name.split("_")[0],
+            status=OrderStatus.COMPLETED.value,
+            order_id=sell_order_id,
+            coin_name=coin_sale.coin_properties.coin_name,
+            order_value=total_value,
+            quantity=quantity,
+            cumulative_value=cumulative_value,
+            cumulative_quantity=cumulative_quantity,
+            cumulative_fee=fee,
+            fee_currency=coin_sale.coin_properties.coin_name.split("_")[0],
         )
 
         self.simulation_service.add_item(order_detail)

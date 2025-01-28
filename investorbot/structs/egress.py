@@ -32,7 +32,7 @@ def get_tick_quantity(
         # account for slightly higher order values.
         output = round(absolute_quantity, decimal_places)
 
-    if decimal_places > 0 and is_sale:
+    elif decimal_places > 0 and is_sale:
         # Values always need to be rounded down when selling a coin, otherwise the application may
         # try to sell more coin than is available in the user wallet.
         output = math.floor(absolute_quantity * tens) / tens
