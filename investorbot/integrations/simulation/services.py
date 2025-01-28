@@ -15,6 +15,7 @@ from investorbot.integrations.cryptodotcom.constants import INSTRUMENTS
 from investorbot.integrations.cryptodotcom.structs import InstrumentJson
 
 # endregion
+from investorbot.integrations.simulation.interfaces import ITime
 from investorbot.integrations.simulation.structs import PositionBalanceAdjustmentResult
 from investorbot.interfaces.services import ICryptoService
 from investorbot.models import BuyOrder, CoinProperties, SellOrder
@@ -28,9 +29,95 @@ from investorbot.structs.egress import CoinPurchase, CoinSale
 from investorbot.structs.internal import LatestTrade, OrderDetail, PositionBalance
 
 
+class SimulationService(BaseAppService):
+    # rng = np.random.default_rng(seed=2322)
+    # current_ticker_values: List[ValuationDataInMemory] = []
+    # trend_percentage = 0.0
+    # start_time = round(time.time() * 1000) - 86_400_000
+    # time_delta = 20_000
+
+    def __init__(self, connection_string):
+        super().__init__(SimulationBase, connection_string)
+
+    # def roll_dice(self) -> float:
+    #     result = self.rng.integers(low=1, high=6, endpoint=True, size=4).mean()
+
+    #     print(result)
+
+    #     return result
+
+    # def trend_updater(self):
+    #     trend_percentage = self.trend_percentage
+    #     dice_roll = self.roll_dice()
+
+    #     if dice_roll > 4.5:
+    #         print("INCREASE")
+    #         if trend_percentage < 0.0:
+    #             trend_percentage = 0.0
+
+    #         self.trend_percentage += 0.002
+    #     elif dice_roll < 2.5:
+    #         print("DECREASE")
+    #         if trend_percentage > 0.0:
+    #             trend_percentage = 0
+
+    #         self.trend_percentage -= 0.002
+    #     else:
+    #         print("ON_TREND")
+
+    # def get_random_value(self, mean, st_deviation):
+    #     return np.random.normal(loc=mean, scale=st_deviation)
+
+    # def add_ts_data(
+    #     self,
+    # ):
+    #     current_ticker_values = self.current_ticker_values
+    #     trend_percentage = self.trend_percentage
+    #     start_time = self.start_time
+    #     self.time_delta += 20_000
+
+    #     current_time = start_time + self.time_delta
+    #     sigma = 0.01  # standard deviation
+    #     new_values: List[ValuationDataInMemory] = []
+
+    #     if len(current_ticker_values) == 0:
+    #         tickers: List[Ticker] = self.get_all_items(Ticker)
+
+    #         current_ticker_values = [
+    #             ValuationDataInMemory(ticker.i, current_time, ticker.a)
+    #             for ticker in tickers
+    #         ]
+
+    #     for coin in current_ticker_values:
+    #         s = self.get_random_value(trend_percentage, sigma)
+
+    #         new_price = float(coin.v) * (1 + s)
+    #         new_values.append(
+    #             ValuationDataInMemory(coin.instrument_name, current_time, new_price)
+    #         )
+
+    #     self.add_items(
+    #         [ValuationData.from_memory(new_value) for new_value in new_values]
+    #     )
+    #     self.current_ticker_values = new_values
+
+
+class TestingTime(ITime):
+    __current_time: datetime
+
+    def __init__(self):
+        self.__current_time = datetime.now()
+
+    def now(self) -> datetime:
+        self.__current_time += timedelta(minutes=1)
+
+        return self.__current_time
+
+
 class SimulatedCryptoService(ICryptoService):
-    def __init__(self, simulation_service: "SimulationService"):
+    def __init__(self, simulation_service: SimulationService, time_service: ITime):
         self.simulation_service = simulation_service
+        self.time_service = time_service
 
     def __get_guid(self):
         return str(uuid.uuid4())
@@ -72,8 +159,7 @@ class SimulatedCryptoService(ICryptoService):
 
         if current_wallet_entry is None:
             current_wallet_entry = PositionBalanceSimulated(coin_name, 0.0, 0.0, 0.0)
-            # TODO don't hardcode time creation here.
-            current_wallet_entry.time_creates_ms = datetime.now()
+            current_wallet_entry.time_creates_ms = self.time_service.now()
 
         new_coin_quantity = None
         new_coin_market_value = None
@@ -96,10 +182,7 @@ class SimulatedCryptoService(ICryptoService):
             reserved_quantity=0.0,
         )
 
-        # TODO don't leave time creation hardcoded here
-        new_wallet_entry.time_creates_ms = (
-            current_wallet_entry.time_creates_ms + timedelta(minutes=5)
-        )
+        new_wallet_entry.time_creates_ms = self.time_service.now()
 
         self.simulation_service.add_item(new_wallet_entry)
 
@@ -271,76 +354,3 @@ class SimulatedCryptoService(ICryptoService):
         sell_order = SellOrder(sell_order_id, buy_order_id)
 
         return sell_order
-
-
-class SimulationService(BaseAppService):
-    # rng = np.random.default_rng(seed=2322)
-    # current_ticker_values: List[ValuationDataInMemory] = []
-    # trend_percentage = 0.0
-    # start_time = round(time.time() * 1000) - 86_400_000
-    # time_delta = 20_000
-
-    def __init__(self, connection_string):
-        super().__init__(SimulationBase, connection_string)
-
-    # def roll_dice(self) -> float:
-    #     result = self.rng.integers(low=1, high=6, endpoint=True, size=4).mean()
-
-    #     print(result)
-
-    #     return result
-
-    # def trend_updater(self):
-    #     trend_percentage = self.trend_percentage
-    #     dice_roll = self.roll_dice()
-
-    #     if dice_roll > 4.5:
-    #         print("INCREASE")
-    #         if trend_percentage < 0.0:
-    #             trend_percentage = 0.0
-
-    #         self.trend_percentage += 0.002
-    #     elif dice_roll < 2.5:
-    #         print("DECREASE")
-    #         if trend_percentage > 0.0:
-    #             trend_percentage = 0
-
-    #         self.trend_percentage -= 0.002
-    #     else:
-    #         print("ON_TREND")
-
-    # def get_random_value(self, mean, st_deviation):
-    #     return np.random.normal(loc=mean, scale=st_deviation)
-
-    # def add_ts_data(
-    #     self,
-    # ):
-    #     current_ticker_values = self.current_ticker_values
-    #     trend_percentage = self.trend_percentage
-    #     start_time = self.start_time
-    #     self.time_delta += 20_000
-
-    #     current_time = start_time + self.time_delta
-    #     sigma = 0.01  # standard deviation
-    #     new_values: List[ValuationDataInMemory] = []
-
-    #     if len(current_ticker_values) == 0:
-    #         tickers: List[Ticker] = self.get_all_items(Ticker)
-
-    #         current_ticker_values = [
-    #             ValuationDataInMemory(ticker.i, current_time, ticker.a)
-    #             for ticker in tickers
-    #         ]
-
-    #     for coin in current_ticker_values:
-    #         s = self.get_random_value(trend_percentage, sigma)
-
-    #         new_price = float(coin.v) * (1 + s)
-    #         new_values.append(
-    #             ValuationDataInMemory(coin.instrument_name, current_time, new_price)
-    #         )
-
-    #     self.add_items(
-    #         [ValuationData.from_memory(new_value) for new_value in new_values]
-    #     )
-    #     self.current_ticker_values = new_values

@@ -9,7 +9,7 @@ from investorbot.enums import AppIntegration
 from investorbot.interfaces.services import ICryptoService
 from investorbot.services import AppService, SmtpService
 from investorbot.integrations.cryptodotcom.services import CryptoService
-from investorbot.integrations.simulation import simulation_db_service
+from investorbot.integrations.simulation import simulation_db_service, time_service
 from investorbot.integrations.simulation.services import SimulatedCryptoService
 
 SIMULATED_ENVIRONMENT_MESSAGE = """
@@ -38,7 +38,7 @@ def get_crypto_service() -> ICryptoService:
     __crypto_service: ICryptoService = None
 
     if INVESTOR_APP_INTEGRATION == AppIntegration.SIMULATED.value:
-        __crypto_service = SimulatedCryptoService(simulation_db_service)
+        __crypto_service = SimulatedCryptoService(simulation_db_service, time_service)
         logger.info(SIMULATED_ENVIRONMENT_MESSAGE)
     elif INVESTOR_APP_INTEGRATION == AppIntegration.CRYPTODOTCOM.value:
         __crypto_service = CryptoService()

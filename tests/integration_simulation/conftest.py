@@ -4,6 +4,7 @@ from investorbot.enums import AppIntegration
 from investorbot.integrations.simulation.services import (
     SimulatedCryptoService,
     SimulationService,
+    TestingTime,
 )
 
 
@@ -18,9 +19,10 @@ def set_environment(monkeypatch):
 @pytest.fixture
 def mock_simulated_crypto_service() -> SimulatedCryptoService:
     simulation_service = SimulationService("sqlite:///:memory:")
+    time_service = TestingTime()
 
     simulation_service.run_migration()
 
-    crypto_service = SimulatedCryptoService(simulation_service)
+    crypto_service = SimulatedCryptoService(simulation_service, time_service)
 
     return crypto_service

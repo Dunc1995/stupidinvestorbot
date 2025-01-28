@@ -18,8 +18,11 @@ def test_get_coin_balance_returns_latest_entry(mock_simulated_crypto_service):
         coin_name="USD", market_value=120.0, quantity=120.0, reserved_quantity=0.0
     )
 
-    wallet_entry_two.time_creates_ms = datetime.now() + timedelta(days=1)
-    wallet_entry_three.time_creates_ms = datetime.now() + timedelta(days=2)
+    # time service automatically increments time for testing purposes.
+    wallet_entry_two.time_creates_ms = mock_simulated_crypto_service.time_service.now()
+    wallet_entry_three.time_creates_ms = (
+        mock_simulated_crypto_service.time_service.now()
+    )
 
     # Add three wallet entries with different creation times.
     mock_simulated_crypto_service.simulation_service.add_item(wallet_entry)
