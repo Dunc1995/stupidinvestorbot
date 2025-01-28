@@ -153,3 +153,53 @@ def test_cash_balance_is_correctly_calculated(mock_simulated_crypto_service):
     ), "Cash balance needs to be calculated using latest entries - not all position balances."
 
     assert cash_balance == 125.0, "Calculated value is not correct."
+
+
+def test_investable_coin_count_is_correct(mock_simulated_crypto_service):
+    mock_simulated_crypto_service.simulation_service.add_items(
+        [
+            PositionBalanceSimulated(
+                coin_name="USD",
+                market_value=75.0,
+                quantity=75.0,
+                reserved_quantity=0.0,
+            ),
+            PositionBalanceSimulated(
+                coin_name="ETH",
+                market_value=25.0,
+                quantity=0.07,
+                reserved_quantity=0.0,
+            ),
+        ]
+    )
+
+    crypto_service: ICryptoService = mock_simulated_crypto_service
+
+    count = crypto_service.get_investable_coin_count()
+
+    assert count == 2
+
+
+def test_investable_coin_count_is_correct_two(mock_simulated_crypto_service):
+    mock_simulated_crypto_service.simulation_service.add_items(
+        [
+            PositionBalanceSimulated(
+                coin_name="USD",
+                market_value=90.0,
+                quantity=90.0,
+                reserved_quantity=0.0,
+            ),
+            PositionBalanceSimulated(
+                coin_name="ETH",
+                market_value=10.0,
+                quantity=0.07,
+                reserved_quantity=0.0,
+            ),
+        ]
+    )
+
+    crypto_service: ICryptoService = mock_simulated_crypto_service
+
+    count = crypto_service.get_investable_coin_count()
+
+    assert count == 4

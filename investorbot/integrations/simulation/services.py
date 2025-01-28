@@ -151,6 +151,7 @@ class SimulatedCryptoService(ICryptoService):
 
         return data[0]
 
+    # TODO method can most likely be simplified.
     def __adjust_balance(
         self,
         coin_name: str,
@@ -225,19 +226,26 @@ class SimulatedCryptoService(ICryptoService):
         )
 
     def get_usd_balance(self) -> float:
+        # ! Note here reserved quantity in realistic circumstances may confuse things whilst
+        # ! trading in reality. For simulation purposes it's being ignored to simplify things.
         usd_balance = float(self.get_coin_balance("USD").market_value)
 
         return usd_balance
 
     def get_investable_coin_count(self) -> int:
+        # TODO update tests once percentage-to-invest is configurable
         user_balance = self.get_usd_balance()
+        total_cash_balance = self.get_total_cash_balance()
 
         percentage_to_invest = (
-            user_balance / self.get_total_cash_balance() - 0.5
+            user_balance / total_cash_balance - 0.5
         )  # TODO make configurable
 
+        # FIXME INVESTMENT_INCREMENTS will break tests if changed.
         number_of_coins_to_invest = (
-            math.floor(user_balance * percentage_to_invest / INVESTMENT_INCREMENTS)
+            math.floor(
+                total_cash_balance * percentage_to_invest / INVESTMENT_INCREMENTS
+            )
             if percentage_to_invest > 0
             else 0
         )
