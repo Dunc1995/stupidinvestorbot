@@ -93,3 +93,63 @@ def test_wallet_tracks_usd_balance_with_orders(
     assert math.isclose(
         final_usd_balance, 100.7261, abs_tol=1e-04
     ), "Final USD balance is not correct."
+
+
+def test_cash_balance_is_correctly_calculated(mock_simulated_crypto_service):
+    """Total cash balance should reflect the latest PositionBalance entries in the db. Here I'm
+    expecting ONLY the modified balances to be summed.
+    """
+    modified_usd_balance = PositionBalanceSimulated(
+        coin_name="USD",
+        market_value=105.0,
+        quantity=105.0,
+        reserved_quantity=0.0,
+    )
+
+    # Time increments ensure the modified balances are the latest entries in the db.
+    # Increment time
+    modified_usd_balance.time_creates_ms = (
+        mock_simulated_crypto_service.time_service.now()
+    )
+
+    modified_eth_balance = PositionBalanceSimulated(
+        coin_name="ETH",
+        market_value=20.0,
+        quantity=0.045,
+        reserved_quantity=0.0,
+    )
+
+    # Increment time
+    modified_eth_balance.time_creates_ms = (
+        mock_simulated_crypto_service.time_service.now()
+    )
+
+    mock_simulated_crypto_service.simulation_service.add_items(
+        [
+            PositionBalanceSimulated(
+                coin_name="USD",
+                market_value=100.0,
+                quantity=100.0,
+                reserved_quantity=0.0,
+            ),
+            modified_usd_balance,
+            PositionBalanceSimulated(
+                coin_name="ETH",
+                market_value=15.0,
+                quantity=0.045,
+                reserved_quantity=0.0,
+            ),
+            modified_eth_balance,
+        ]
+    )
+
+    # Use ICryptoService to avoid referencing simulation-specific functionality
+    crypto_service: ICryptoService = mock_simulated_crypto_service
+
+    cash_balance = crypto_service.get_total_cash_balance()
+
+    assert (
+        cash_balance != 240.0
+    ), "Cash balance needs to be calculated using latest entries - not all position balances."
+
+    assert cash_balance == 125.0, "Calculated value is not correct."

@@ -122,13 +122,16 @@ class SimulatedCryptoService(ICryptoService):
     def __get_guid(self):
         return str(uuid.uuid4())
 
-    def __get_total_cash_balance(self) -> float:
+    def get_total_cash_balance(self) -> float:
         position_balances: List[PositionBalanceSimulated] = []
-        session = self.session
-        query = sqlalchemy.select(PositionBalanceSimulated)
+        session = self.simulation_service.session
+        query = session.query(
+            PositionBalanceSimulated,
+            func.max(PositionBalanceSimulated.time_creates_ms),
+        ).group_by(PositionBalanceSimulated.coin_name)
 
-        for item in session.scalars(query):
-            position_balances.append(item)
+        for item in query:
+            position_balances.append(item[0])
 
         return sum(c.market_value for c in position_balances)
 
@@ -230,7 +233,7 @@ class SimulatedCryptoService(ICryptoService):
         user_balance = self.get_usd_balance()
 
         percentage_to_invest = (
-            user_balance / self.__get_total_cash_balance() - 0.5
+            user_balance / self.get_total_cash_balance() - 0.5
         )  # TODO make configurable
 
         number_of_coins_to_invest = (
