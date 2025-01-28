@@ -48,7 +48,7 @@ def test_wallet_tracks_usd_balance_with_orders(
 
     usd_balance = crypto_service.get_usd_balance()
 
-    assert usd_balance == 100.0, "Incorrect starting balance."
+    assert usd_balance == 100.0, "Incorrect starting USD balance."
 
     coin_name = "ETH_USD"
 
@@ -60,7 +60,11 @@ def test_wallet_tracks_usd_balance_with_orders(
     # Place buy order - this should detract from USD balance
     updated_usd_balance = crypto_service.get_usd_balance()
 
-    assert updated_usd_balance == 90.0, "Buy order has not been deducted."
+    updated_eth_balance = crypto_service.get_coin_balance("ETH")
+
+    assert (
+        updated_usd_balance == 90.0
+    ), "Buy order has not been deducted from USD balance."
 
     buy_order_id = buy_order.buy_order_id
     mock_app_service.add_item(buy_order)
@@ -68,13 +72,20 @@ def test_wallet_tracks_usd_balance_with_orders(
     # Retrieving buy order from db just for completeness.
     order_detail = crypto_service.get_order_detail(buy_order_id)
 
-    coin_sale = CoinSale(coin_props, 2200.0, order_detail.cumulative_quantity)
+    coin_sale = CoinSale(
+        coin_props,
+        2200.0,
+        order_detail.cumulative_quantity - order_detail.cumulative_fee,
+    )
 
     # Place sell order - this should add to USD balance
     crypto_service.place_coin_sell_order(buy_order_id, coin_sale)
 
     # Check money has been added back to USD balance
     final_usd_balance = crypto_service.get_usd_balance()
+
+    # TODO implement better approach to market value
+    final_eth_balance = crypto_service.get_coin_balance("ETH")
 
     assert math.isclose(
         final_usd_balance, 100.7261, abs_tol=1e-04
