@@ -1,7 +1,6 @@
 import atexit
 from flask import Flask, render_template, request
 from investorbot import crypto_service, smtp_service
-import investorbot.routines as routines
 from apscheduler.schedulers.background import BackgroundScheduler
 
 # from investorbot.smtp import send_test_email

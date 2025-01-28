@@ -208,7 +208,7 @@ def sell_coin_routine():
             )
             app_service.add_item(sell_order)
         except HTTPError as http_error:
-            #! FIXME need to find the specific error here rather than hiding 500 errors.
+            # ! FIXME need to find the specific error here rather than hiding 500 errors.
             if http_error.response.status_code != 500:
                 raise http_error
             else:

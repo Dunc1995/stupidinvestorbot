@@ -80,7 +80,7 @@ class SimulatedCryptoService(ICryptoService):
 
         # TODO quantity variable is only used once in this method - probably not necessary
         # TODO "USD" functionality may need separating out here.
-        quantity_adjustment = total_value if coin_name is "USD" else quantity
+        quantity_adjustment = total_value if coin_name == "USD" else quantity
 
         if is_selling:
             new_coin_quantity = current_wallet_entry.quantity - quantity_adjustment
