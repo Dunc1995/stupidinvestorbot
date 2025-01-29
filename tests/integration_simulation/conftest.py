@@ -18,7 +18,12 @@ def set_environment(monkeypatch):
 
 
 @pytest.fixture
-def mock_simulated_crypto_service() -> SimulatedCryptoService:
+def mock_simulated_crypto_service(monkeypatch) -> SimulatedCryptoService:
+    monkeypatch.setattr(
+        "investorbot.integrations.simulation.providers.TIME_SERIES_DATA_PATH",
+        "./tests/integration_simulation/fixtures/simulation.csv",
+    )
+
     simulation_service = SimulationService("sqlite:///:memory:")
     time_service = TestingTime()
     data_provider = DataProvider()

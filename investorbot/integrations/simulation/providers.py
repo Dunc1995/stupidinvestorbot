@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from os import path
 import time
 from typing import List, Tuple
 import numpy as np
@@ -20,13 +21,14 @@ class DataProvider(IDataProvider):
     rng = np.random.default_rng(seed=2322)
     current_ticker_values: Tuple[dict, datetime] = {
         ticker["i"]: ticker["a"] for ticker in TICKERS
-    }, datetime.now()
+    }, datetime.now().timestamp() * 1000
     trend_percentage = 0.0
-    start_time = datetime.now()
-    time_delta = timedelta(seconds=20)
+    start_time = datetime.now().timestamp() * 1000
+    time_delta = 20 * 1000
 
     def __init__(self):
-        self.time_series_data = pd.read_csv(TIME_SERIES_DATA_PATH)
+        if path.exists(TIME_SERIES_DATA_PATH):
+            self.time_series_data = pd.read_csv(TIME_SERIES_DATA_PATH)
         pass
 
     def roll_dice(self) -> float:
@@ -62,7 +64,7 @@ class DataProvider(IDataProvider):
         current_ticker_values = self.current_ticker_values[0]
         trend_percentage = self.trend_percentage
         start_time = self.start_time
-        self.time_delta += timedelta(seconds=20)
+        self.time_delta += 20 * 1000
 
         current_time = start_time + self.time_delta
         sigma = 0.01  # standard deviation
@@ -110,6 +112,11 @@ class DataProvider(IDataProvider):
         ]
 
     def get_coin_time_series_data(self, coin_name: str) -> dict:
+        # TODO:
+        #       converting DataFrame to List[dict] seems a bit superfluous here - this is a hangup
+        #       from the application being designed around the Crypto.com API - can most likely be
+        #       simplified.
+
         coin_data = self.time_series_data[["t", coin_name]]
         coin_data = [
             {"t": x, "v": y} for x, y in zip(coin_data["t"], coin_data[coin_name])
