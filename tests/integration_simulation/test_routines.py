@@ -1,3 +1,4 @@
+import math
 from investorbot.integrations.simulation.models import PositionBalanceSimulated
 from investorbot.routines import buy_coin_routine, refresh_market_analysis_routine
 
@@ -38,3 +39,16 @@ def test_buy_order_routine_works_on_simulation(
 
     # TODO add some assertions for what to expect after running this
     buy_coin_routine()
+
+    final_usd_balance = mock_simulated_crypto_service.get_usd_balance()
+    cash_balance = mock_simulated_crypto_service.get_total_cash_balance()
+
+    buy_order_count = len(mock_app_service.get_all_buy_orders())
+
+    assert buy_order_count == 5, "Number of buy orders isn't correct."
+    assert math.isclose(
+        final_usd_balance, 50.0, abs_tol=1
+    ), "Final wallet balance isn't correct."
+
+    # Cash balance is expected to be a bit lower after fee deductions (0.5% fee)
+    assert math.isclose(cash_balance, 99.75, abs_tol=0.1)
