@@ -15,7 +15,7 @@ from investorbot.integrations.simulation.data.instruments import INSTRUMENTS
 from investorbot.integrations.cryptodotcom.structs import InstrumentJson
 
 # endregion
-from investorbot.integrations.simulation.interfaces import ITime
+from investorbot.integrations.simulation.interfaces import IDataProvider, ITime
 from investorbot.integrations.simulation.structs import PositionBalanceAdjustmentResult
 from investorbot.interfaces.services import ICryptoService
 from investorbot.models import BuyOrder, CoinProperties, SellOrder
@@ -50,7 +50,13 @@ class TestingTime(ITime):
 
 
 class SimulatedCryptoService(ICryptoService):
-    def __init__(self, simulation_service: SimulationService, time_service: ITime):
+    def __init__(
+        self,
+        simulation_service: SimulationService,
+        time_service: ITime,
+        data_provider: IDataProvider,
+    ):
+        self.data = data_provider
         self.simulation_service = simulation_service
         self.time_service = time_service
 
@@ -186,16 +192,13 @@ class SimulatedCryptoService(ICryptoService):
         return number_of_coins_to_invest
 
     def get_latest_trade(self, coin_name: str) -> LatestTrade:
-        # TODO maybe fetch from memory
-        pass
+        return self.data.get_latest_trade(coin_name)
 
     def get_latest_trades(self) -> List[LatestTrade]:
-        # TODO maybe fetch from memory
-        pass
+        return self.data.get_latest_trades()
 
     def get_coin_time_series_data(self, coin_name: str, hours=24) -> dict:
-        # TODO maybe fetch from memory
-        pass
+        return self.data.get_coin_time_series_data(coin_name)
 
     def get_order_detail(self, order_id: str) -> OrderDetail:
         session = self.simulation_service.session

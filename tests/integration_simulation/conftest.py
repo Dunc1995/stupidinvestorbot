@@ -1,6 +1,7 @@
 import pytest
 
 from investorbot.enums import AppIntegration
+from investorbot.integrations.simulation.providers import DataProvider
 from investorbot.integrations.simulation.services import (
     SimulatedCryptoService,
     SimulationService,
@@ -20,9 +21,12 @@ def set_environment(monkeypatch):
 def mock_simulated_crypto_service() -> SimulatedCryptoService:
     simulation_service = SimulationService("sqlite:///:memory:")
     time_service = TestingTime()
+    data_provider = DataProvider()
 
     simulation_service.run_migration()
 
-    crypto_service = SimulatedCryptoService(simulation_service, time_service)
+    crypto_service = SimulatedCryptoService(
+        simulation_service, time_service, data_provider
+    )
 
     return crypto_service

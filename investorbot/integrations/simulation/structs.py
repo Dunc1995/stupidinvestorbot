@@ -9,10 +9,3 @@ class PositionBalanceAdjustmentResult:
     net_quantity: float
     fee_amount: float
     fee_currency: str
-
-
-@dataclass
-class ValuationData:
-    instrument_name: str
-    t: int
-    v: float
