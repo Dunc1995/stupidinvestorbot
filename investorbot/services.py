@@ -38,7 +38,12 @@ class BaseAppService:
     __engine: Engine
 
     def __init__(self, base: DeclarativeBase, connection_string):
-        self.__engine = sqlalchemy.create_engine(connection_string)
+        if connection_string == "sqlite:///:memory:":
+            self.__engine = sqlalchemy.create_engine(connection_string)
+        else:
+            self.__engine = sqlalchemy.create_engine(
+                connection_string, pool_size=200, max_overflow=20
+            )
         self.__base = base
 
     @property

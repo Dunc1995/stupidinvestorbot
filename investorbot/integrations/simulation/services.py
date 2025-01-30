@@ -63,6 +63,32 @@ class SimulatedCryptoService(ICryptoService):
     def __get_guid(self):
         return str(uuid.uuid4())
 
+    def __to_instrument_name(self, coin_name: str):
+        """This is a design flaw on my part conflating coin name with instrument name. It's not such
+        an issue whilst trading with USD exclusively."""
+        return coin_name + "_USD" if "_USD" not in coin_name else coin_name
+
+    def get_market_value_per_coin(self, coin_name: str) -> float:
+        instrument_name = self.__to_instrument_name(coin_name)
+
+        return float(self.data.current_ticker_values[0][instrument_name])
+
+    def set_market_value_per_coin(self, coin_name: str, fake_value: float) -> float:
+        """Do not use during live simulation - use this only for testing."""
+        instrument_name = self.__to_instrument_name(coin_name)
+
+        self.data.current_ticker_values[0][instrument_name] = fake_value
+
+    def get_market_value(self, coin_name: str, quantity: float) -> float:
+        """Derives market value by per_coin_value * quantity. If USD quantity then market value is a
+        one-to-one ratio with market value.
+        """
+
+        if coin_name == "USD":
+            return quantity
+
+        return self.get_market_value_per_coin(coin_name) * float(quantity)
+
     def get_total_cash_balance(self) -> float:
         position_balances: List[PositionBalanceSimulated] = []
         session = self.simulation_service.session
@@ -75,12 +101,7 @@ class SimulatedCryptoService(ICryptoService):
             position_balances.append(item[0])
 
         return sum(
-            (
-                float(self.data.current_ticker_values[0][c.coin_name + "_USD"])
-                if c.coin_name != "USD"
-                else float(c.quantity)
-            )
-            for c in position_balances
+            self.get_market_value(c.coin_name, c.quantity) for c in position_balances
         )
 
     def __get_coin_balance(self, coin_name: str) -> PositionBalanceSimulated | None:
@@ -110,7 +131,7 @@ class SimulatedCryptoService(ICryptoService):
         current_wallet_entry = self.__get_coin_balance(coin_name)
 
         if current_wallet_entry is None:
-            current_wallet_entry = PositionBalanceSimulated(coin_name, 0.0, 0.0, 0.0)
+            current_wallet_entry = PositionBalanceSimulated(coin_name, 0.0, 0.0)
             current_wallet_entry.time_creates_ms = self.time_service.now()
 
         new_coin_quantity = None
@@ -127,7 +148,6 @@ class SimulatedCryptoService(ICryptoService):
         new_wallet_entry = PositionBalanceSimulated(
             coin_name=coin_name,
             quantity=new_coin_quantity,
-            market_value=-1.0,
             reserved_quantity=0.0,
         )
 
@@ -163,11 +183,7 @@ class SimulatedCryptoService(ICryptoService):
 
         result = self.__get_coin_balance(final_coin_name)
 
-        market_value = (
-            self.data.current_ticker_values[0][final_coin_name + "_USD"]
-            if final_coin_name != "USD"
-            else result.quantity
-        )
+        market_value = self.get_market_value(result.coin_name, result.quantity)
 
         return PositionBalance(
             coin_name=result.coin_name,

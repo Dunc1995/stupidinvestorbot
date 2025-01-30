@@ -9,13 +9,13 @@ from investorbot.structs.egress import CoinPurchase, CoinSale
 
 def test_get_coin_balance_returns_latest_entry(mock_simulated_crypto_service):
     wallet_entry = PositionBalanceSimulated(
-        coin_name="USD", market_value=100.0, quantity=100.0, reserved_quantity=0.0
+        coin_name="USD", quantity=100.0, reserved_quantity=0.0
     )
     wallet_entry_two = PositionBalanceSimulated(
-        coin_name="USD", market_value=110.0, quantity=110.0, reserved_quantity=0.0
+        coin_name="USD", quantity=110.0, reserved_quantity=0.0
     )
     wallet_entry_three = PositionBalanceSimulated(
-        coin_name="USD", market_value=120.0, quantity=120.0, reserved_quantity=0.0
+        coin_name="USD", quantity=120.0, reserved_quantity=0.0
     )
 
     # time service automatically increments time for testing purposes.
@@ -41,7 +41,7 @@ def test_wallet_tracks_usd_balance_with_orders(
     mock_app_service, mock_simulated_crypto_service
 ):
     wallet_entry = PositionBalanceSimulated(
-        coin_name="USD", market_value=100.0, quantity=100.0, reserved_quantity=0.0
+        coin_name="USD", quantity=100.0, reserved_quantity=0.0
     )
 
     mock_simulated_crypto_service.simulation_service.add_item(wallet_entry)
@@ -101,7 +101,6 @@ def test_cash_balance_is_correctly_calculated(mock_simulated_crypto_service):
     """
     modified_usd_balance = PositionBalanceSimulated(
         coin_name="USD",
-        market_value=105.0,
         quantity=105.0,
         reserved_quantity=0.0,
     )
@@ -114,10 +113,12 @@ def test_cash_balance_is_correctly_calculated(mock_simulated_crypto_service):
 
     modified_eth_balance = PositionBalanceSimulated(
         coin_name="ETH",
-        market_value=20.0,
         quantity=0.045,
         reserved_quantity=0.0,
     )
+
+    # Forces market value to equal $20 for ETH (quantity * price_per_coin).
+    mock_simulated_crypto_service.set_market_value_per_coin("ETH_USD", 444.444444)
 
     # Increment time
     modified_eth_balance.time_creates_ms = (
@@ -128,15 +129,13 @@ def test_cash_balance_is_correctly_calculated(mock_simulated_crypto_service):
         [
             PositionBalanceSimulated(
                 coin_name="USD",
-                market_value=100.0,
                 quantity=100.0,
                 reserved_quantity=0.0,
             ),
             modified_usd_balance,
             PositionBalanceSimulated(
                 coin_name="ETH",
-                market_value=15.0,
-                quantity=0.045,
+                quantity=0.09,
                 reserved_quantity=0.0,
             ),
             modified_eth_balance,
@@ -149,10 +148,12 @@ def test_cash_balance_is_correctly_calculated(mock_simulated_crypto_service):
     cash_balance = crypto_service.get_total_cash_balance()
 
     assert (
-        cash_balance != 240.0
+        cash_balance != 140.0
     ), "Cash balance needs to be calculated using latest entries - not all position balances."
 
-    assert cash_balance == 125.0, "Calculated value is not correct."
+    assert math.isclose(
+        cash_balance, 125.0, abs_tol=1e-06
+    ), "Calculated value is not correct."
 
 
 def test_investable_coin_count_is_correct(mock_simulated_crypto_service):
@@ -160,18 +161,19 @@ def test_investable_coin_count_is_correct(mock_simulated_crypto_service):
         [
             PositionBalanceSimulated(
                 coin_name="USD",
-                market_value=75.0,
                 quantity=75.0,
                 reserved_quantity=0.0,
             ),
             PositionBalanceSimulated(
                 coin_name="ETH",
-                market_value=25.0,
                 quantity=0.07,
                 reserved_quantity=0.0,
             ),
         ]
     )
+
+    # Forces market value to equal $25 for ETH (quantity * price_per_coin).
+    mock_simulated_crypto_service.set_market_value_per_coin("ETH_USD", 357.142857)
 
     crypto_service: ICryptoService = mock_simulated_crypto_service
 
@@ -185,18 +187,19 @@ def test_investable_coin_count_is_correct_two(mock_simulated_crypto_service):
         [
             PositionBalanceSimulated(
                 coin_name="USD",
-                market_value=90.0,
                 quantity=90.0,
                 reserved_quantity=0.0,
             ),
             PositionBalanceSimulated(
                 coin_name="ETH",
-                market_value=10.0,
                 quantity=0.07,
                 reserved_quantity=0.0,
             ),
         ]
     )
+
+    # Forces market value to equal $10 for ETH (quantity * price_per_coin).
+    mock_simulated_crypto_service.set_market_value_per_coin("ETH_USD", 142.857142)
 
     crypto_service: ICryptoService = mock_simulated_crypto_service
 

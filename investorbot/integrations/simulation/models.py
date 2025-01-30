@@ -33,7 +33,5 @@ class PositionBalanceSimulated(TimestampMixin, SimulationBase):
         primary_key=True, autoincrement=True, init=False
     )
     coin_name: Mapped[str] = mapped_column()
-    # TODO don't dedicate a column to market value as fluctuations in market value need to reflect latest prices
-    market_value: Mapped[float] = mapped_column(Float())
     quantity: Mapped[float] = mapped_column(Float())
     reserved_quantity: Mapped[float] = mapped_column(Float())
