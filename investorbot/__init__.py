@@ -11,7 +11,6 @@ from investorbot.services import AppService, SmtpService
 from investorbot.integrations.cryptodotcom.services import CryptoService
 from investorbot.integrations.simulation import (
     simulation_db_service,
-    time_service,
     data_provider,
 )
 from investorbot.integrations.simulation.services import SimulatedCryptoService
@@ -50,9 +49,7 @@ def get_crypto_service() -> ICryptoService:
     __crypto_service: ICryptoService = None
 
     if is_simulation():
-        __crypto_service = SimulatedCryptoService(
-            simulation_db_service, time_service, data_provider
-        )
+        __crypto_service = SimulatedCryptoService(simulation_db_service, data_provider)
         logger.info(SIMULATED_ENVIRONMENT_MESSAGE)
     elif is_crypto_dot_com():
         __crypto_service = CryptoService()

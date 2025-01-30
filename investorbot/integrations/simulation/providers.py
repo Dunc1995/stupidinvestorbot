@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+import logging
 from os import path
 import time
 from typing import List, Tuple
@@ -6,29 +7,87 @@ import numpy as np
 import pandas as pd
 from pandas import DataFrame
 
+from investorbot.constants import DEFAULT_LOGS_NAME
 from investorbot.integrations.simulation.constants import TIME_SERIES_DATA_PATH
 from investorbot.integrations.simulation.data.tickers import TICKERS
-from investorbot.integrations.simulation.interfaces import IDataProvider
+from investorbot.integrations.simulation.interfaces import IDataProvider, ITime
 from investorbot.structs.internal import LatestTrade
+
+logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
 
 def get_first_row() -> dict:
     return {x["i"]: x["a"] for x in TICKERS}
 
 
+class StaticTimeProvider(ITime):
+    __current_time: datetime
+
+    def __init__(self):
+        self.__current_time = datetime.now()
+
+    def now(self) -> datetime:
+        """Here I'm simulating the passage of time in a very crude sense. This is to be used
+        whenever the point in time is mostly irrelevant or in simplistic tests."""
+        self.__current_time += timedelta(minutes=1)
+
+        return self.__current_time
+
+    def now_in_ms(self) -> int:
+        return int(self.__current_time.timestamp()) * 1000
+
+    def increment_time(self):
+        raise NotImplementedError(
+            "Unexpected attempt to increment time during testing."
+        )
+
+
+class SimulatedTimeProvider(ITime):
+    start_time: datetime
+    now_time: datetime
+    increment: timedelta
+
+    def __init__(self, time_offset=timedelta(days=1), increment=timedelta(seconds=20)):
+        self.start_time = datetime.now() - time_offset
+        self.now_time = self.start_time
+        self.increment = increment
+
+    def increment_time(self) -> datetime:
+        self.now_time += self.increment
+        return self.now_time
+
+    def now(self) -> datetime:
+        return self.now_time
+
+    def now_in_ms(self) -> int:
+        return int(self.now_time.timestamp()) * 1000
+
+
 class DataProvider(IDataProvider):
     time_series_data: DataFrame
+    """Cached market value history. Used to fetch timeseries data."""
+
     rng = np.random.default_rng(seed=2322)
+    """Random number generator."""
+
     current_ticker_values: Tuple[dict, datetime] = {
         ticker["i"]: ticker["a"] for ticker in TICKERS
     }, datetime.now().timestamp() * 1000
-    trend_percentage = 0.0
-    start_time = int(datetime.now().timestamp()) * 1000
-    time_delta = 20 * 1000
+    """Current ticker values reflect the most up-to-date values for all coins on the market."""
 
-    def __init__(self):
+    trend_percentage = 0.0
+    """Used for generating an overall market trend whilst generating random coin values."""
+
+    __time: ITime
+
+    def __init__(self, time_provider: ITime):
+        self.__time = time_provider
         if path.exists(TIME_SERIES_DATA_PATH):
             self.time_series_data = pd.read_csv(TIME_SERIES_DATA_PATH)
+
+    @property
+    def time(self) -> ITime:
+        return self.__time
 
     def roll_dice(self) -> float:
         result = self.rng.integers(low=1, high=6, endpoint=True, size=4).mean()
@@ -42,19 +101,23 @@ class DataProvider(IDataProvider):
         dice_roll = self.roll_dice()
 
         if dice_roll > 4.5:
-            print("INCREASE")
+            logger.info(
+                f"Market trend increase - change now trending at {self.trend_percentage}%"
+            )
             if trend_percentage < 0.0:
                 trend_percentage = 0.0
 
             self.trend_percentage += 0.0002
         elif dice_roll < 2.5:
-            print("DECREASE")
+            logger.info(
+                f"Market trend decrease - change now trending at {self.trend_percentage}%"
+            )
             if trend_percentage > 0.0:
                 trend_percentage = 0
 
             self.trend_percentage -= 0.0002
         else:
-            print("ON_TREND")
+            logger.info(f"Market change trending at {self.trend_percentage}%")
 
     def get_random_value(self, mean, st_deviation):
         return np.random.normal(loc=mean, scale=st_deviation)
@@ -62,10 +125,7 @@ class DataProvider(IDataProvider):
     def increment_ts_data(self) -> Tuple[dict, datetime]:
         current_ticker_values = self.current_ticker_values[0]
         trend_percentage = self.trend_percentage
-        start_time = self.start_time
-        self.time_delta += 20 * 1000
 
-        current_time = start_time + self.time_delta
         sigma = 0.01  # standard deviation
 
         for coin_name in current_ticker_values.keys():
@@ -74,7 +134,7 @@ class DataProvider(IDataProvider):
             new_price = float(current_ticker_values[coin_name]) * (1 + s)
             current_ticker_values[coin_name] = new_price
 
-        self.current_ticker_values = current_ticker_values, current_time
+        self.current_ticker_values = current_ticker_values, self.time.now_in_ms()
         return self.current_ticker_values
 
     def generate_time_series_data(self):
@@ -89,6 +149,7 @@ class DataProvider(IDataProvider):
         print(time_series_data)
 
         while i < max_iter:
+            self.time.increment_time()
             new_values = self.increment_ts_data()
             df = pd.DataFrame(new_values[0], index=[new_values[1]])
             df.index.name = "t"
@@ -127,10 +188,11 @@ class DataProvider(IDataProvider):
         i = 0
 
         while i < 3600:
+            current_time = self.time.increment_time()
             self.increment_ts_data()
 
             if i % 36 == 0:
                 self.trend_updater()
-            print(self.current_ticker_values[1])
+            logger.info(current_time)
             time.sleep(1)
             i += 1

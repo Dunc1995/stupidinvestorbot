@@ -35,30 +35,14 @@ class SimulationService(BaseAppService):
         super().__init__(SimulationBase, connection_string)
 
 
-class TestingTime(ITime):
-    __current_time: datetime
-
-    def __init__(self):
-        self.__current_time = datetime.now()
-
-    def now(self) -> datetime:
-        """Here I'm simulating the passage of time in a very crude sense. This is to be used
-        whenever the point in time is mostly irrelevant or in simplistic tests."""
-        self.__current_time += timedelta(minutes=1)
-
-        return self.__current_time
-
-
 class SimulatedCryptoService(ICryptoService):
     def __init__(
         self,
         simulation_service: SimulationService,
-        time_service: ITime,
         data_provider: IDataProvider,
     ):
         self.data = data_provider
         self.simulation_service = simulation_service
-        self.time_service = time_service
 
     def __get_guid(self):
         return str(uuid.uuid4())
@@ -132,7 +116,7 @@ class SimulatedCryptoService(ICryptoService):
 
         if current_wallet_entry is None:
             current_wallet_entry = PositionBalanceSimulated(coin_name, 0.0, 0.0)
-            current_wallet_entry.time_creates_ms = self.time_service.now()
+            current_wallet_entry.time_creates_ms = self.data.time.now()
 
         new_coin_quantity = None
 
@@ -151,7 +135,7 @@ class SimulatedCryptoService(ICryptoService):
             reserved_quantity=0.0,
         )
 
-        new_wallet_entry.time_creates_ms = self.time_service.now()
+        new_wallet_entry.time_creates_ms = self.data.time.now()
 
         self.simulation_service.add_item(new_wallet_entry)
 

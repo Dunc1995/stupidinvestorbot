@@ -10,6 +10,14 @@ class ITime(ABC):
     def now(self) -> datetime:
         pass
 
+    @abstractmethod
+    def now_in_ms(self) -> int:
+        pass
+
+    @abstractmethod
+    def increment_time(self) -> datetime:
+        pass
+
 
 class IDataProvider(ABC):
 
@@ -40,4 +48,9 @@ class IDataProvider(ABC):
 
     @abstractmethod
     def run_in_real_time(self) -> None:
+        pass
+
+    @property
+    @abstractmethod
+    def time(self) -> ITime:
         pass
