@@ -1,10 +1,10 @@
 import atexit
 from datetime import datetime, timedelta
-from flask import Flask, render_template, request
+from flask import Flask, render_template
 from investorbot.db import init_db
 from investorbot.integrations.simulation import data_provider
-from investorbot import routines
-from investorbot import crypto_service, is_simulation, smtp_service
+from investorbot import is_crypto_dot_com, routines
+from investorbot import crypto_service, app_service, is_simulation, smtp_service
 from apscheduler.schedulers.background import BackgroundScheduler
 
 # from investorbot.smtp import send_test_email
@@ -58,27 +58,26 @@ def run_api(host="127.0.0.1", port=5000, persist_data=False):
         )
         job.modify(next_run_time=datetime.now() + timedelta(seconds=5))
 
-    scheduler.start()
+    if not is_crypto_dot_com():
+        scheduler.start()
 
-    # Shut down the scheduler when exiting the app
-    atexit.register(lambda: scheduler.shutdown())
+        # Shut down the scheduler when exiting the app
+        atexit.register(lambda: scheduler.shutdown())
 
     app.run(host, port)
 
 
 @app.route("/")
 def index():
-    # return {"latest-trades": "http://127.0.0.1:5000/get-latest-trades"}
-    crypto_dot_com_links = [
-        "/get-tickers",
-        "/get-valuations?instrument_name=BTC_USD&valuation_type=mark_price&count=2880",
-        "/user-balance",
-    ]
     internal_links = [
         {
             "link": "/get-latest-trades",
             "description": "derived from '/get-tickers'",
-        }
+        },
+        {
+            "link": "/get-market-analysis",
+            "description": "gets statistical summaries for coins of interest.",
+        },
     ]
     functionality_links = [
         {
@@ -90,32 +89,23 @@ def index():
     return render_template(
         "index.html",
         internal_links=internal_links,
-        api_links=crypto_dot_com_links,
         functionality_links=functionality_links,
     )
-
-
-@app.route("/get-tickers")
-def get_tickers():
-    return crypto_service.market.get_usd_tickers()
-
-
-@app.route("/get-valuations")
-def get_valuations():
-    instrument_name = request.args.get("instrument_name")
-    valuation_type = request.args.get("valuation_type")
-
-    return crypto_service.market.get_valuation(instrument_name, valuation_type)
-
-
-@app.route("/user-balance")
-def get_user_balance():
-    return crypto_service.user.get_balance().__dict__
 
 
 @app.route("/get-latest-trades")
 def get_latest_trades():
     return crypto_service.get_latest_trades()
+
+
+@app.route("/get-market-analysis")
+def get_market_analysis():
+    analysis = app_service.get_market_analysis()[0]
+
+    return {
+        "market_analysis": analysis.as_dict(),
+        "time_series_statistics": [ts_data.as_dict() for ts_data in analysis.ts_data],
+    }
 
 
 @app.route("/test-smtp")

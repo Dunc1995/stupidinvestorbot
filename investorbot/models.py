@@ -95,6 +95,9 @@ class TimeSeriesSummary(Base):
 
     __tablename__ = "time_series_data"
 
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
     summary_id: Mapped[int] = mapped_column(
         primary_key=True, autoincrement=True, init=False
     )
@@ -147,6 +150,9 @@ class TimeSeriesMode(Base):
 
     __tablename__ = "time_series_data_modes"
 
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
     mode_id: Mapped[int] = mapped_column(
         primary_key=True, autoincrement=True, init=False
     )
@@ -165,6 +171,9 @@ class MarketAnalysis(Base):
     invest."""
 
     __tablename__ = "market_analysis"
+
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
     market_analysis_id: Mapped[int] = mapped_column(
         primary_key=True, autoincrement=True, init=False

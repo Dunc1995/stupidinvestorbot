@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 import math
 from typing import List
 import uuid
@@ -15,7 +15,7 @@ from investorbot.integrations.simulation.data.instruments import INSTRUMENTS
 from investorbot.integrations.cryptodotcom.structs import InstrumentJson
 
 # endregion
-from investorbot.integrations.simulation.interfaces import IDataProvider, ITime
+from investorbot.integrations.simulation.interfaces import IDataProvider
 from investorbot.integrations.simulation.structs import PositionBalanceAdjustmentResult
 from investorbot.interfaces.services import ICryptoService
 from investorbot.models import BuyOrder, CoinProperties, SellOrder

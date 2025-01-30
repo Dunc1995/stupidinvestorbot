@@ -90,11 +90,7 @@ class DataProvider(IDataProvider):
         return self.__time
 
     def roll_dice(self) -> float:
-        result = self.rng.integers(low=1, high=6, endpoint=True, size=4).mean()
-
-        print(result)
-
-        return result
+        return self.rng.integers(low=1, high=6, endpoint=True, size=4).mean()
 
     def trend_updater(self):
         trend_percentage = self.trend_percentage
@@ -191,7 +187,7 @@ class DataProvider(IDataProvider):
             current_time = self.time.increment_time()
             self.increment_ts_data()
 
-            if i % 36 == 0:
+            if i % 10 == 0:
                 self.trend_updater()
             logger.info(current_time)
             time.sleep(1)
