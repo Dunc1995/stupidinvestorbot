@@ -74,7 +74,14 @@ class SimulatedCryptoService(ICryptoService):
         for item in query:
             position_balances.append(item[0])
 
-        return sum(c.market_value for c in position_balances)
+        return sum(
+            (
+                float(self.data.current_ticker_values[0][c.coin_name + "_USD"])
+                if c.coin_name != "USD"
+                else float(c.quantity)
+            )
+            for c in position_balances
+        )
 
     def __get_coin_balance(self, coin_name: str) -> PositionBalanceSimulated | None:
         session = self.simulation_service.session
@@ -107,7 +114,6 @@ class SimulatedCryptoService(ICryptoService):
             current_wallet_entry.time_creates_ms = self.time_service.now()
 
         new_coin_quantity = None
-        new_coin_market_value = None
 
         # TODO quantity variable is only used once in this method - probably not necessary
         # TODO "USD" functionality may need separating out here.
@@ -115,15 +121,13 @@ class SimulatedCryptoService(ICryptoService):
 
         if is_selling:
             new_coin_quantity = current_wallet_entry.quantity - quantity_adjustment
-            new_coin_market_value = current_wallet_entry.market_value - total_value
         else:
             new_coin_quantity = current_wallet_entry.quantity + quantity_adjustment
-            new_coin_market_value = current_wallet_entry.market_value + total_value
 
         new_wallet_entry = PositionBalanceSimulated(
             coin_name=coin_name,
-            market_value=new_coin_market_value,
             quantity=new_coin_quantity,
+            market_value=-1.0,
             reserved_quantity=0.0,
         )
 
@@ -155,11 +159,19 @@ class SimulatedCryptoService(ICryptoService):
         )
 
     def get_coin_balance(self, coin_name: str) -> PositionBalance | None:
-        result = self.__get_coin_balance(coin_name)
+        final_coin_name = coin_name.split("_")[0] if "_USD" in coin_name else coin_name
+
+        result = self.__get_coin_balance(final_coin_name)
+
+        market_value = (
+            self.data.current_ticker_values[0][final_coin_name + "_USD"]
+            if final_coin_name != "USD"
+            else result.quantity
+        )
 
         return PositionBalance(
             coin_name=result.coin_name,
-            market_value=result.market_value,
+            market_value=market_value,
             quantity=result.quantity,
             reserved_quantity=result.reserved_quantity,
         )
@@ -208,6 +220,8 @@ class SimulatedCryptoService(ICryptoService):
         )
         data = session.scalar(query)
 
+        time_created_ms: datetime = data.time_creates_ms
+
         return OrderDetail(
             status=data.status,
             order_id=data.order_id,
@@ -216,7 +230,7 @@ class SimulatedCryptoService(ICryptoService):
             quantity=data.quantity,
             fee=data.fee,
             fee_currency=data.fee_currency,
-            time_created_ms=data.time_creates_ms,
+            time_created_ms=int(time_created_ms.timestamp() * 1000),
         )
 
     def get_coin_properties(self) -> List[CoinProperties]:

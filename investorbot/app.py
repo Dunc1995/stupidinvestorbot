@@ -1,6 +1,9 @@
 import atexit
+from datetime import datetime, timedelta
 from flask import Flask, render_template, request
-from investorbot import crypto_service, smtp_service
+from investorbot.integrations.simulation import data_provider
+from investorbot import routines
+from investorbot import crypto_service, is_simulation, smtp_service
 from apscheduler.schedulers.background import BackgroundScheduler
 
 # from investorbot.smtp import send_test_email
@@ -23,18 +26,34 @@ def run_api(host, port):
         minutes=15,
         name="heartbeat",
     )
-    scheduler.add_job(
-        func=placeholder,
+
+    buy_coin_job = scheduler.add_job(
+        func=routines.buy_coin_routine,
         trigger="interval",
-        minutes=3,
+        seconds=20,
         name="buy_coin_routine",
     )
-    scheduler.add_job(
-        func=placeholder,
+
+    buy_coin_job.modify(next_run_time=datetime.now() + timedelta(seconds=25))
+
+    sell_coin_job = scheduler.add_job(
+        func=routines.sell_coin_routine,
         trigger="interval",
-        minutes=3,
+        seconds=20,
         name="sell_coin_routine",
     )
+
+    sell_coin_job.modify(next_run_time=datetime.now() + timedelta(seconds=35))
+
+    if is_simulation():
+        job = scheduler.add_job(
+            func=data_provider.run_in_real_time,
+            trigger="interval",
+            minutes=5,
+            name="simulation",
+        )
+        job.modify(next_run_time=datetime.now() + timedelta(seconds=5))
+
     scheduler.start()
 
     # Shut down the scheduler when exiting the app

@@ -50,12 +50,15 @@ class CryptoService(ICryptoService):
 
         return usd_balance
 
+    def get_total_cash_balance(self) -> float:
+        return float(self.user.get_balance().total_cash_balance)
+
     def get_investable_coin_count(self) -> int:
-        user_total_balance = self.user.get_balance()
+        total_cash_balance = self.get_total_cash_balance()
         user_balance = self.get_usd_balance()
 
         percentage_to_invest = (
-            user_balance / float(user_total_balance.total_cash_balance) - 0.5
+            user_balance / total_cash_balance - 0.5
         )  # TODO make configurable
 
         number_of_coins_to_invest = (

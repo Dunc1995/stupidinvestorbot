@@ -38,15 +38,23 @@ Your options are {list(str(option) for option in AppIntegration)}
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
 
+def is_simulation() -> bool:
+    return INVESTOR_APP_INTEGRATION == str(AppIntegration.SIMULATED)
+
+
+def is_crypto_dot_com() -> bool:
+    return INVESTOR_APP_INTEGRATION == str(AppIntegration.CRYPTODOTCOM)
+
+
 def get_crypto_service() -> ICryptoService:
     __crypto_service: ICryptoService = None
 
-    if INVESTOR_APP_INTEGRATION == AppIntegration.SIMULATED.value:
+    if is_simulation():
         __crypto_service = SimulatedCryptoService(
             simulation_db_service, time_service, data_provider
         )
         logger.info(SIMULATED_ENVIRONMENT_MESSAGE)
-    elif INVESTOR_APP_INTEGRATION == AppIntegration.CRYPTODOTCOM.value:
+    elif is_crypto_dot_com():
         __crypto_service = CryptoService()
         logger.info(CRYPTO_DOT_COM_ENVIRONMENT_MESSAGE)
     elif INVESTOR_APP_ENVIRONMENT != "Testing":

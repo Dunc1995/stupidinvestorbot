@@ -8,7 +8,7 @@ from investorbot.constants import (
 )
 from investorbot import crypto_service, app_service
 from investorbot.decorators import routine
-from investorbot.models import MarketAnalysis
+from investorbot.models import CashBalance, MarketAnalysis
 from investorbot.structs.egress import CoinPurchase, CoinSale
 import investorbot.analysis as analysis
 
@@ -202,6 +202,10 @@ def sell_coin_routine():
             order_detail.order_quantity_minus_fee,
         )
 
+        logger.info(
+            f"Selling {coin_sale.coin_properties.coin_name} at value ratio {value_ratio}"
+        )
+
         try:
             sell_order = crypto_service.place_coin_sell_order(
                 buy_order.buy_order_id, coin_sale
@@ -215,3 +219,6 @@ def sell_coin_routine():
                 logger.warning(http_error)
                 logger.info("Continuing with routine...")
         # endregion
+
+    cash_balance = crypto_service.get_total_cash_balance()
+    app_service.add_item(CashBalance(cash_balance))

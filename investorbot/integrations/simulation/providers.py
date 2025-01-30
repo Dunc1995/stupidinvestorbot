@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from os import path
 import time
 from typing import List, Tuple
@@ -29,7 +29,6 @@ class DataProvider(IDataProvider):
     def __init__(self):
         if path.exists(TIME_SERIES_DATA_PATH):
             self.time_series_data = pd.read_csv(TIME_SERIES_DATA_PATH)
-        pass
 
     def roll_dice(self) -> float:
         result = self.rng.integers(low=1, high=6, endpoint=True, size=4).mean()
@@ -123,3 +122,13 @@ class DataProvider(IDataProvider):
         ]
 
         return coin_data
+
+    def run_in_real_time(self):
+        i = 0
+
+        while i < 300:
+            self.increment_ts_data()
+
+            print(self.current_ticker_values[1])
+            time.sleep(1)
+            i += 1

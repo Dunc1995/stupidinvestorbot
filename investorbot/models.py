@@ -1,5 +1,14 @@
 from typing import List, Optional
-from sqlalchemy import Boolean, ForeignKey, String, Integer, Float
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    String,
+    Integer,
+    Float,
+    func,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
@@ -11,6 +20,10 @@ from investorbot.enums import TrendLineState
 
 class Base(MappedAsDataclass, DeclarativeBase):
     pass
+
+
+class TimestampMixin(object):
+    creation_time = Column(DateTime, default=func.now())
 
 
 class CoinProperties(Base):
@@ -63,6 +76,16 @@ class SellOrder(Base):
     buy_order: Mapped[Optional[BuyOrder]] = relationship(
         init=False, back_populates="sell_order"
     )
+
+
+class CashBalance(TimestampMixin, Base):
+    __tablename__ = "cash_balance"
+
+    cash_balance_id: Mapped[int] = mapped_column(
+        primary_key=True, autoincrement=True, init=False
+    )
+
+    value: Mapped[float] = mapped_column(Float())
 
 
 # TODO maybe split this into two entities - too much back and forth in the analysis routine.

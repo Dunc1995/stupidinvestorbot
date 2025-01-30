@@ -17,6 +17,10 @@ class ICryptoService(ABC):
         pass
 
     @abstractmethod
+    def get_total_cash_balance(self) -> float:
+        pass
+
+    @abstractmethod
     def get_investable_coin_count(self) -> int:
         pass
 
