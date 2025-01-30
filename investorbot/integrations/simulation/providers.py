@@ -23,7 +23,7 @@ class DataProvider(IDataProvider):
         ticker["i"]: ticker["a"] for ticker in TICKERS
     }, datetime.now().timestamp() * 1000
     trend_percentage = 0.0
-    start_time = datetime.now().timestamp() * 1000
+    start_time = int(datetime.now().timestamp()) * 1000
     time_delta = 20 * 1000
 
     def __init__(self):
@@ -126,9 +126,11 @@ class DataProvider(IDataProvider):
     def run_in_real_time(self):
         i = 0
 
-        while i < 300:
+        while i < 3600:
             self.increment_ts_data()
 
+            if i % 36 == 0:
+                self.trend_updater()
             print(self.current_ticker_values[1])
             time.sleep(1)
             i += 1

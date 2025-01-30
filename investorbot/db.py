@@ -1,12 +1,25 @@
 import logging
+from os import path
+import os
 
 from investorbot import app_service, crypto_service
-from investorbot.constants import DEFAULT_LOGS_NAME, INVESTOR_APP_INTEGRATION
+from investorbot.constants import (
+    DEFAULT_LOGS_NAME,
+    INVESTOR_APP_DB_PATH,
+    INVESTOR_APP_INTEGRATION,
+)
 from investorbot.enums import AppIntegration, MarketCharacterization
+from investorbot.integrations.simulation.constants import SIMULATION_DB_PATH
 from investorbot.integrations.simulation.db import init_simulation_db
 from investorbot.models import CoinSelectionCriteria
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
+
+
+def delete_file_if_exists(file_path: str):
+    if path.exists(file_path):
+        os.remove(file_path)
+        logger.info(f"Deleted '{file_path}'")
 
 
 def get_market_analysis_ratings():
@@ -67,9 +80,13 @@ def get_market_analysis_ratings():
 
 
 def init_db():
+    delete_file_if_exists(INVESTOR_APP_DB_PATH)
+    logger.info("Running migration for app service.")
     app_service.run_migration()
 
     if INVESTOR_APP_INTEGRATION == str(AppIntegration.SIMULATED):
+        delete_file_if_exists(SIMULATION_DB_PATH)
+        logger.info("Running migration for simulation service.")
         init_simulation_db()
 
     coin_properties = crypto_service.get_coin_properties()
@@ -77,3 +94,4 @@ def init_db():
 
     app_service.add_items(coin_properties)
     app_service.add_items(market_analysis_ratings)
+    logger.info("Initialization complete!")

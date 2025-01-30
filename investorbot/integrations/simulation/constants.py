@@ -1,4 +1,5 @@
 from investorbot.constants import INVESTOR_APP_PATH
 
-SIMULATION_DB_CONNECTION = f"sqlite:///{INVESTOR_APP_PATH}simulation.db"
+SIMULATION_DB_PATH = f"{INVESTOR_APP_PATH}simulation.db"
+SIMULATION_DB_CONNECTION = f"sqlite:///{SIMULATION_DB_PATH}"
 TIME_SERIES_DATA_PATH = f"{INVESTOR_APP_PATH}/simulation.csv"

@@ -1,6 +1,7 @@
 import atexit
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request
+from investorbot.db import init_db
 from investorbot.integrations.simulation import data_provider
 from investorbot import routines
 from investorbot import crypto_service, is_simulation, smtp_service
@@ -15,7 +16,10 @@ def placeholder():
     print("HELLO")
 
 
-def run_api(host, port):
+def run_api(host="127.0.0.1", port=5000, persist_data=False):
+    if not persist_data:
+        init_db()
+
     scheduler = BackgroundScheduler()
 
     # scheduler.add_job( func=routines.update_time_series_summaries_routine, trigger="interval",
@@ -49,7 +53,7 @@ def run_api(host, port):
         job = scheduler.add_job(
             func=data_provider.run_in_real_time,
             trigger="interval",
-            minutes=5,
+            minutes=60,
             name="simulation",
         )
         job.modify(next_run_time=datetime.now() + timedelta(seconds=5))

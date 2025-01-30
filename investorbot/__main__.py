@@ -1,5 +1,5 @@
 import argh
-from investorbot import smtp_service, crypto_service
+from investorbot import is_simulation, smtp_service, crypto_service
 from investorbot.routines import (
     get_coins_to_purchase,
     buy_coin_routine,
@@ -12,9 +12,7 @@ from investorbot.websocket import send_message
 from investorbot.integrations.simulation import data_provider
 
 if __name__ == "__main__":
-
     commands = [
-        init_db,
         get_coins_to_purchase,
         buy_coin_routine,
         sell_coin_routine,
@@ -25,5 +23,8 @@ if __name__ == "__main__":
         crypto_service.get_coin_time_series_data,
         data_provider.generate_time_series_data,
     ]
+
+    if not is_simulation():
+        commands.append(init_db)
 
     argh.dispatch_commands(commands)
