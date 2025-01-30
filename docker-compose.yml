@@ -10,7 +10,7 @@ services:
       - "8080:8080"
     volumes:
       - $HOME/.aws/credentials:/app/.aws/credentials:ro
-      - $HOME/repos/stupidinvestorbot/app.db:/investorbot/app.db
+      # - $HOME/repos/stupidinvestorbot/app.db:/investorbot/app.db
     environment:
       AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
       AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'
@@ -18,8 +18,22 @@ services:
       CRYPTO_SECRET_KEY: ${CRYPTO_SECRET_KEY}
       INVESTOR_APP_PATH: /investorbot/
       INVESTOR_APP_ENVIRONMENT: Development
+      INVESTOR_APP_INTEGRATION: SIMULATED
       REGION: 'eu-west-1'
       SENDER_EMAIL: ${SENDER_EMAIL}
       SENDER_PASSWORD: ${SENDER_PASSWORD}
       RECIPIENT_EMAIL: ${RECIPIENT_EMAIL}
-    command: [ "sh", "-c", "cd .. && python -m investorbot run-api 0.0.0.0 8080" ]
+    command: [ "sh", "-c", "cd .. && python -m investorbot run-api --host 0.0.0.0 --port 8080" ]
+  web-application:
+    container_name: web-application
+    # The name of the image that will be created when building this container
+    image: web-application:latest
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    user: "node"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    ports:
+      - 3000:3000
