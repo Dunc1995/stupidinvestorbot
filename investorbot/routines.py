@@ -9,7 +9,7 @@ from investorbot.constants import (
 )
 from investorbot.env import time
 from investorbot.decorators import routine
-from investorbot.models import CashBalance, MarketAnalysis
+from investorbot.models import MarketAnalysis
 from investorbot.structs.egress import CoinPurchase, CoinSale
 import investorbot.analysis as analysis
 

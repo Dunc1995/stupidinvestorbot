@@ -84,7 +84,7 @@ def test_coin_sale_validator_is_ready_to_sell(mock_time):
     buy_order = BuyOrder("123", "TON_USD", 6.6274)
 
     order_detail = OrderDetail(
-        OrderStatus.COMPLETED.value,
+        OrderStatus.COMPLETED,
         uuid.uuid4(),
         "TON_USD",
         4.970550,
@@ -106,7 +106,7 @@ def test_coin_sale_validator_will_not_sell_because_of_wallet_quantity(mock_time)
     buy_order = BuyOrder("123", "TON_USD", 6.6274)
 
     order_detail = OrderDetail(
-        OrderStatus.COMPLETED.value,
+        OrderStatus.COMPLETED,
         uuid.uuid4(),
         "TON_USD",
         4.970550,
@@ -132,7 +132,7 @@ def test_coin_sale_validator_will_not_break_on_small_coin_balance(mock_time):
     buy_order = BuyOrder("123", "TON_USD", 6.6274)
 
     order_detail = OrderDetail(
-        OrderStatus.OTHER.value,
+        OrderStatus.OTHER,
         uuid.uuid4(),
         "TON_USD",
         4.970550,
@@ -158,7 +158,7 @@ def test_coin_sale_validator_will_not_break_on_normal_coin_balance(mock_time):
     buy_order = BuyOrder("123", "TON_USD", 6.6274)
 
     order_detail = OrderDetail(
-        OrderStatus.OTHER.value,
+        OrderStatus.OTHER,
         uuid.uuid4(),
         "TON_USD",
         4.970550,
