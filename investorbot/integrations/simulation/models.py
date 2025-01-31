@@ -9,7 +9,7 @@ class SimulationBase(MappedAsDataclass, DeclarativeBase):
 
 
 class TimestampMixin(object):
-    time_creates_ms = Column(DateTime, default=func.now())
+    creation_time = Column(DateTime, default=func.now())
 
 
 class OrderDetailSimulated(TimestampMixin, SimulationBase):

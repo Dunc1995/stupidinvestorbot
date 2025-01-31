@@ -78,7 +78,7 @@ class SimulatedCryptoService(ICryptoService):
         session = self.simulation_service.session
         query = session.query(
             PositionBalanceSimulated,
-            func.max(PositionBalanceSimulated.time_creates_ms),
+            func.max(PositionBalanceSimulated.creation_time),
         ).group_by(PositionBalanceSimulated.coin_name)
 
         for item in query:
@@ -94,7 +94,7 @@ class SimulatedCryptoService(ICryptoService):
         data = (
             session.query(
                 PositionBalanceSimulated,
-                func.max(PositionBalanceSimulated.time_creates_ms),
+                func.max(PositionBalanceSimulated.creation_time),
             )
             .filter(PositionBalanceSimulated.coin_name == coin_name)
             .first()
@@ -116,7 +116,7 @@ class SimulatedCryptoService(ICryptoService):
 
         if current_wallet_entry is None:
             current_wallet_entry = PositionBalanceSimulated(coin_name, 0.0, 0.0)
-            current_wallet_entry.time_creates_ms = self.data.time.now()
+            current_wallet_entry.creation_time = self.data.time.now()
 
         new_coin_quantity = None
 
@@ -135,7 +135,7 @@ class SimulatedCryptoService(ICryptoService):
             reserved_quantity=0.0,
         )
 
-        new_wallet_entry.time_creates_ms = self.data.time.now()
+        new_wallet_entry.creation_time = self.data.time.now()
 
         self.simulation_service.add_item(new_wallet_entry)
 
@@ -220,7 +220,7 @@ class SimulatedCryptoService(ICryptoService):
         )
         data = session.scalar(query)
 
-        time_created_ms: datetime = data.time_creates_ms
+        time_created_ms: datetime = data.creation_time
 
         return OrderDetail(
             status=data.status,

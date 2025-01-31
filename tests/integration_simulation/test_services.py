@@ -19,8 +19,8 @@ def test_get_coin_balance_returns_latest_entry(mock_simulated_crypto_service):
     )
 
     # time service automatically increments time for testing purposes.
-    wallet_entry_two.time_creates_ms = mock_simulated_crypto_service.data.time.now()
-    wallet_entry_three.time_creates_ms = mock_simulated_crypto_service.data.time.now()
+    wallet_entry_two.creation_time = mock_simulated_crypto_service.data.time.now()
+    wallet_entry_three.creation_time = mock_simulated_crypto_service.data.time.now()
 
     # Add three wallet entries with different creation times.
     mock_simulated_crypto_service.simulation_service.add_item(wallet_entry)
@@ -105,7 +105,7 @@ def test_cash_balance_is_correctly_calculated(mock_simulated_crypto_service):
 
     # Time increments ensure the modified balances are the latest entries in the db.
     # Increment time
-    modified_usd_balance.time_creates_ms = mock_simulated_crypto_service.data.time.now()
+    modified_usd_balance.creation_time = mock_simulated_crypto_service.data.time.now()
 
     modified_eth_balance = PositionBalanceSimulated(
         coin_name="ETH",
@@ -117,7 +117,7 @@ def test_cash_balance_is_correctly_calculated(mock_simulated_crypto_service):
     mock_simulated_crypto_service.set_market_value_per_coin("ETH_USD", 444.444444)
 
     # Increment time
-    modified_eth_balance.time_creates_ms = mock_simulated_crypto_service.data.time.now()
+    modified_eth_balance.creation_time = mock_simulated_crypto_service.data.time.now()
 
     mock_simulated_crypto_service.simulation_service.add_items(
         [
