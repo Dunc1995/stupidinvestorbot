@@ -7,7 +7,7 @@ from investorbot.constants import (
     INVESTMENT_INCREMENTS,
     DEFAULT_LOGS_NAME,
 )
-from investorbot.env import time as env_time
+from investorbot.env import time
 from investorbot.decorators import routine
 from investorbot.models import CashBalance, MarketAnalysis
 from investorbot.structs.egress import CoinPurchase, CoinSale
@@ -109,7 +109,7 @@ def refresh_market_analysis_routine(hours: int) -> MarketAnalysis:
 
     # Create the final market analysis object to add to the db.
     market_analysis = MarketAnalysis(
-        confidence_rating.value, env_time.now_in_ms(), complete_ts_summaries
+        confidence_rating.value, time.now_in_ms(), complete_ts_summaries
     )
 
     bot_db.add_item(market_analysis)

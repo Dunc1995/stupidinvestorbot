@@ -280,7 +280,12 @@ class SimulatedCryptoService(ICryptoService):
             fee_currency=fee_currency,
         )
 
+        current_time = env.time.now()
+        order_detail.creation_time = current_time
+
         self.simulation_db.add_item(order_detail)
+
+        buy_order.creation_time = current_time
 
         return buy_order
 
@@ -315,8 +320,12 @@ class SimulatedCryptoService(ICryptoService):
             fee_currency=fee_currency,
         )
 
+        current_time = env.time.now()
+        order_detail.creation_time = current_time
+
         self.simulation_db.add_item(order_detail)
 
         sell_order = SellOrder(sell_order_id, buy_order_id)
+        sell_order.creation_time = current_time
 
         return sell_order

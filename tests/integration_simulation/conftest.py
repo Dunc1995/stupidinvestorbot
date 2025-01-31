@@ -1,9 +1,11 @@
+from datetime import timedelta
 import pytest
 
 from investorbot.enums import AppIntegration
 from investorbot.context import BotContext
 from investorbot.integrations.simulation.providers import (
     DataProvider,
+    SimulatedTimeProvider,
     StaticTimeProvider,
 )
 from investorbot.integrations.simulation.services import (
@@ -45,3 +47,10 @@ def mock_context(mock_bot_db, mock_simulated_crypto_service):
 @pytest.fixture
 def mock_static_time() -> StaticTimeProvider:
     return StaticTimeProvider()
+
+
+@pytest.fixture
+def mock_simulated_time() -> SimulatedTimeProvider:
+    return SimulatedTimeProvider(
+        time_offset=timedelta(days=1), increment=timedelta(seconds=20)
+    )
