@@ -13,7 +13,7 @@ from investorbot.integrations.cryptodotcom.constants import (
 from investorbot.integrations.cryptodotcom.http.market import MarketHttpClient
 from investorbot.integrations.cryptodotcom.http.user import UserHttpClient
 from investorbot.interfaces.services import ICryptoService
-from investorbot.models import BuyOrder, CoinProperties, SellOrder
+from investorbot.models import BuyOrder, CashBalance, CoinProperties, SellOrder
 from investorbot.structs.egress import CoinPurchase, CoinSale
 from investorbot.structs.internal import LatestTrade, OrderDetail, PositionBalance
 
@@ -50,8 +50,8 @@ class CryptoService(ICryptoService):
 
         return usd_balance
 
-    def get_total_cash_balance(self) -> float:
-        return float(self.user.get_balance().total_cash_balance)
+    def get_total_cash_balance(self) -> CashBalance:
+        return CashBalance(self.user.get_balance().total_cash_balance)
 
     def get_investable_coin_count(self) -> int:
         total_cash_balance = self.get_total_cash_balance()

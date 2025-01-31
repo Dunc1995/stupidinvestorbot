@@ -19,7 +19,7 @@ from investorbot.integrations.cryptodotcom.structs import InstrumentJson
 from investorbot.integrations.simulation.interfaces import IDataProvider
 from investorbot.integrations.simulation.structs import PositionBalanceAdjustmentResult
 from investorbot.interfaces.services import ICryptoService
-from investorbot.models import BuyOrder, CoinProperties, SellOrder
+from investorbot.models import BuyOrder, CashBalance, CoinProperties, SellOrder
 from investorbot.services import BaseAppService
 from investorbot.integrations.simulation.models import (
     SimulationBase,
@@ -78,7 +78,7 @@ class SimulatedCryptoService(ICryptoService):
 
         return self.get_market_value_per_coin(coin_name) * float(quantity)
 
-    def get_total_cash_balance(self) -> float:
+    def get_total_cash_balance(self) -> CashBalance:
         position_balances: List[PositionBalanceSimulated] = []
         session = self.simulation_db.session
         query = session.query(
@@ -89,9 +89,14 @@ class SimulatedCryptoService(ICryptoService):
         for item in query:
             position_balances.append(item[0])
 
-        return sum(
+        total_value = sum(
             self.get_market_value(c.coin_name, c.quantity) for c in position_balances
         )
+
+        cash_balance = CashBalance(total_value)
+        cash_balance.creation_time = env.time.now()
+
+        return cash_balance
 
     def __get_coin_balance(self, coin_name: str) -> PositionBalanceSimulated | None:
         session = self.simulation_db.session
@@ -191,7 +196,7 @@ class SimulatedCryptoService(ICryptoService):
     def get_investable_coin_count(self) -> int:
         # TODO update tests once percentage-to-invest is configurable
         user_balance = self.get_usd_balance()
-        total_cash_balance = self.get_total_cash_balance()
+        total_cash_balance = self.get_total_cash_balance().value
 
         percentage_to_invest = (
             user_balance / total_cash_balance - 0.5

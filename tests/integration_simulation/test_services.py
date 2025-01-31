@@ -146,11 +146,11 @@ def test_cash_balance_is_correctly_calculated(
     cash_balance = crypto_service.get_total_cash_balance()
 
     assert (
-        cash_balance != 140.0
+        cash_balance.value != 140.0
     ), "Cash balance needs to be calculated using latest entries - not all position balances."
 
     assert math.isclose(
-        cash_balance, 125.0, abs_tol=1e-06
+        cash_balance.value, 125.0, abs_tol=1e-06
     ), "Calculated value is not correct."
 
 

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from investorbot.models import BuyOrder, CoinProperties, SellOrder
+from investorbot.models import BuyOrder, CashBalance, CoinProperties, SellOrder
 from investorbot.structs.egress import CoinPurchase, CoinSale
 from investorbot.structs.internal import LatestTrade, OrderDetail, PositionBalance
 
@@ -17,7 +17,7 @@ class ICryptoService(ABC):
         pass
 
     @abstractmethod
-    def get_total_cash_balance(self) -> float:
+    def get_total_cash_balance(self) -> CashBalance:
         pass
 
     @abstractmethod

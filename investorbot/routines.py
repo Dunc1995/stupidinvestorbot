@@ -233,4 +233,4 @@ def sell_coin_routine():
         # endregion
 
     cash_balance = crypto_service.get_total_cash_balance()
-    bot_db.add_item(CashBalance(cash_balance))
+    bot_db.add_item(cash_balance)

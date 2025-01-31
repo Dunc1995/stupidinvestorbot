@@ -45,7 +45,7 @@ def test_buy_order_routine_works_on_simulation(monkeypatch, mock_context):
     buy_coin_routine()
 
     final_usd_balance = crypto_service.get_usd_balance()
-    cash_balance = crypto_service.get_total_cash_balance()
+    cash_balance = crypto_service.get_total_cash_balance().value
 
     buy_order_count = len(bot_db.get_all_buy_orders())
 
