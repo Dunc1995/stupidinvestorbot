@@ -130,9 +130,7 @@ class TimeSeriesSummary(SerializableBase):
     initial_ranking: Mapped[int] = mapped_column(Integer(), default=-1)
     final_ranking: Mapped[int] = mapped_column(Integer(), default=-1)
 
-    trend_state: Mapped[bool] = mapped_column(
-        String(), default=TrendLineState.UNKNOWN.value
-    )
+    trend_state: Mapped[bool] = mapped_column(String(), default=TrendLineState.UNKNOWN)
     is_volatile: Mapped[bool] = mapped_column(Boolean(), default=False)
 
     is_outlier_in_gradient: Mapped[bool] = mapped_column(Boolean(), default=False)

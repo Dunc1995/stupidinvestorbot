@@ -1,21 +1,18 @@
-from enum import Enum
+from enum import IntEnum, StrEnum
 
 
-class AppIntegration(Enum):
+class AppIntegration(StrEnum):
     SIMULATED = "SIMULATED"
     CRYPTODOTCOM = "CRYPTODOTCOM"
 
-    def __str__(self):
-        return self.value
 
-
-class OrderStatus(Enum):
+class OrderStatus(StrEnum):
     COMPLETED = "COMPLETED"
     CANCELED = "CANCELED"
     OTHER = "OTHER"
 
 
-class MarketCharacterization(Enum):
+class MarketCharacterization(IntEnum):
     RISING_RAPIDLY = 1
     RISING = 2
     FLAT = 3
@@ -23,7 +20,7 @@ class MarketCharacterization(Enum):
     FALLING_RAPIDLY = 5
 
 
-class TrendLineState(Enum):
+class TrendLineState(StrEnum):
     RISING = "RISING"
     FLAT = "FLAT"
     FALLING = "FALLING"

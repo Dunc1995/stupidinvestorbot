@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class OrderDetailStatus(Enum):
+class OrderDetailStatus(StrEnum):
     NEW = "NEW"
     PENDING = "PENDING"
     REJECTED = "REJECTED"

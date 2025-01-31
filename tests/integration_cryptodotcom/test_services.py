@@ -68,7 +68,7 @@ def test_time_series_summary_is_retrievable_with_modes(mock_bot_db):
         21314314,
         120,
         [TimeSeriesMode(11.0), TimeSeriesMode(12.0), TimeSeriesMode(13.0)],
-        TrendLineState.UNKNOWN.value,
+        TrendLineState.UNKNOWN,
     )
 
     ts_summary.market_analysis_id = -1

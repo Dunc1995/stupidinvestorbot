@@ -6,9 +6,9 @@ from investorbot.context import bot_context
 from investorbot.constants import (
     DEFAULT_LOGS_NAME,
     INVESTOR_APP_DB_PATH,
-    INVESTOR_APP_INTEGRATION,
 )
-from investorbot.enums import AppIntegration, MarketCharacterization
+from investorbot.enums import MarketCharacterization
+from investorbot.env import is_simulation
 from investorbot.integrations.simulation.constants import SIMULATION_DB_PATH
 from investorbot.integrations.simulation.db import init_simulation_db
 from investorbot.models import CoinSelectionCriteria
@@ -25,7 +25,7 @@ def delete_file_if_exists(file_path: str):
 def get_market_analysis_ratings():
     return [
         CoinSelectionCriteria(
-            rating_id=MarketCharacterization.RISING_RAPIDLY.value,
+            rating_id=MarketCharacterization.RISING_RAPIDLY,
             rating_description="High Confidence",
             rating_upper_threshold=-1.0,
             rating_upper_unbounded=True,
@@ -36,7 +36,7 @@ def get_market_analysis_ratings():
             minimum_order_value_usd=25.0,
         ),
         CoinSelectionCriteria(
-            rating_id=MarketCharacterization.RISING.value,
+            rating_id=MarketCharacterization.RISING,
             rating_description="Moderate Confidence",
             rating_upper_threshold=0.02,
             rating_lower_threshold=0.002,
@@ -46,7 +46,7 @@ def get_market_analysis_ratings():
             minimum_order_value_usd=20.0,
         ),
         CoinSelectionCriteria(
-            rating_id=MarketCharacterization.FLAT.value,
+            rating_id=MarketCharacterization.FLAT,
             rating_description="Unsure",
             rating_upper_threshold=0.002,
             rating_lower_threshold=-0.002,
@@ -58,7 +58,7 @@ def get_market_analysis_ratings():
             minimum_order_value_usd=15.0,
         ),
         CoinSelectionCriteria(
-            rating_id=MarketCharacterization.FALLING.value,
+            rating_id=MarketCharacterization.FALLING,
             rating_description="Low Confidence",
             rating_upper_threshold=-0.002,
             rating_lower_threshold=-0.02,
@@ -67,7 +67,7 @@ def get_market_analysis_ratings():
             minimum_order_value_usd=10.0,
         ),
         CoinSelectionCriteria(
-            rating_id=MarketCharacterization.FALLING_RAPIDLY.value,
+            rating_id=MarketCharacterization.FALLING_RAPIDLY,
             rating_description="Very Low Confidence",
             rating_upper_threshold=-0.02,
             rating_lower_threshold=-1.0,
@@ -87,7 +87,7 @@ def init_db():
     logger.info("Running migration for app service.")
     app_service.run_migration()
 
-    if INVESTOR_APP_INTEGRATION == str(AppIntegration.SIMULATED):
+    if is_simulation():
         delete_file_if_exists(SIMULATION_DB_PATH)
         logger.info("Running migration for simulation service.")
         init_simulation_db()

@@ -20,12 +20,12 @@ def json_to_position_balance(balance: PositionBalanceJson) -> PositionBalance:
 
 def json_to_order_detail(json_data: OrderDetailJson) -> OrderDetail:
 
-    status: str = OrderStatus.OTHER.value
+    status: str = OrderStatus.OTHER
 
-    if json_data.status == OrderDetailStatus.FILLED.value:
-        status = OrderStatus.COMPLETED.value
-    elif json_data.status == OrderDetailStatus.CANCELED.value:
-        status = OrderStatus.CANCELED.value
+    if json_data.status == OrderDetailStatus.FILLED:
+        status = OrderStatus.COMPLETED
+    elif json_data.status == OrderDetailStatus.CANCELED:
+        status = OrderStatus.CANCELED
 
     return OrderDetail(
         status=status,

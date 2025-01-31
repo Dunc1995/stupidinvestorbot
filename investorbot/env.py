@@ -6,11 +6,11 @@ from investorbot.providers import TimeProvider
 
 
 def is_simulation() -> bool:
-    return INVESTOR_APP_INTEGRATION == str(AppIntegration.SIMULATED)
+    return INVESTOR_APP_INTEGRATION == AppIntegration.SIMULATED
 
 
 def is_crypto_dot_com() -> bool:
-    return INVESTOR_APP_INTEGRATION == str(AppIntegration.CRYPTODOTCOM)
+    return INVESTOR_APP_INTEGRATION == AppIntegration.CRYPTODOTCOM
 
 
 time: ITimeProvider = SimulatedTimeProvider() if is_simulation() else TimeProvider()

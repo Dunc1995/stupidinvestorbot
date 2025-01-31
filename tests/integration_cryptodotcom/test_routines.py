@@ -71,7 +71,7 @@ def test_update_time_series_summaries_routine(monkeypatch, get_file_data, mock_c
     ), "Incorrect number of time series data entries."
     assert market_analysis.rating is not None, "Rating was found to be None."
     assert (
-        market_analysis.confidence_rating_id == MarketCharacterization.RISING.value
+        market_analysis.confidence_rating_id == MarketCharacterization.RISING
     ), "Confidence rating is not correct."
 
 

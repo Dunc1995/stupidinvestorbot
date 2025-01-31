@@ -12,7 +12,7 @@ from investorbot.interfaces.services import ICryptoService
 def set_environment(monkeypatch):
     monkeypatch.setattr(
         "investorbot.env.INVESTOR_APP_INTEGRATION",
-        str(AppIntegration.CRYPTODOTCOM),
+        AppIntegration.CRYPTODOTCOM,
     )
 
     # ! Prevents test suite from attempting to write API response to api/** directory.

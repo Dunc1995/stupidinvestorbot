@@ -115,5 +115,3 @@ def test_time_remains_synchronized_whilst_running_buy_routine(
     assert (
         buy_order.creation_time.replace(microsecond=0) == expected_time_now
     ), "Buy order creation time was not correct."
-
-    print(buy_orders)

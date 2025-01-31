@@ -276,7 +276,7 @@ class SimulatedCryptoService(ICryptoService):
         self.__adjust_balance(fee_currency, net_quantity, net_total_value, False)
 
         order_detail = OrderDetailSimulated(
-            status=OrderStatus.COMPLETED.value,
+            status=OrderStatus.COMPLETED,
             order_id=order_id,
             coin_name=coin_name,
             order_value=total_value,
@@ -316,7 +316,7 @@ class SimulatedCryptoService(ICryptoService):
         self.__adjust_balance(fee_currency, net_quantity, net_total_value, True)
 
         order_detail = OrderDetailSimulated(
-            status=OrderStatus.COMPLETED.value,
+            status=OrderStatus.COMPLETED,
             order_id=sell_order_id,
             coin_name=coin_name,
             order_value=total_value,

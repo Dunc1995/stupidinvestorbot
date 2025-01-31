@@ -18,7 +18,7 @@ from investorbot.integrations.simulation.services import (
 def set_environment(monkeypatch):
     monkeypatch.setattr(
         "investorbot.env.INVESTOR_APP_INTEGRATION",
-        str(AppIntegration.SIMULATED),
+        AppIntegration.SIMULATED,
     )
 
 

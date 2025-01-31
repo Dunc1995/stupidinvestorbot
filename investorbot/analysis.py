@@ -296,11 +296,11 @@ def assign_weighted_rankings(
             options.coin_should_be_nominal and not summary.is_outlier_in_gradient,
             options.coin_should_be_an_outlier and summary.is_outlier_in_gradient,
             options.trend_line_should_be_falling
-            and summary.trend_state == TrendLineState.FALLING.value,
+            and summary.trend_state == TrendLineState.FALLING,
             options.trend_line_should_be_flat
-            and summary.trend_state == TrendLineState.FLAT.value,
+            and summary.trend_state == TrendLineState.FLAT,
             options.trend_line_should_be_rising
-            and summary.trend_state == TrendLineState.RISING.value,
+            and summary.trend_state == TrendLineState.RISING,
         ]
 
         for param in params:
@@ -318,8 +318,8 @@ def is_coin_sellable(
 ) -> Tuple[bool, SaleValidationResult]:
     no_coin_balance = coin_balance is None or coin_balance.quantity == 0.0
     order_balance_has_already_been_sold = buy_order.sell_order is not None
-    order_has_been_cancelled = order_detail.status == OrderStatus.CANCELED.value
-    order_has_not_been_filled = order_detail.status != OrderStatus.COMPLETED.value
+    order_has_been_cancelled = order_detail.status == OrderStatus.CANCELED
+    order_has_not_been_filled = order_detail.status != OrderStatus.COMPLETED
     wallet_balance_is_not_sufficient = (
         coin_balance.sellable_quantity < order_detail.order_quantity_minus_fee
         if coin_balance is not None

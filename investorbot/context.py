@@ -55,12 +55,12 @@ class BotContext:
     @property
     def db_service(self) -> BotDbService:
         """The investorbot application's database service layer."""
-        if self.__bot_db_service is not None:
-            return self.__bot_db_service
 
-        self.__bot_db_service = BotDbService(INVESTOR_APP_DB_CONNECTION)
-
-        return self.__bot_db_service
+        return (
+            self.__bot_db_service
+            if self.__bot_db_service is not None
+            else BotDbService(INVESTOR_APP_DB_CONNECTION)
+        )
 
     @property
     def crypto_service(self) -> ICryptoService:
@@ -81,6 +81,7 @@ class BotContext:
         elif is_crypto_dot_com():
             crypto_service = CryptoService()
             logger.info(CRYPTO_DOT_COM_ENVIRONMENT_MESSAGE)
+
         elif INVESTOR_APP_ENVIRONMENT != "Testing":
             raise EnvironmentError(ENVIRONMENT_ERROR_MESSAGE)
 
@@ -90,12 +91,7 @@ class BotContext:
 
     @property
     def smtp_service(self):
-        if self.__smtp_service is not None:
-            return self.__smtp_service
-
-        self.__smtp_service = SmtpService()
-
-        return self.__smtp_service
+        return self.__smtp_service if self.__smtp_service is not None else SmtpService()
 
 
 bot_context = BotContext()
