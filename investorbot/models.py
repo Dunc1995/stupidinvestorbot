@@ -22,6 +22,13 @@ class Base(MappedAsDataclass, DeclarativeBase):
     pass
 
 
+class SerializableBase(Base):
+    __abstract__ = True
+
+    def as_dict(self):
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+
 class TimestampMixin(object):
     creation_time = Column(DateTime, default=func.now())
 
@@ -46,7 +53,7 @@ class CoinProperties(Base):
     )
 
 
-class BuyOrder(Base):
+class BuyOrder(SerializableBase):
     """When an order has been placed, we want to store the associated GUID id so the app can track
     the state of the order."""
 
@@ -64,7 +71,7 @@ class BuyOrder(Base):
     )
 
 
-class SellOrder(Base):
+class SellOrder(SerializableBase):
     """As with tracking BUY orders, SELL orders also need to be tracked incase orders are
     unsuccessful or end up cancelled."""
 
@@ -78,7 +85,7 @@ class SellOrder(Base):
     )
 
 
-class CashBalance(TimestampMixin, Base):
+class CashBalance(TimestampMixin, SerializableBase):
     __tablename__ = "cash_balance"
 
     cash_balance_id: Mapped[int] = mapped_column(
@@ -89,14 +96,11 @@ class CashBalance(TimestampMixin, Base):
 
 
 # TODO maybe split this into two entities - too much back and forth in the analysis routine.
-class TimeSeriesSummary(Base):
+class TimeSeriesSummary(SerializableBase):
     """Data container for storing basic statistical properties after analyzing time series data for
     a particular coin."""
 
     __tablename__ = "time_series_data"
-
-    def as_dict(self):
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
     summary_id: Mapped[int] = mapped_column(
         primary_key=True, autoincrement=True, init=False
@@ -144,14 +148,11 @@ class TimeSeriesSummary(Base):
     )
 
 
-class TimeSeriesMode(Base):
+class TimeSeriesMode(SerializableBase):
     """Time series analysis can produce multiple modes for a given dataset. This is represented by
     the one-to-many relationship between TimeSeriesSummary and TimeSeriesMode models."""
 
     __tablename__ = "time_series_data_modes"
-
-    def as_dict(self):
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
     mode_id: Mapped[int] = mapped_column(
         primary_key=True, autoincrement=True, init=False
@@ -165,15 +166,12 @@ class TimeSeriesMode(Base):
     )
 
 
-class MarketAnalysis(Base):
+class MarketAnalysis(SerializableBase):
     """Market analysis, as the name suggests, stores data relating to averaged values across all
     coins. The confidence rating for a given analysis then determines how the app proceeds to
     invest."""
 
     __tablename__ = "market_analysis"
-
-    def as_dict(self):
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
     market_analysis_id: Mapped[int] = mapped_column(
         primary_key=True, autoincrement=True, init=False
@@ -195,7 +193,7 @@ class MarketAnalysis(Base):
     )
 
 
-class CoinSelectionCriteria(Base):
+class CoinSelectionCriteria(SerializableBase):
     """Coin selection criteria can be used to configure the app's decision-making process to invest
     in particular coins. Used in conjunction with the app's market analysis, it is able to perform a
     change of tack depending on current market conditions - e.g. if all coins are performing poorly

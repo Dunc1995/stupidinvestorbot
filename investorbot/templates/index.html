@@ -1,44 +1,15 @@
-<h1>Utils</h1>
-<section>
-    <h2>API Data</h2>
-    <p>
-        Follow these links to inspect raw API data.
-    </p>
-    <ul>
-        {% for link in api_links %}
-        <li>
-            <a href="{{ link }}">{{ link }}</a>
-        </li>
-        {% endfor %}
-    </ul>
-</section>
+<h1>Investor Bot API Documentation</h1>
 <section>
     <h2>
-        Internal Data
+        API Links
     </h2>
     <p>
-        Links here will show you data as processed by the application. The data structures here shouldn't need to change
-        if the application needs to be ported to another API.
+        Below shows available data to external clients.
     </p>
     <ul>
         {% for link in internal_links %}
         <li>
-            <a href="{{ link.link }}">{{ link.link }}</a> | {{ link.description }}
-        </li>
-        {% endfor %}
-    </ul>
-</section>
-<section>
-    <h2>
-        Functionality Tests
-    </h2>
-    <p>
-        Limited features can be tested via the following links. DO NOT ABUSE PLEASE
-    </p>
-    <ul>
-        {% for link in functionality_links %}
-        <li>
-            <a href="{{ link.link }}">{{ link.link }}</a> | {{ link.description }}
+            <p><a href="{{ link.link }}">{{ link.link }}</a> - {{ link.description }}</p>
         </li>
         {% endfor %}
     </ul>

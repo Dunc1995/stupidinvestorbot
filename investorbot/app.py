@@ -1,11 +1,13 @@
 import atexit
 from datetime import datetime, timedelta
-from flask import Flask, render_template
+from flask import Flask, abort, render_template, request
 from investorbot.db import init_db
 from investorbot.integrations.simulation import data_provider
 from investorbot import is_crypto_dot_com, routines
 from investorbot import crypto_service, app_service, is_simulation, smtp_service
 from apscheduler.schedulers.background import BackgroundScheduler
+
+from investorbot.models import CashBalance
 
 # from investorbot.smtp import send_test_email
 
@@ -78,19 +80,21 @@ def index():
             "link": "/get-market-analysis",
             "description": "gets statistical summaries for coins of interest.",
         },
-    ]
-    functionality_links = [
         {
-            "link": "/test-smtp",
-            "description": "sends a test email to bot owner.",
+            "link": "/get-valuation?coin_name=BTC_USD",
+            "description": "get time series data for a particular coin.",
+        },
+        {
+            "link": "/get-orders",
+            "description": "get all orders.",
+        },
+        {
+            "link": "/get-balance-history",
+            "description": "show historical wallet value.",
         },
     ]
 
-    return render_template(
-        "index.html",
-        internal_links=internal_links,
-        functionality_links=functionality_links,
-    )
+    return render_template("index.html", internal_links=internal_links)
 
 
 @app.route("/get-latest-trades")
@@ -98,9 +102,22 @@ def get_latest_trades():
     return crypto_service.get_latest_trades()
 
 
+@app.route("/get-valuation")
+def get_valuation():
+    coin_name = request.args.get("coin_name")
+
+    if coin_name is None or "_USD" not in coin_name:
+        return abort(404)
+
+    return crypto_service.get_coin_time_series_data(coin_name)
+
+
 @app.route("/get-market-analysis")
 def get_market_analysis():
     analysis = app_service.get_market_analysis()[0]
+
+    if analysis is None:
+        return abort(404)
 
     return {
         "market_analysis": analysis.as_dict(),
@@ -108,8 +125,19 @@ def get_market_analysis():
     }
 
 
-@app.route("/test-smtp")
-def send_test_email_link():
-    smtp_service.send_test_email()
+@app.route("/get-orders")
+def get_orders():
+    orders = app_service.get_all_buy_orders()
 
-    return {"message": "email sent"}
+    buy_orders = [order.as_dict() for order in orders]
+
+    return buy_orders
+
+
+@app.route("/get-balance-history")
+def get_balance_history():
+    balance_history = app_service.get_all_items(CashBalance)
+
+    balances = [balance.as_dict() for balance in balance_history]
+
+    return balances
