@@ -2,20 +2,17 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import List, Tuple
 
+from investorbot.interfaces.providers import ITimeProvider
 from investorbot.structs.internal import LatestTrade
 
 
-class ITime(ABC):
-    @abstractmethod
-    def now(self) -> datetime:
-        pass
-
-    @abstractmethod
-    def now_in_ms(self) -> int:
-        pass
+class ITimeSimulation(ITimeProvider):
+    """Implement this interface if you need to simulate time in any way."""
 
     @abstractmethod
     def increment_time(self) -> datetime:
+        """This method should only be accessible to whatever is responsible for incrementing
+        simulated time."""
         pass
 
 
@@ -48,9 +45,4 @@ class IDataProvider(ABC):
 
     @abstractmethod
     def run_in_real_time(self) -> None:
-        pass
-
-    @property
-    @abstractmethod
-    def time(self) -> ITime:
         pass

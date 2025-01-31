@@ -5,6 +5,7 @@ import uuid
 
 import sqlalchemy
 from sqlalchemy import func
+from investorbot import env
 from investorbot.constants import INVESTMENT_INCREMENTS
 from investorbot.enums import OrderStatus
 
@@ -29,7 +30,7 @@ from investorbot.structs.egress import CoinPurchase, CoinSale
 from investorbot.structs.internal import LatestTrade, OrderDetail, PositionBalance
 
 
-class SimulationService(BaseAppService):
+class SimulationDbService(BaseAppService):
 
     def __init__(self, connection_string):
         super().__init__(SimulationBase, connection_string)
@@ -38,11 +39,15 @@ class SimulationService(BaseAppService):
 class SimulatedCryptoService(ICryptoService):
     def __init__(
         self,
-        simulation_service: SimulationService,
+        simulation_db_service: SimulationDbService,
         data_provider: IDataProvider,
     ):
+        """As a simulated trading platform, the simulated crypto service requires a data provider as
+        a dependency. This constructor specifies the IDataProvider interface anticipating either a
+        randomized data implementation, or an implementation that uses historical data to simulate
+        market conditions."""
         self.data = data_provider
-        self.simulation_service = simulation_service
+        self.simulation_db = simulation_db_service
 
     def __get_guid(self):
         return str(uuid.uuid4())
@@ -75,7 +80,7 @@ class SimulatedCryptoService(ICryptoService):
 
     def get_total_cash_balance(self) -> float:
         position_balances: List[PositionBalanceSimulated] = []
-        session = self.simulation_service.session
+        session = self.simulation_db.session
         query = session.query(
             PositionBalanceSimulated,
             func.max(PositionBalanceSimulated.creation_time),
@@ -89,7 +94,7 @@ class SimulatedCryptoService(ICryptoService):
         )
 
     def __get_coin_balance(self, coin_name: str) -> PositionBalanceSimulated | None:
-        session = self.simulation_service.session
+        session = self.simulation_db.session
 
         data = (
             session.query(
@@ -116,7 +121,7 @@ class SimulatedCryptoService(ICryptoService):
 
         if current_wallet_entry is None:
             current_wallet_entry = PositionBalanceSimulated(coin_name, 0.0, 0.0)
-            current_wallet_entry.creation_time = self.data.time.now()
+            current_wallet_entry.creation_time = env.time.now()
 
         new_coin_quantity = None
 
@@ -135,9 +140,9 @@ class SimulatedCryptoService(ICryptoService):
             reserved_quantity=0.0,
         )
 
-        new_wallet_entry.creation_time = self.data.time.now()
+        new_wallet_entry.creation_time = env.time.now()
 
-        self.simulation_service.add_item(new_wallet_entry)
+        self.simulation_db.add_item(new_wallet_entry)
 
     def __get_position_balance_adjustment(
         self, coin_name, quantity_str, price_per_coin_str, fee_pct=0.005
@@ -213,7 +218,7 @@ class SimulatedCryptoService(ICryptoService):
         return self.data.get_coin_time_series_data(coin_name)
 
     def get_order_detail(self, order_id: str) -> OrderDetail:
-        session = self.simulation_service.session
+        session = self.simulation_db.session
 
         query = sqlalchemy.select(OrderDetailSimulated).where(
             OrderDetailSimulated.order_id == order_id
@@ -275,7 +280,7 @@ class SimulatedCryptoService(ICryptoService):
             fee_currency=fee_currency,
         )
 
-        self.simulation_service.add_item(order_detail)
+        self.simulation_db.add_item(order_detail)
 
         return buy_order
 
@@ -310,7 +315,7 @@ class SimulatedCryptoService(ICryptoService):
             fee_currency=fee_currency,
         )
 
-        self.simulation_service.add_item(order_detail)
+        self.simulation_db.add_item(order_detail)
 
         sell_order = SellOrder(sell_order_id, buy_order_id)
 

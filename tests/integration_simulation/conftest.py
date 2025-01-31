@@ -1,20 +1,21 @@
 import pytest
 
 from investorbot.enums import AppIntegration
+from investorbot.context import BotContext
 from investorbot.integrations.simulation.providers import (
     DataProvider,
     StaticTimeProvider,
 )
 from investorbot.integrations.simulation.services import (
     SimulatedCryptoService,
-    SimulationService,
+    SimulationDbService,
 )
 
 
 @pytest.fixture(autouse=True)
 def set_environment(monkeypatch):
     monkeypatch.setattr(
-        "investorbot.INVESTOR_APP_INTEGRATION",
+        "investorbot.env.INVESTOR_APP_INTEGRATION",
         str(AppIntegration.SIMULATED),
     )
 
@@ -26,12 +27,21 @@ def mock_simulated_crypto_service(monkeypatch) -> SimulatedCryptoService:
         "./tests/integration_simulation/fixtures/simulation.csv",
     )
 
-    simulation_service = SimulationService("sqlite:///:memory:")
-    time_service = StaticTimeProvider()
-    data_provider = DataProvider(time_service)
+    simulation_db = SimulationDbService("sqlite:///:memory:")
+    data_provider = DataProvider()
 
-    simulation_service.run_migration()
+    simulation_db.run_migration()
 
-    crypto_service = SimulatedCryptoService(simulation_service, data_provider)
+    crypto_service = SimulatedCryptoService(simulation_db, data_provider)
 
     return crypto_service
+
+
+@pytest.fixture
+def mock_context(mock_bot_db, mock_simulated_crypto_service):
+    return BotContext(mock_bot_db, mock_simulated_crypto_service)
+
+
+@pytest.fixture
+def mock_static_time() -> StaticTimeProvider:
+    return StaticTimeProvider()

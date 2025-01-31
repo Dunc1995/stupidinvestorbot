@@ -2,7 +2,7 @@ import logging
 from os import path
 import os
 
-from investorbot import app_service, crypto_service
+from investorbot.context import bot_context
 from investorbot.constants import (
     DEFAULT_LOGS_NAME,
     INVESTOR_APP_DB_PATH,
@@ -80,6 +80,9 @@ def get_market_analysis_ratings():
 
 
 def init_db():
+    app_service = bot_context.db_service
+    crypto_service = bot_context.crypto_service
+
     delete_file_if_exists(INVESTOR_APP_DB_PATH)
     logger.info("Running migration for app service.")
     app_service.run_migration()

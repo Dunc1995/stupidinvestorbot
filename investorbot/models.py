@@ -53,7 +53,7 @@ class CoinProperties(Base):
     )
 
 
-class BuyOrder(SerializableBase):
+class BuyOrder(TimestampMixin, SerializableBase):
     """When an order has been placed, we want to store the associated GUID id so the app can track
     the state of the order."""
 
@@ -71,7 +71,7 @@ class BuyOrder(SerializableBase):
     )
 
 
-class SellOrder(SerializableBase):
+class SellOrder(TimestampMixin, SerializableBase):
     """As with tracking BUY orders, SELL orders also need to be tracked incase orders are
     unsuccessful or end up cancelled."""
 

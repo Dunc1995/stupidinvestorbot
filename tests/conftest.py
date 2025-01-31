@@ -6,7 +6,7 @@ import requests
 from investorbot.db import get_market_analysis_ratings
 from investorbot.integrations.cryptodotcom import mappings
 from investorbot.integrations.cryptodotcom.structs import InstrumentJson
-from investorbot.services import AppService
+from investorbot.services import BotDbService
 
 
 def __get_file_data(filename: str) -> dict | List[dict]:
@@ -29,9 +29,9 @@ def disable_network_calls(monkeypatch):
 
 
 @pytest.fixture
-def mock_app_service():
-    app_service = AppService("sqlite:///:memory:")
-    app_service.run_migration()
+def mock_bot_db():
+    bot_db = BotDbService("sqlite:///:memory:")
+    bot_db.run_migration()
 
     instrument_data = __get_file_data("get-instruments")["result"]["data"]
 
@@ -42,7 +42,7 @@ def mock_app_service():
 
     market_analysis_ratings = get_market_analysis_ratings()
 
-    app_service.add_items(coin_properties)
-    app_service.add_items(market_analysis_ratings)
+    bot_db.add_items(coin_properties)
+    bot_db.add_items(market_analysis_ratings)
 
-    return app_service
+    return bot_db

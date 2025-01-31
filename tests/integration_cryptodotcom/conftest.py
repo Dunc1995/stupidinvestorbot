@@ -2,19 +2,16 @@ import json
 from typing import List
 import pytest
 
-from investorbot.db import get_market_analysis_ratings
 from investorbot.enums import AppIntegration
-from investorbot.integrations.cryptodotcom import mappings
+from investorbot.context import BotContext
 from investorbot.integrations.cryptodotcom.services import CryptoService
-from investorbot.integrations.cryptodotcom.structs import InstrumentJson
 from investorbot.interfaces.services import ICryptoService
-from investorbot.services import AppService
 
 
 @pytest.fixture(autouse=True)
 def set_environment(monkeypatch):
     monkeypatch.setattr(
-        "investorbot.INVESTOR_APP_INTEGRATION",
+        "investorbot.env.INVESTOR_APP_INTEGRATION",
         str(AppIntegration.CRYPTODOTCOM),
     )
 
@@ -48,3 +45,8 @@ def mock_crypto_service() -> ICryptoService:
     crypto_service.user.api_secret_key = "Test_ounghTtgwth874hWWWTESTG"
 
     return crypto_service
+
+
+@pytest.fixture
+def mock_context(mock_bot_db, mock_crypto_service):
+    return BotContext(mock_bot_db, mock_crypto_service)

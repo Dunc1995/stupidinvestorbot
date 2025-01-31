@@ -78,7 +78,7 @@ def test_get_line_of_best_fit_two():
     )
 
 
-def test_coin_sale_validator_is_ready_to_sell():
+def test_coin_sale_validator_is_ready_to_sell(mock_time):
     """Covers basis for when all criteria has been met for the bot to sell a coin. It's now just
     a case of waiting for the coin value to reach an acceptable value."""
     buy_order = BuyOrder("123", "TON_USD", 6.6274)
@@ -91,7 +91,7 @@ def test_coin_sale_validator_is_ready_to_sell():
         0.75,
         0.00225,
         "TON",
-        analysis.time_now() - 3_600_000,
+        mock_time.now_in_ms() - 3_600_000,
     )
     position_balance = PositionBalance("TON", 4.88756072, 0.752975, 0.0)
 
@@ -100,7 +100,7 @@ def test_coin_sale_validator_is_ready_to_sell():
     assert can_sell
 
 
-def test_coin_sale_validator_will_not_sell_because_of_wallet_quantity():
+def test_coin_sale_validator_will_not_sell_because_of_wallet_quantity(mock_time):
     """A user may sell a coin manually, causing the original order quantity to be higher than
     what exists in the user's wallet. The bot needs to handle this gracefully."""
     buy_order = BuyOrder("123", "TON_USD", 6.6274)
@@ -113,7 +113,7 @@ def test_coin_sale_validator_will_not_sell_because_of_wallet_quantity():
         0.75,
         0.00225,
         "TON",
-        analysis.time_now() - 3_600_000,
+        mock_time.now_in_ms() - 3_600_000,
     )
     position_balance = PositionBalance("TON", 0.056123, 0.01, 0.0)
 
@@ -126,7 +126,7 @@ def test_coin_sale_validator_will_not_sell_because_of_wallet_quantity():
     assert not can_sell
 
 
-def test_coin_sale_validator_will_not_break_on_small_coin_balance():
+def test_coin_sale_validator_will_not_break_on_small_coin_balance(mock_time):
     """A user may have a small amount of coin available whilst they have a pending buy order.
     This needs to be handled gracefully by the validator."""
     buy_order = BuyOrder("123", "TON_USD", 6.6274)
@@ -139,7 +139,7 @@ def test_coin_sale_validator_will_not_break_on_small_coin_balance():
         0.75,
         0.00,
         "TON",
-        analysis.time_now() - 3_600_000,
+        mock_time.now_in_ms() - 3_600_000,
     )
     position_balance = PositionBalance("TON", 0.056123, 0.01, 0.0)
 
@@ -152,7 +152,7 @@ def test_coin_sale_validator_will_not_break_on_small_coin_balance():
     assert not can_sell
 
 
-def test_coin_sale_validator_will_not_break_on_normal_coin_balance():
+def test_coin_sale_validator_will_not_break_on_normal_coin_balance(mock_time):
     """A user may have an amount of coin available whilst they have a pending buy order. This
     needs to be handled gracefully by the validator."""
     buy_order = BuyOrder("123", "TON_USD", 6.6274)
@@ -165,7 +165,7 @@ def test_coin_sale_validator_will_not_break_on_normal_coin_balance():
         0.75,
         0.00,
         "TON",
-        analysis.time_now() - 3_600_000,
+        mock_time.now_in_ms() - 3_600_000,
     )
     position_balance = PositionBalance("TON", 5.3, 0.8, 0.0)
 

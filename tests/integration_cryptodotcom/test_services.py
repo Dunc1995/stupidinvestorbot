@@ -11,14 +11,14 @@ from investorbot.models import (
 )
 
 
-def test_get_buy_order_will_return_none_when_not_found(mock_app_service):
+def test_get_buy_order_will_return_none_when_not_found(mock_bot_db):
     """Testing ORM will return None when buy orders do not exist."""
-    result = mock_app_service.get_buy_order("123")
+    result = mock_bot_db.get_buy_order("123")
 
     assert result is None, "Buy order query result is not None."
 
 
-def test_buy_order_can_be_stored_and_retrieved(mock_app_service):
+def test_buy_order_can_be_stored_and_retrieved(mock_bot_db):
     """Testing my implementation of the ORM is able to add items and read said items from the
     app database."""
     buy_order_id = str(uuid.uuid4())
@@ -26,9 +26,9 @@ def test_buy_order_can_be_stored_and_retrieved(mock_app_service):
     buy_order = BuyOrder(
         buy_order_id=buy_order_id, coin_name="AGLD_USDT", price_per_coin=3.0
     )
-    mock_app_service.add_item(buy_order)
+    mock_bot_db.add_item(buy_order)
 
-    db_buy_order = mock_app_service.get_buy_order(buy_order_id)
+    db_buy_order = mock_bot_db.get_buy_order(buy_order_id)
 
     assert db_buy_order.buy_order_id == buy_order_id
 
@@ -50,7 +50,7 @@ def test_buy_order_can_be_stored_and_retrieved(mock_app_service):
     ), "Tick size must be a float."
 
 
-def test_time_series_summary_is_retrievable_with_modes(mock_app_service):
+def test_time_series_summary_is_retrievable_with_modes(mock_bot_db):
     """Ensuring ORM query is such that Modes are included in the time series data summary
     query."""
     coin_name = "TON_USD"
@@ -73,9 +73,9 @@ def test_time_series_summary_is_retrievable_with_modes(mock_app_service):
 
     ts_summary.market_analysis_id = -1
 
-    mock_app_service.add_item(ts_summary)
+    mock_bot_db.add_item(ts_summary)
 
-    retrieved_ts_summary = mock_app_service.get_time_series_with_coin_name(coin_name)
+    retrieved_ts_summary = mock_bot_db.get_time_series_with_coin_name(coin_name)
 
     count = len(retrieved_ts_summary)
     data = retrieved_ts_summary[0]

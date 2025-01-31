@@ -7,7 +7,9 @@ from investorbot.models import BuyOrder
 from investorbot.structs.egress import CoinPurchase, CoinSale
 
 
-def test_get_coin_balance_returns_latest_entry(mock_simulated_crypto_service):
+def test_get_coin_balance_returns_latest_entry(
+    mock_simulated_crypto_service, mock_static_time
+):
     wallet_entry = PositionBalanceSimulated(
         coin_name="USD", quantity=100.0, reserved_quantity=0.0
     )
@@ -19,13 +21,13 @@ def test_get_coin_balance_returns_latest_entry(mock_simulated_crypto_service):
     )
 
     # time service automatically increments time for testing purposes.
-    wallet_entry_two.creation_time = mock_simulated_crypto_service.data.time.now()
-    wallet_entry_three.creation_time = mock_simulated_crypto_service.data.time.now()
+    wallet_entry_two.creation_time = mock_static_time.now()
+    wallet_entry_three.creation_time = mock_static_time.now()
 
     # Add three wallet entries with different creation times.
-    mock_simulated_crypto_service.simulation_service.add_item(wallet_entry)
-    mock_simulated_crypto_service.simulation_service.add_item(wallet_entry_two)
-    mock_simulated_crypto_service.simulation_service.add_item(wallet_entry_three)
+    mock_simulated_crypto_service.simulation_db.add_item(wallet_entry)
+    mock_simulated_crypto_service.simulation_db.add_item(wallet_entry_two)
+    mock_simulated_crypto_service.simulation_db.add_item(wallet_entry_three)
 
     # Use ICryptoService to avoid referencing simulation-specific functionality
     crypto_service: ICryptoService = mock_simulated_crypto_service
@@ -36,13 +38,13 @@ def test_get_coin_balance_returns_latest_entry(mock_simulated_crypto_service):
 
 
 def test_wallet_tracks_usd_balance_with_orders(
-    mock_app_service, mock_simulated_crypto_service
+    mock_bot_db, mock_simulated_crypto_service
 ):
     wallet_entry = PositionBalanceSimulated(
         coin_name="USD", quantity=100.0, reserved_quantity=0.0
     )
 
-    mock_simulated_crypto_service.simulation_service.add_item(wallet_entry)
+    mock_simulated_crypto_service.simulation_db.add_item(wallet_entry)
 
     # Use ICryptoService to avoid referencing simulation-specific functionality
     crypto_service: ICryptoService = mock_simulated_crypto_service
@@ -53,7 +55,7 @@ def test_wallet_tracks_usd_balance_with_orders(
 
     coin_name = "ETH_USD"
 
-    coin_props = mock_app_service.get_coin_properties(coin_name)
+    coin_props = mock_bot_db.get_coin_properties(coin_name)
     coin_buy_order = CoinPurchase(coin_props, 2000.0)
 
     buy_order = crypto_service.place_coin_buy_order(coin_buy_order)
@@ -68,7 +70,7 @@ def test_wallet_tracks_usd_balance_with_orders(
     ), "Buy order has not been deducted from USD balance."
 
     buy_order_id = buy_order.buy_order_id
-    mock_app_service.add_item(buy_order)
+    mock_bot_db.add_item(buy_order)
 
     # Retrieving buy order from db just for completeness.
     order_detail = crypto_service.get_order_detail(buy_order_id)
@@ -93,7 +95,9 @@ def test_wallet_tracks_usd_balance_with_orders(
     ), "Final USD balance is not correct."
 
 
-def test_cash_balance_is_correctly_calculated(mock_simulated_crypto_service):
+def test_cash_balance_is_correctly_calculated(
+    mock_simulated_crypto_service, mock_static_time
+):
     """Total cash balance should reflect the latest PositionBalance entries in the db. Here I'm
     expecting ONLY the modified balances to be summed.
     """
@@ -105,7 +109,7 @@ def test_cash_balance_is_correctly_calculated(mock_simulated_crypto_service):
 
     # Time increments ensure the modified balances are the latest entries in the db.
     # Increment time
-    modified_usd_balance.creation_time = mock_simulated_crypto_service.data.time.now()
+    modified_usd_balance.creation_time = mock_static_time.now()
 
     modified_eth_balance = PositionBalanceSimulated(
         coin_name="ETH",
@@ -117,9 +121,9 @@ def test_cash_balance_is_correctly_calculated(mock_simulated_crypto_service):
     mock_simulated_crypto_service.set_market_value_per_coin("ETH_USD", 444.444444)
 
     # Increment time
-    modified_eth_balance.creation_time = mock_simulated_crypto_service.data.time.now()
+    modified_eth_balance.creation_time = mock_static_time.now()
 
-    mock_simulated_crypto_service.simulation_service.add_items(
+    mock_simulated_crypto_service.simulation_db.add_items(
         [
             PositionBalanceSimulated(
                 coin_name="USD",
@@ -151,7 +155,7 @@ def test_cash_balance_is_correctly_calculated(mock_simulated_crypto_service):
 
 
 def test_investable_coin_count_is_correct(mock_simulated_crypto_service):
-    mock_simulated_crypto_service.simulation_service.add_items(
+    mock_simulated_crypto_service.simulation_db.add_items(
         [
             PositionBalanceSimulated(
                 coin_name="USD",
@@ -177,7 +181,7 @@ def test_investable_coin_count_is_correct(mock_simulated_crypto_service):
 
 
 def test_investable_coin_count_is_correct_two(mock_simulated_crypto_service):
-    mock_simulated_crypto_service.simulation_service.add_items(
+    mock_simulated_crypto_service.simulation_db.add_items(
         [
             PositionBalanceSimulated(
                 coin_name="USD",

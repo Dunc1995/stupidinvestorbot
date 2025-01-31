@@ -1,12 +1,13 @@
 import atexit
 from datetime import datetime, timedelta
 from flask import Flask, abort, render_template, request
+from investorbot.context import bot_context
 from investorbot.db import init_db
-from investorbot.integrations.simulation import data_provider
-from investorbot import is_crypto_dot_com, routines
-from investorbot import crypto_service, app_service, is_simulation, smtp_service
+from investorbot.env import is_crypto_dot_com, is_simulation
+from investorbot import routines
 from apscheduler.schedulers.background import BackgroundScheduler
 
+from investorbot.integrations.simulation.services import SimulatedCryptoService
 from investorbot.models import CashBalance
 
 # from investorbot.smtp import send_test_email
@@ -19,6 +20,12 @@ def placeholder():
 
 
 def run_api(host="127.0.0.1", port=5000, persist_data=False):
+    smtp_service = bot_context.smtp_service
+    data_provider = None
+
+    if isinstance(bot_context.crypto_service, SimulatedCryptoService):
+        data_provider = bot_context.crypto_service.data
+
     if not persist_data:
         init_db()
 
@@ -99,7 +106,7 @@ def index():
 
 @app.route("/get-latest-trades")
 def get_latest_trades():
-    return crypto_service.get_latest_trades()
+    return bot_context.crypto_service.get_latest_trades()
 
 
 @app.route("/get-valuation")
@@ -109,12 +116,12 @@ def get_valuation():
     if coin_name is None or "_USD" not in coin_name:
         return abort(404)
 
-    return crypto_service.get_coin_time_series_data(coin_name)
+    return bot_context.crypto_service.get_coin_time_series_data(coin_name)
 
 
 @app.route("/get-market-analysis")
 def get_market_analysis():
-    analysis = app_service.get_market_analysis()[0]
+    analysis = bot_context.db_service.get_market_analysis()[0]
 
     if analysis is None:
         return abort(404)
@@ -127,7 +134,7 @@ def get_market_analysis():
 
 @app.route("/get-orders")
 def get_orders():
-    orders = app_service.get_all_buy_orders()
+    orders = bot_context.db_service.get_all_buy_orders()
 
     buy_orders = [order.as_dict() for order in orders]
 
@@ -136,7 +143,7 @@ def get_orders():
 
 @app.route("/get-balance-history")
 def get_balance_history():
-    balance_history = app_service.get_all_items(CashBalance)
+    balance_history = bot_context.db_service.get_all_items(CashBalance)
 
     balances = [balance.as_dict() for balance in balance_history]
 

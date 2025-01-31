@@ -2,11 +2,12 @@ import logging
 
 from argh import arg
 from requests import HTTPError
+from investorbot.context import bot_context
 from investorbot.constants import (
     INVESTMENT_INCREMENTS,
     DEFAULT_LOGS_NAME,
 )
-from investorbot import crypto_service, app_service
+from investorbot.env import time as env_time
 from investorbot.decorators import routine
 from investorbot.models import CashBalance, MarketAnalysis
 from investorbot.structs.egress import CoinPurchase, CoinSale
@@ -18,6 +19,7 @@ logging.basicConfig(level=logging.INFO)
 
 def get_initial_ts_summaries(hours_int):
     ts_summaries = []
+    crypto_service = bot_context.crypto_service
 
     # Get latest trade prices for all instruments being sold at high trading volume and with USD.
     # TODO Parameterize trading currency rather than hardcoding USD. Also parameterize trading
@@ -45,6 +47,8 @@ def get_initial_ts_summaries(hours_int):
 
 
 def get_coins_to_purchase():
+    crypto_service = bot_context.crypto_service
+
     coin_count = crypto_service.get_investable_coin_count()
 
     log_message = (
@@ -75,13 +79,15 @@ def refresh_market_analysis_routine(hours: int) -> MarketAnalysis:
     each dataset - e.g. median, mean, modes, line-of-best-fit, etc. - these values are then stored
     in the application database via the TimeSeriesSummary models."""
 
+    bot_db = bot_context.db_service
+
     hours_int = int(hours)
     initial_ts_summaries = get_initial_ts_summaries(hours_int)
 
     # Rating thresholds are basically a constant - they only exist in the database to the make the
     # app configurable. FIXME - Rating thresholds are a subset of coin_selection_criteria -
     # unnecessarily complicated.
-    rating_thresholds = app_service.get_rating_thresholds()
+    rating_thresholds = bot_db.get_rating_thresholds()
 
     # Compare coins and attribute outlier properties to coins with any kind of weird property.
     partially_complete_ts_summaries = analysis.assign_outlier_properties(
@@ -94,7 +100,7 @@ def refresh_market_analysis_routine(hours: int) -> MarketAnalysis:
     )
 
     # Fetch the selection criteria based on current market confidence.
-    options = app_service.get_selection_criteria(confidence_rating.value)
+    options = bot_db.get_selection_criteria(confidence_rating.value)
 
     # Use selection criteria to apply weightings to each coin's rank.
     complete_ts_summaries = analysis.assign_weighted_rankings(
@@ -103,13 +109,13 @@ def refresh_market_analysis_routine(hours: int) -> MarketAnalysis:
 
     # Create the final market analysis object to add to the db.
     market_analysis = MarketAnalysis(
-        confidence_rating.value, analysis.time_now(), complete_ts_summaries
+        confidence_rating.value, env_time.now_in_ms(), complete_ts_summaries
     )
 
-    app_service.add_item(market_analysis)
+    bot_db.add_item(market_analysis)
 
     # Refetch the market analysis here to ensure ORM model is in sync with database.
-    market_analysis, _ = app_service.get_market_analysis()
+    market_analysis, _ = bot_db.get_market_analysis()
 
     return market_analysis
 
@@ -119,6 +125,9 @@ def buy_coin_routine():
     """Fetches precalculated time series statistics for coins the application may decide to invest
     in. Buy orders will be placed for coins that meet the conditions set by a given ruleset.
     Rulesets are to be determined by the app's confidence in the market."""
+
+    bot_db = bot_context.db_service
+    crypto_service = bot_context.crypto_service
 
     purchase_count = 0
     coin_names = get_coins_to_purchase()
@@ -137,12 +146,12 @@ def buy_coin_routine():
             f"{coin_name} can be purchased based on current selection criteria."
         )
 
-        coin_props = app_service.get_coin_properties(coin_name)
+        coin_props = bot_db.get_coin_properties(coin_name)
 
         spec = CoinPurchase(coin_props, latest_trade.price)
 
         buy_order = crypto_service.place_coin_buy_order(spec)
-        app_service.add_item(buy_order)
+        bot_db.add_item(buy_order)
 
         purchase_count += 1
 
@@ -154,12 +163,15 @@ def sell_coin_routine():
     SELL orders will then be placed for coin balances that have met the minimum return threshold -
     e.g. 101 percent of the original BuyOrder value."""
 
+    bot_db = bot_context.db_service
+    crypto_service = bot_context.crypto_service
+
     # Get all buy orders that have been placed by the app.
-    buy_orders = app_service.get_all_buy_orders()
+    buy_orders = bot_db.get_all_buy_orders()
 
     for buy_order in buy_orders:
         # Get order details from Crypto.com - at this the point the order could be in various states
-        # such as: 'EXPIRED', 'CANCELED', 'FILLED', etc. - in other words the order may not yet be
+        # such as: 'COMPLETED', 'CANCELED', 'OTHER', etc. - in other words the order may not yet be
         # in a state to sell.
         order_detail = crypto_service.get_order_detail(buy_order.buy_order_id)
 
@@ -178,7 +190,7 @@ def sell_coin_routine():
         # If the buy order has been cancelled, there's no reason to store the order id in the
         # database, hence delete any reference to the order.
         if validation_result.order_has_been_cancelled:
-            app_service.delete_buy_order(buy_order.buy_order_id)
+            bot_db.delete_buy_order(buy_order.buy_order_id)
 
         # No further action required if the buy order cannot be sold at this time.
         if not coin_is_sellable:
@@ -210,7 +222,7 @@ def sell_coin_routine():
             sell_order = crypto_service.place_coin_sell_order(
                 buy_order.buy_order_id, coin_sale
             )
-            app_service.add_item(sell_order)
+            bot_db.add_item(sell_order)
         except HTTPError as http_error:
             # ! FIXME need to find the specific error here rather than hiding 500 errors.
             if http_error.response.status_code != 500:
@@ -221,4 +233,4 @@ def sell_coin_routine():
         # endregion
 
     cash_balance = crypto_service.get_total_cash_balance()
-    app_service.add_item(CashBalance(cash_balance))
+    bot_db.add_item(CashBalance(cash_balance))

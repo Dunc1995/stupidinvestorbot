@@ -1,11 +1,11 @@
 import logging
 import math
-import time
 from typing import List, Tuple
 import pandas as pd
 from pandas import DataFrame
 import numpy as np
 
+from investorbot import env
 from investorbot.constants import (
     DEFAULT_LOGS_NAME,
     INVESTOR_APP_FLATNESS_THRESHOLD,
@@ -33,7 +33,7 @@ logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
 
 def __hours_since_order(order: OrderDetail) -> float:
-    t_now = time_now()
+    t_now = env.time.now_in_ms()
 
     time_of_order = order.time_created_ms
     milliseconds_since_order = t_now - time_of_order
@@ -43,15 +43,11 @@ def __hours_since_order(order: OrderDetail) -> float:
 def __get_minimum_acceptable_value_ratio(order: OrderDetail) -> float:
     # TODO make this configurable as DecayEquationParameters or similar. High confidence in the
     # market should result in slower decay rate.
-    return 0.98 + 0.03 ** ((0.01 * __hours_since_order(order)) + 1.0)
+    return 0.99 + 0.03 ** ((0.01 * __hours_since_order(order)) + 1.0)
 
 
 def is_value_ratio_sufficient(value_ratio: float, order: OrderDetail) -> bool:
     return value_ratio >= __get_minimum_acceptable_value_ratio(order)
-
-
-def time_now():
-    return int(time.time() * 1000)
 
 
 def convert_ms_time_to_hours(value: int, offset=0):

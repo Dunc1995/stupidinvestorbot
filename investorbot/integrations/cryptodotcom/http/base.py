@@ -9,7 +9,7 @@ import requests
 from os import path
 from pathlib import Path
 from urllib.parse import urlparse
-from investorbot.analysis import time_now
+from investorbot import env
 from investorbot.constants import DEFAULT_LOGS_NAME, INVESTOR_APP_ENVIRONMENT
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
@@ -115,7 +115,7 @@ class AuthenticatedHttpClient(HttpClient):
             "method": "private/" + method,
             "api_key": self.api_key,
             "params": params,
-            "nonce": time_now(),
+            "nonce": env.time.now_in_ms(),
         }
 
         logger.debug(json.dumps(req, indent=4))

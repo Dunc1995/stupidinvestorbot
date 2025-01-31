@@ -10,6 +10,7 @@ from sqlalchemy import Engine
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.orm import DeclarativeBase
 
+from investorbot import env
 from investorbot.integrations.cryptodotcom import mappings
 from investorbot.constants import (
     DEFAULT_LOGS_NAME,
@@ -29,7 +30,7 @@ from investorbot.models import (
     MarketAnalysis,
     TimeSeriesSummary,
 )
-from investorbot.analysis import time_now, convert_ms_time_to_hours
+from investorbot.analysis import convert_ms_time_to_hours
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
@@ -74,7 +75,7 @@ class BaseAppService:
         return items_list
 
 
-class AppService(BaseAppService):
+class BotDbService(BaseAppService):
     def __init__(self, connection_string):
         super().__init__(Base, connection_string)
 
@@ -150,29 +151,13 @@ class AppService(BaseAppService):
         market_analysis = self.__get_market_analysis()
 
         should_refresh_ts_data = (
-            convert_ms_time_to_hours(time_now(), market_analysis.creation_time_ms)
+            convert_ms_time_to_hours(
+                env.time.now_in_ms(), market_analysis.creation_time_ms
+            )
             >= 1.0
         )
 
         return market_analysis, should_refresh_ts_data
-
-    def delete_existing_time_series(self):
-        with self.session as session:
-            now = time_now()
-            query = (
-                session.query(MarketAnalysis)
-                .options(
-                    joinedload(MarketAnalysis.ts_data).subqueryload(
-                        TimeSeriesSummary.modes
-                    )
-                )
-                .where(MarketAnalysis.creation_time_ms < now)
-            )
-
-            for item in session.scalars(query):
-                session.delete(item)
-
-            session.commit()
 
     def get_coin_properties(self, coin_name: str) -> CoinProperties | None:
         session = self.session
