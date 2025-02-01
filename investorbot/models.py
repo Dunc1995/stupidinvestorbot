@@ -1,3 +1,4 @@
+from re import sub
 from typing import List, Optional
 from sqlalchemy import (
     Boolean,
@@ -18,6 +19,15 @@ from sqlalchemy.orm import MappedAsDataclass
 from investorbot.enums import TrendLineState
 
 
+def camel_case(s) -> str:
+    # Use regular expression substitution to replace underscores and hyphens with spaces,
+    # then title case the string (capitalize the first letter of each word), and remove spaces
+    s = sub(r"(_|-)+", " ", s).title().replace(" ", "")
+
+    # Join the string, ensuring the first letter is lowercase
+    return "".join([s[0].lower(), s[1:]])
+
+
 class Base(MappedAsDataclass, DeclarativeBase):
     pass
 
@@ -26,7 +36,9 @@ class SerializableBase(Base):
     __abstract__ = True
 
     def as_dict(self):
-        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+        return {
+            camel_case(c.name): getattr(self, c.name) for c in self.__table__.columns
+        }
 
 
 class TimestampMixin(object):

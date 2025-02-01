@@ -17,6 +17,7 @@
                 <li><a href="/">Home</a></li>
                 <li><a href="/about">About</a></li>
                 <li><a href="/market-analysis">Market Analysis</a></li>
+                <li><a href="/wallet-balance">Wallet Balance</a></li>
             </ul>
         </div>
     </div>
