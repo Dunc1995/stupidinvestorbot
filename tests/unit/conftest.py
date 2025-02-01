@@ -1,5 +1,5 @@
 import pytest
-from investorbot.integrations.simulation.providers import StaticTimeProvider
+from investorbot.providers import StaticTimeProvider
 
 
 @pytest.fixture

@@ -3,10 +3,10 @@ import pytest
 
 from investorbot.enums import AppIntegration
 from investorbot.context import BotContext
+from investorbot.providers import StaticTimeProvider
 from investorbot.integrations.simulation.providers import (
     DataProvider,
     SimulatedTimeProvider,
-    StaticTimeProvider,
 )
 from investorbot.integrations.simulation.services import (
     SimulatedCryptoService,

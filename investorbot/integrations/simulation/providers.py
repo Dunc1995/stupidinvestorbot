@@ -24,28 +24,6 @@ def get_first_row() -> dict:
     return {x["i"]: x["a"] for x in TICKERS}
 
 
-class StaticTimeProvider(ITimeSimulation):
-    __current_time: datetime
-
-    def __init__(self):
-        self.__current_time = datetime.now()
-
-    def now(self) -> datetime:
-        """Here I'm simulating the passage of time in a very crude sense. This is to be used
-        whenever the point in time is mostly irrelevant or in simplistic tests."""
-        self.__current_time += timedelta(minutes=1)
-
-        return self.__current_time
-
-    def now_in_ms(self) -> int:
-        return int(self.__current_time.timestamp()) * 1000
-
-    def increment_time(self):
-        raise NotImplementedError(
-            "Unexpected attempt to increment time during testing."
-        )
-
-
 class SimulatedTimeProvider(ITimeSimulation):
     start_time: datetime
     now_time: datetime
