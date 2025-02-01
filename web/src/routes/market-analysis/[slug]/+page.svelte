@@ -1,17 +1,17 @@
 <script lang="ts">
+    import type Chart from "chart.js/auto";
     import type { PageData } from "./$types";
+    import Graph from "$lib/components/Graph.svelte";
+    import { getCoinData } from "$lib/queries";
 
     export let data: PageData;
     let coinData = data.result;
 
-    console.log(data);
+    let chartData: Chart | undefined;
+    let dataSource = getCoinData(coinData.coinName);
 </script>
 
 <div>
     <h1>{coinData.coinName}</h1>
-    <ul>
-        {#each coinData.history as coinAnalysis}
-            <li>{coinAnalysis.lineOfBestFitCoefficient}</li>
-        {/each}
-    </ul>
+    <Graph bind:dataSource bind:chartData></Graph>
 </div>

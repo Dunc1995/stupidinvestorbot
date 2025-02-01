@@ -1,5 +1,6 @@
+from datetime import datetime
 from re import sub
-from typing import List, Optional
+from typing import Any, List, Optional
 from sqlalchemy import (
     Boolean,
     Column,
@@ -28,6 +29,15 @@ def camel_case(s) -> str:
     return "".join([s[0].lower(), s[1:]])
 
 
+def format_attr(attribute) -> Any:
+    output = attribute
+
+    if isinstance(attribute, datetime):
+        output = int(attribute.timestamp()) * 1000
+
+    return output
+
+
 class Base(MappedAsDataclass, DeclarativeBase):
     pass
 
@@ -37,7 +47,8 @@ class SerializableBase(Base):
 
     def as_dict(self):
         return {
-            camel_case(c.name): getattr(self, c.name) for c in self.__table__.columns
+            camel_case(c.name): format_attr(getattr(self, c.name))
+            for c in self.__table__.columns
         }
 
 

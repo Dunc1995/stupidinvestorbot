@@ -1,6 +1,8 @@
 import atexit
 from datetime import datetime, timedelta
 from flask import Flask, abort, render_template, request
+from flask_cors import CORS, cross_origin
+
 from investorbot.context import bot_context
 from investorbot.db import init_db
 from investorbot.env import is_crypto_dot_com, is_simulation
@@ -13,10 +15,11 @@ from investorbot.models import CashBalance
 # from investorbot.smtp import send_test_email
 
 app = Flask(__name__)
+CORS(app, resources={r"/api/*": {"origins": "http://localhost:5371"}})
 
 
-def placeholder():
-    print("HELLO")
+def analysis_routine():
+    return routines.refresh_market_analysis_routine(hours=24)
 
 
 def run_api(host="127.0.0.1", port=5000, persist_data=False):
@@ -31,8 +34,15 @@ def run_api(host="127.0.0.1", port=5000, persist_data=False):
 
     scheduler = BackgroundScheduler()
 
-    # scheduler.add_job( func=routines.update_time_series_summaries_routine, trigger="interval",
-    #     minutes=60, name="update_time_series_summaries_routine", )
+    market_analysis_job = scheduler.add_job(
+        func=analysis_routine,
+        trigger="interval",
+        minutes=15,
+        name="refresh_market_analysis_routine",
+    )
+
+    market_analysis_job.modify(next_run_time=datetime.now() + timedelta(seconds=25))
+
     scheduler.add_job(
         func=smtp_service.send_heartbeat,
         trigger="interval",
@@ -110,6 +120,7 @@ def get_latest_trades():
 
 
 @app.route("/get-valuation")
+@cross_origin()
 def get_valuation():
     coin_name = request.args.get("coin_name")
 

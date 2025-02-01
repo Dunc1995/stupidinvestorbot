@@ -5,6 +5,7 @@
     import type { PageData } from "./$types";
     import type Chart from "chart.js/auto";
     import type { TableRow } from "$lib/types";
+    import { getTimeSeriesData } from "$lib/queries";
     export let data: PageData;
 
     let coinData: TableRow[] = data.result?.timeSeriesSummary.map((x) => {
@@ -17,6 +18,8 @@
 
     if (coinData === undefined)
         throw new ReferenceError("Time series analysis data was not found.");
+
+    let dataSource = getTimeSeriesData(coinData);
 </script>
 
 <div class="container mx-auto pt-2 pb-2">
@@ -41,7 +44,7 @@
         <div
             class="card bg-base-300 rounded-box grid h-200 p-2 flex-grow place-items-center"
         >
-            <Graph bind:coinData bind:chartData></Graph>
+            <Graph bind:dataSource bind:chartData></Graph>
         </div>
 
         <div class="divider lg:divider-horizontal"></div>
