@@ -1,31 +1,49 @@
 from datetime import datetime, timedelta
 import math
-from investorbot.context import BotContext
 from investorbot.integrations.simulation.models import PositionBalanceSimulated
 from investorbot.integrations.simulation.services import SimulatedCryptoService
 from investorbot.routines import buy_coin_routine, refresh_market_analysis_routine
 
 
-def test_market_analysis_can_be_executed_on_simulation(monkeypatch, mock_context):
+def test_market_analysis_can_be_executed_on_simulation(
+    monkeypatch, mock_context_with_data
+):
     """Simply running market analysis on simulated data."""
-    crypto_service = mock_context.crypto_service
+    crypto_service = mock_context_with_data.crypto_service
+
+    if not isinstance(crypto_service, SimulatedCryptoService):
+        raise TypeError("Crypto service needs to be simulated for this test.")
 
     wallet_entry = PositionBalanceSimulated(
         coin_name="USD", quantity=100.0, reserved_quantity=0.0
     )
 
-    crypto_service.simulation_db.add_item(wallet_entry)
+    crypto_service.simulation_db.add_wallet_entry(wallet_entry)
 
     # Patch routine services with in-memory variants.
-    monkeypatch.setattr("investorbot.routines.bot_context", mock_context)
+    monkeypatch.setattr("investorbot.routines.bot_context", mock_context_with_data)
 
     # TODO add some assertions for what to expect after running this
     refresh_market_analysis_routine(hours=24)
 
 
-def test_buy_order_routine_works_on_simulation(monkeypatch, mock_context):
+def test_buy_order_routine_works_on_simulation(
+    monkeypatch, mock_context, mock_static_time
+):
     """Testing the simulation will track wallet balance correctly whilst placing
     buy orders."""
+
+    # Need to override time implementation here to ensure there's sequential time order to this test
+    monkeypatch.setattr(
+        "investorbot.integrations.simulation.providers.env.time",
+        mock_static_time,
+    )
+
+    monkeypatch.setattr(
+        "investorbot.integrations.simulation.services.env.time",
+        mock_static_time,
+    )
+
     wallet_entry = PositionBalanceSimulated(
         coin_name="USD", quantity=100.0, reserved_quantity=0.0
     )
@@ -36,7 +54,7 @@ def test_buy_order_routine_works_on_simulation(monkeypatch, mock_context):
     if not isinstance(crypto_service, SimulatedCryptoService):
         raise TypeError("Crypto service should be simulated during simulation tests.")
 
-    crypto_service.simulation_db.add_item(wallet_entry)
+    crypto_service.simulation_db.add_wallet_entry(wallet_entry)
 
     # Patch routine services with in-memory variants.
     monkeypatch.setattr("investorbot.routines.bot_context", mock_context)
@@ -65,19 +83,30 @@ def test_time_remains_synchronized_whilst_running_buy_routine(
     """I am unsure how variable binding will behave with simulated time. This test ensures simulated
     time increments coincide with creation times in the bot's database."""
 
+    monkeypatch.setattr(
+        "investorbot.integrations.simulation.providers.env.time",
+        mock_simulated_time,
+    )
+
+    monkeypatch.setattr(
+        "investorbot.integrations.simulation.services.env.time",
+        mock_simulated_time,
+    )
+
     crypto_service = mock_context.crypto_service
+
+    if not isinstance(crypto_service, SimulatedCryptoService):
+        raise TypeError("Crypto service needs to be simulated for this test.")
+
     bot_db = mock_context.db_service
 
     wallet_entry = PositionBalanceSimulated(
         coin_name="USD", quantity=100.0, reserved_quantity=0.0
     )
 
-    crypto_service.simulation_db.add_item(wallet_entry)
+    crypto_service.simulation_db.add_wallet_entry(wallet_entry)
 
     monkeypatch.setattr("investorbot.routines.bot_context", mock_context)
-    monkeypatch.setattr(
-        "investorbot.integrations.simulation.services.env.time", mock_simulated_time
-    )
 
     time_now = mock_simulated_time.now()
     time_now = time_now.replace(microsecond=0)

@@ -1,7 +1,6 @@
 import logging
 import argh
 from investorbot.constants import DEFAULT_LOGS_NAME
-from investorbot.integrations.simulation.services import SimulatedCryptoService
 from investorbot.routines import (
     get_coins_to_purchase,
     buy_coin_routine,
@@ -32,10 +31,6 @@ def main():
 
         if not is_simulation():
             commands.append(init_db)
-        elif isinstance(bot_context.crypto_service, SimulatedCryptoService):
-            generate_data = bot_context.crypto_service.data.generate_time_series_data
-
-            commands.append(generate_data)
 
         argh.dispatch_commands(commands)
     except EnvironmentError as e:

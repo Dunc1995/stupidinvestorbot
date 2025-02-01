@@ -23,14 +23,37 @@ def set_environment(monkeypatch):
 
 
 @pytest.fixture
-def mock_simulated_crypto_service(monkeypatch) -> SimulatedCryptoService:
-    monkeypatch.setattr(
-        "investorbot.integrations.simulation.providers.TIME_SERIES_DATA_PATH",
-        "./tests/integration_simulation/fixtures/simulation.csv",
-    )
+def mock_simulated_crypto_service_with_data(
+    monkeypatch, mock_simulated_time
+) -> SimulatedCryptoService:
 
     simulation_db = SimulationDbService("sqlite:///:memory:")
-    data_provider = DataProvider()
+
+    monkeypatch.setattr(
+        "investorbot.integrations.simulation.providers.env.time",
+        mock_simulated_time,
+    )
+
+    monkeypatch.setattr(
+        "investorbot.integrations.simulation.services.env.time",
+        mock_simulated_time,
+    )
+
+    data_provider = DataProvider(2000, generate_static_data=True)
+
+    simulation_db.run_migration()
+
+    crypto_service = SimulatedCryptoService(simulation_db, data_provider)
+
+    return crypto_service
+
+
+@pytest.fixture
+def mock_simulated_crypto_service() -> SimulatedCryptoService:
+
+    simulation_db = SimulationDbService("sqlite:///:memory:")
+
+    data_provider = DataProvider(2000)
 
     simulation_db.run_migration()
 
@@ -42,6 +65,11 @@ def mock_simulated_crypto_service(monkeypatch) -> SimulatedCryptoService:
 @pytest.fixture
 def mock_context(mock_bot_db, mock_simulated_crypto_service):
     return BotContext(mock_bot_db, mock_simulated_crypto_service)
+
+
+@pytest.fixture
+def mock_context_with_data(mock_bot_db, mock_simulated_crypto_service_with_data):
+    return BotContext(mock_bot_db, mock_simulated_crypto_service_with_data)
 
 
 @pytest.fixture

@@ -11,8 +11,8 @@ class ITimeSimulation(ITimeProvider):
 
     @abstractmethod
     def increment_time(self) -> datetime:
-        """This method should only be accessible to whatever is responsible for incrementing
-        simulated time."""
+        """This method should only be called by whatever is responsible for incrementing
+        time during simulation."""
         pass
 
 
@@ -33,10 +33,6 @@ class IDataProvider(ABC):
 
     @abstractmethod
     def get_coin_time_series_data(self, coin_name: str) -> dict:
-        pass
-
-    @abstractmethod
-    def generate_time_series_data(self):
         pass
 
     @abstractmethod

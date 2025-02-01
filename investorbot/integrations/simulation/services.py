@@ -35,6 +35,11 @@ class SimulationDbService(BaseAppService):
     def __init__(self, connection_string):
         super().__init__(SimulationBase, connection_string)
 
+    def add_wallet_entry(self, position_balance: PositionBalanceSimulated):
+        position_balance.creation_time = env.time.now()
+
+        self.add_item(position_balance)
+
 
 class SimulatedCryptoService(ICryptoService):
     def __init__(
@@ -145,9 +150,7 @@ class SimulatedCryptoService(ICryptoService):
             reserved_quantity=0.0,
         )
 
-        new_wallet_entry.creation_time = env.time.now()
-
-        self.simulation_db.add_item(new_wallet_entry)
+        self.simulation_db.add_wallet_entry(new_wallet_entry)
 
     def __get_position_balance_adjustment(
         self, coin_name, quantity_str, price_per_coin_str, fee_pct=0.005

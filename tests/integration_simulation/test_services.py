@@ -1,9 +1,7 @@
-from datetime import datetime, timedelta
 import math
-import uuid
+from investorbot.integrations.simulation.services import SimulatedCryptoService
 from investorbot.integrations.simulation.models import PositionBalanceSimulated
 from investorbot.interfaces.services import ICryptoService
-from investorbot.models import BuyOrder
 from investorbot.structs.egress import CoinPurchase, CoinSale
 
 
@@ -38,13 +36,27 @@ def test_get_coin_balance_returns_latest_entry(
 
 
 def test_wallet_tracks_usd_balance_with_orders(
-    mock_bot_db, mock_simulated_crypto_service
+    monkeypatch, mock_bot_db, mock_simulated_crypto_service, mock_static_time
 ):
+    # Need to override time implementation here to ensure there's sequential time order to this test
+    monkeypatch.setattr(
+        "investorbot.integrations.simulation.providers.env.time",
+        mock_static_time,
+    )
+
+    monkeypatch.setattr(
+        "investorbot.integrations.simulation.services.env.time",
+        mock_static_time,
+    )
+
     wallet_entry = PositionBalanceSimulated(
         coin_name="USD", quantity=100.0, reserved_quantity=0.0
     )
 
-    mock_simulated_crypto_service.simulation_db.add_item(wallet_entry)
+    if not isinstance(mock_simulated_crypto_service, SimulatedCryptoService):
+        raise TypeError("Crypto service needs to be simulated for this test.")
+
+    mock_simulated_crypto_service.simulation_db.add_wallet_entry(wallet_entry)
 
     # Use ICryptoService to avoid referencing simulation-specific functionality
     crypto_service: ICryptoService = mock_simulated_crypto_service

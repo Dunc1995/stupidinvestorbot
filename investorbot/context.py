@@ -71,7 +71,7 @@ class BotContext:
 
         if is_simulation():
             simulation_db_service = SimulationDbService(SIMULATION_DB_CONNECTION)
-            data_provider: IDataProvider = DataProvider()
+            data_provider: IDataProvider = DataProvider(2000)
 
             crypto_service = SimulatedCryptoService(
                 simulation_db_service, data_provider
