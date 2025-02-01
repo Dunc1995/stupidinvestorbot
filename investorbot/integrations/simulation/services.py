@@ -1,4 +1,5 @@
 from datetime import datetime
+import logging
 import math
 from typing import List
 import uuid
@@ -6,7 +7,7 @@ import uuid
 import sqlalchemy
 from sqlalchemy import func
 from investorbot import env
-from investorbot.constants import INVESTMENT_INCREMENTS
+from investorbot.constants import INVESTMENT_INCREMENTS, DEFAULT_LOGS_NAME
 from investorbot.enums import OrderStatus
 
 # region coupling to cryptodotcom integration - ideally want complete decoupling but for the purposes
@@ -28,6 +29,8 @@ from investorbot.integrations.simulation.models import (
 )
 from investorbot.structs.egress import CoinPurchase, CoinSale
 from investorbot.structs.internal import LatestTrade, OrderDetail, PositionBalance
+
+logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
 
 class SimulationDbService(BaseAppService):
@@ -109,7 +112,7 @@ class SimulatedCryptoService(ICryptoService):
         data = (
             session.query(
                 PositionBalanceSimulated,
-                func.max(PositionBalanceSimulated.creation_time),
+                func.max(PositionBalanceSimulated.balance_id),
             )
             .filter(PositionBalanceSimulated.coin_name == coin_name)
             .first()
@@ -138,11 +141,22 @@ class SimulatedCryptoService(ICryptoService):
         # TODO quantity variable is only used once in this method - probably not necessary
         # TODO "USD" functionality may need separating out here.
         quantity_adjustment = total_value if coin_name == "USD" else quantity
+        operation = ""
 
         if is_selling:
             new_coin_quantity = current_wallet_entry.quantity - quantity_adjustment
+            operation = "Negating"
         else:
             new_coin_quantity = current_wallet_entry.quantity + quantity_adjustment
+            operation = "Adding"
+
+        logger.info(
+            f"""
+Current {coin_name} quantity is {current_wallet_entry.quantity}.
+{operation} {quantity_adjustment} {coin_name} (by quantity).
+New quantity is {new_coin_quantity}
+"""
+        )
 
         new_wallet_entry = PositionBalanceSimulated(
             coin_name=coin_name,
