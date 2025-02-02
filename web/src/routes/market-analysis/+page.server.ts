@@ -1,16 +1,16 @@
 import type { PageServerLoad } from './$types';
-import { dbClient } from '$lib/db';
-import { marketAnalysis } from '$lib/schema';
-import { desc } from 'drizzle-orm';
+import { hostInternal } from '$lib/consts';
+import type { MarketAnalysisContainer } from '$lib/types';
 
 export const load = (async () => {
-    const result = await dbClient.query.marketAnalysis.findFirst({
-        orderBy: desc(marketAnalysis.marketAnalysisId),
-        with: {
-            timeSeriesSummary: true,
-            rating: true
-        },
-    });
+    const marketAnalysisResponse = await fetch(
+        `${hostInternal}/get-market-analysis`,
+    );
 
-    return { result: result };
+
+    const marketAnalysis: MarketAnalysisContainer = await marketAnalysisResponse.json()
+
+    return {
+        result: marketAnalysis
+    };
 }) satisfies PageServerLoad;

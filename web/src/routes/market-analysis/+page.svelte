@@ -8,7 +8,7 @@
     import { getTimeSeriesData } from "$lib/queries";
     export let data: PageData;
 
-    let coinData: TableRow[] = data.result?.timeSeriesSummary.map((x) => {
+    let coinData: TableRow[] = data.result?.timeSeriesStatistics.map((x) => {
         return {
             isActive: true,
             data: x,
@@ -36,7 +36,7 @@
             a short timeframe.
         </p>
         <p>
-            {data.result?.rating?.ratingDescription}
+            {data.result?.coinSelectionCriteria?.ratingDescription}
         </p>
     </article>
     <ControlPanel bind:coinData bind:chartData></ControlPanel>

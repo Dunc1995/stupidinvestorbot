@@ -1,11 +1,11 @@
-import { host } from '$lib/consts';
+import { hostInternal } from '$lib/consts';
 import type { CashBalance } from '$lib/types';
 import type { PageServerLoad } from './$types';
 
 
 export const load = (async () => {
     const balanceHistory = await fetch(
-        `${host}/get-balance-history`,
+        `${hostInternal}/get-balance-history`,
     );
 
 

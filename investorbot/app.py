@@ -138,8 +138,9 @@ def get_market_analysis():
         return abort(404)
 
     return {
-        "market_analysis": analysis.as_dict(),
-        "time_series_statistics": [ts_data.as_dict() for ts_data in analysis.ts_data],
+        "marketAnalysis": analysis.as_dict(),
+        "coinSelectionCriteria": analysis.rating.as_dict(),
+        "timeSeriesStatistics": [ts_data.as_dict() for ts_data in analysis.ts_data],
     }
 
 
