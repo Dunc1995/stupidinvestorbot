@@ -113,18 +113,28 @@ export const getWalletGraphData = (walletData: CashBalance[]) => {
         datasets: [],
     };
 
-
-    let allData = walletData.map((dataPoint: CashBalance) => {
-        return { x: dataPoint.creationTime, y: dataPoint.value };
+    let marketValueData = walletData.map((dataPoint: CashBalance) => {
+        return { x: dataPoint.creationTime, y: dataPoint.totalEstimatedValueUsd };
     });
 
-    const dataSeries = {
-        label: "Wallet Value History",
-        data: allData,
+    let usdData = walletData.map((dataPoint: CashBalance) => {
+        return { x: dataPoint.creationTime, y: dataPoint.usdBalance };
+    });
+
+    const estimatedMarketValue = {
+        label: "Estimated Market Value",
+        data: marketValueData,
         borderColor: getRandomColour()
     };
 
-    data.datasets.push(dataSeries);
+    const usdBalance = {
+        label: "USD Balance",
+        data: usdData,
+        borderColor: getRandomColour()
+    };
+
+    data.datasets.push(estimatedMarketValue);
+    data.datasets.push(usdBalance);
 
     return data;
 }

@@ -61,9 +61,9 @@ def test_wallet_tracks_usd_balance_with_orders(
     # Use ICryptoService to avoid referencing simulation-specific functionality
     crypto_service: ICryptoService = mock_simulated_crypto_service
 
-    usd_balance = crypto_service.get_usd_balance()
+    cash_balance = crypto_service.get_cash_balance()
 
-    assert usd_balance == 100.0, "Incorrect starting USD balance."
+    assert cash_balance.usd_balance == 100.0, "Incorrect starting USD balance."
 
     coin_name = "ETH_USD"
 
@@ -73,13 +73,13 @@ def test_wallet_tracks_usd_balance_with_orders(
     buy_order = crypto_service.place_coin_buy_order(coin_buy_order)
 
     # Place buy order - this should detract from USD balance
-    updated_usd_balance = crypto_service.get_usd_balance()
+    updated_cash_balance = crypto_service.get_cash_balance()
 
     updated_eth_balance = crypto_service.get_coin_balance("ETH")
 
     assert (
-        updated_usd_balance == 90.0
-    ), "Buy order has not been deducted from USD balance."
+        updated_cash_balance.usd_balance == 90.0
+    ), "Buy order updated_cash_balance not been deducted from USD balance."
 
     buy_order_id = buy_order.buy_order_id
     mock_bot_db.add_item(buy_order)
@@ -97,13 +97,13 @@ def test_wallet_tracks_usd_balance_with_orders(
     crypto_service.place_coin_sell_order(buy_order_id, coin_sale)
 
     # Check money has been added back to USD balance
-    final_usd_balance = crypto_service.get_usd_balance()
+    final_cash_balance = crypto_service.get_cash_balance()
 
     # TODO implement better approach to market value
     final_eth_balance = crypto_service.get_coin_balance("ETH")
 
     assert math.isclose(
-        final_usd_balance, 100.7261, abs_tol=1e-04
+        final_cash_balance.usd_balance, 100.7261, abs_tol=1e-04
     ), "Final USD balance is not correct."
 
 
@@ -155,14 +155,14 @@ def test_cash_balance_is_correctly_calculated(
     # Use ICryptoService to avoid referencing simulation-specific functionality
     crypto_service: ICryptoService = mock_simulated_crypto_service
 
-    cash_balance = crypto_service.get_total_cash_balance()
+    cash_balance = crypto_service.get_cash_balance()
 
     assert (
-        cash_balance.value != 140.0
+        cash_balance.total_estimated_value_usd != 140.0
     ), "Cash balance needs to be calculated using latest entries - not all position balances."
 
     assert math.isclose(
-        cash_balance.value, 125.0, abs_tol=1e-06
+        cash_balance.total_estimated_value_usd, 125.0, abs_tol=1e-06
     ), "Calculated value is not correct."
 
 

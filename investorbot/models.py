@@ -115,7 +115,8 @@ class CashBalance(TimestampMixin, SerializableBase):
         primary_key=True, autoincrement=True, init=False
     )
 
-    value: Mapped[float] = mapped_column(Float())
+    usd_balance: Mapped[float] = mapped_column(Float())
+    total_estimated_value_usd: Mapped[float] = mapped_column(Float())
 
 
 # TODO maybe split this into two entities - too much back and forth in the analysis routine.

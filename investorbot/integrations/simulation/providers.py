@@ -92,7 +92,7 @@ class DataProvider(IDataProvider):
             if trend_percentage < 0.0:
                 trend_percentage = 0.0
 
-            self.trend_percentage += 0.0002
+            self.trend_percentage += 0.00002
         elif dice_roll < 2.5:
             logger.info(
                 f"Market trend decrease - change now trending at {self.trend_percentage}%"
@@ -100,7 +100,7 @@ class DataProvider(IDataProvider):
             if trend_percentage > 0.0:
                 trend_percentage = 0
 
-            self.trend_percentage -= 0.0002
+            self.trend_percentage -= 0.00002
         else:
             logger.info(f"Market change trending at {self.trend_percentage}%")
 
@@ -115,7 +115,7 @@ class DataProvider(IDataProvider):
         current_ticker_values = self.current_ticker_values[0]
         trend_percentage = self.trend_percentage
 
-        sigma = 0.01  # standard deviation
+        sigma = 0.0004  # standard deviation
 
         for coin_name in current_ticker_values.keys():
             s = self.get_random_value(trend_percentage, sigma)

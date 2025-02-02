@@ -14,9 +14,15 @@
 
 <div class="container mx-auto pt-2 pb-2">
     <h1>Wallet Value History</h1>
-    <div class="flex w-full flex-col lg:flex-row pt-2">
+    <div class="flex w-full flex-col lg:flex-row">
         <div
-            class="card bg-base-300 rounded-box grid h-200 p-2 flex-grow place-items-center"
+            class="card bg-base-300 rounded-box grid h-32 flex-grow place-items-center"
+        >
+            content
+        </div>
+        <div class="divider lg:divider-horizontal"></div>
+        <div
+            class="card bg-base-300 rounded-box grid h-32 flex-grow place-items-center"
         >
             <Graph bind:dataSource bind:chartData isAsync={false}></Graph>
         </div>

@@ -62,18 +62,17 @@ def test_buy_order_routine_works_on_simulation(
     # TODO add some assertions for what to expect after running this
     buy_coin_routine()
 
-    final_usd_balance = crypto_service.get_usd_balance()
-    cash_balance = crypto_service.get_total_cash_balance().value
+    cash_balance = crypto_service.get_cash_balance()
 
     buy_order_count = len(bot_db.get_all_buy_orders())
 
     assert buy_order_count == 5, "Number of buy orders isn't correct."
     assert math.isclose(
-        final_usd_balance, 50.0, abs_tol=1
+        cash_balance.usd_balance, 50.0, abs_tol=1
     ), "Final wallet balance isn't correct."
 
     # Cash balance is expected to be a bit lower after fee deductions (0.5% fee)
-    assert math.isclose(cash_balance, 99.75, abs_tol=0.1)
+    assert math.isclose(cash_balance.total_estimated_value_usd, 99.75, abs_tol=0.1)
 
 
 # ! This test may be prone to failure if any lag is introduced

@@ -12,6 +12,7 @@ from investorbot.integrations.cryptodotcom.constants import (
 )
 from investorbot.integrations.cryptodotcom.http.market import MarketHttpClient
 from investorbot.integrations.cryptodotcom.http.user import UserHttpClient
+from investorbot.integrations.cryptodotcom.structs import UserBalanceJson
 from investorbot.interfaces.services import ICryptoService
 from investorbot.models import BuyOrder, CashBalance, CoinProperties, SellOrder
 from investorbot.structs.egress import CoinPurchase, CoinSale
@@ -29,9 +30,7 @@ class CryptoService(ICryptoService):
         self.market = MarketHttpClient()
         self.user = UserHttpClient(CRYPTO_KEY, CRYPTO_SECRET_KEY)
 
-    def get_coin_balance(self, coin_name: str) -> PositionBalance | None:
-        wallet_balance = self.user.get_balance()
-
+    def __get_coin_balance(self, coin_name: str, wallet_balance: UserBalanceJson):
         name = coin_name.split("_")[0] if "_USD" in coin_name else coin_name
 
         balance = next(
@@ -43,26 +42,30 @@ class CryptoService(ICryptoService):
             mappings.json_to_position_balance(balance) if balance is not None else None
         )
 
-    def get_usd_balance(self) -> float:
-        usd_balance = float(self.get_coin_balance("USD").market_value)
+    def get_coin_balance(self, coin_name: str) -> PositionBalance | None:
+        wallet_balance = self.user.get_balance()
 
-        logger.info(f"Your balance is ${usd_balance}")
+        return self.__get_coin_balance(coin_name, wallet_balance)
 
-        return usd_balance
+    def get_cash_balance(self) -> CashBalance:
+        wallet_balance = self.user.get_balance()
+        usd_balance = float(self.__get_coin_balance("USD", wallet_balance).market_value)
 
-    def get_total_cash_balance(self) -> CashBalance:
-        return CashBalance(self.user.get_balance().total_cash_balance)
+        return CashBalance(usd_balance, wallet_balance.total_cash_balance)
 
     def get_investable_coin_count(self) -> int:
-        total_cash_balance = self.get_total_cash_balance()
-        user_balance = self.get_usd_balance()
+        cash_balance = self.get_cash_balance()
+        usd_balance = cash_balance.usd_balance
+        total_estimated_value_usd = cash_balance.total_estimated_value_usd
 
         percentage_to_invest = (
-            user_balance / total_cash_balance - 0.5
+            usd_balance / total_estimated_value_usd - 0.5
         )  # TODO make configurable
 
         number_of_coins_to_invest = (
-            math.floor(user_balance * percentage_to_invest / INVESTMENT_INCREMENTS)
+            math.floor(
+                total_estimated_value_usd * percentage_to_invest / INVESTMENT_INCREMENTS
+            )
             if percentage_to_invest > 0
             else 0
         )

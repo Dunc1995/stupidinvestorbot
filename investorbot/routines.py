@@ -232,5 +232,5 @@ def sell_coin_routine():
                 logger.info("Continuing with routine...")
         # endregion
 
-    cash_balance = crypto_service.get_total_cash_balance()
+    cash_balance = crypto_service.get_cash_balance()
     bot_db.add_item(cash_balance)

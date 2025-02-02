@@ -104,6 +104,6 @@ def test_usd_balance_is_retrievable(monkeypatch, mock_crypto_service, get_file_d
     monkeypatch.setattr("requests.post", mock_post_request)
 
     # Expecting a single value to be retrieved from the private-user-balance-status-200 JSON.
-    usd_balance = mock_crypto_service.get_usd_balance()
+    cash_balance = mock_crypto_service.get_cash_balance()
 
-    assert math.isclose(6.221, usd_balance, rel_tol=1e-3)
+    assert math.isclose(6.221, cash_balance.usd_balance, rel_tol=1e-3)

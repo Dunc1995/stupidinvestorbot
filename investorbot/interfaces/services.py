@@ -13,11 +13,7 @@ class ICryptoService(ABC):
         pass
 
     @abstractmethod
-    def get_usd_balance(self) -> float:
-        pass
-
-    @abstractmethod
-    def get_total_cash_balance(self) -> CashBalance:
+    def get_cash_balance(self) -> CashBalance:
         pass
 
     @abstractmethod

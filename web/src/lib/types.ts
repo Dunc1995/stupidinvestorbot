@@ -5,7 +5,8 @@ export type TableRow = {
 
 export type CashBalance = {
     cashBalanceId: number,
-    value: number,
+    usdBalance: number,
+    totalEstimatedValueUsd: number,
     creationTime: Date
 }
 

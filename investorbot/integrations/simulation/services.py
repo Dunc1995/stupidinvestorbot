@@ -86,12 +86,13 @@ class SimulatedCryptoService(ICryptoService):
 
         return self.get_market_value_per_coin(coin_name) * float(quantity)
 
-    def get_total_cash_balance(self) -> CashBalance:
+    def get_cash_balance(self) -> CashBalance:
+        usd_balance = None
         position_balances: List[PositionBalanceSimulated] = []
         session = self.simulation_db.session
         query = session.query(
             PositionBalanceSimulated,
-            func.max(PositionBalanceSimulated.creation_time),
+            func.max(PositionBalanceSimulated.balance_id),
         ).group_by(PositionBalanceSimulated.coin_name)
 
         for item in query:
@@ -101,7 +102,15 @@ class SimulatedCryptoService(ICryptoService):
             self.get_market_value(c.coin_name, c.quantity) for c in position_balances
         )
 
-        cash_balance = CashBalance(total_value)
+        # TODO Refactor this.
+        for position_balance in position_balances:
+            if position_balance.coin_name == "USD":
+                usd_balance = (
+                    position_balance.quantity
+                )  # quantity == market_value for USD.
+                break
+
+        cash_balance = CashBalance(usd_balance, total_value)
         cash_balance.creation_time = env.time.now()
 
         return cash_balance
@@ -203,26 +212,20 @@ New quantity is {new_coin_quantity}
             reserved_quantity=result.reserved_quantity,
         )
 
-    def get_usd_balance(self) -> float:
-        # ! Note here reserved quantity in realistic circumstances may confuse things whilst
-        # ! trading in reality. For simulation purposes it's being ignored to simplify things.
-        usd_balance = float(self.get_coin_balance("USD").market_value)
-
-        return usd_balance
-
     def get_investable_coin_count(self) -> int:
         # TODO update tests once percentage-to-invest is configurable
-        user_balance = self.get_usd_balance()
-        total_cash_balance = self.get_total_cash_balance().value
+        cash_balance = self.get_cash_balance()
+        usd_balance = cash_balance.usd_balance
+        total_estimated_value_usd = cash_balance.total_estimated_value_usd
 
         percentage_to_invest = (
-            user_balance / total_cash_balance - 0.5
+            usd_balance / total_estimated_value_usd - 0.5
         )  # TODO make configurable
 
         # FIXME INVESTMENT_INCREMENTS will break tests if changed.
         number_of_coins_to_invest = (
             math.floor(
-                total_cash_balance * percentage_to_invest / INVESTMENT_INCREMENTS
+                total_estimated_value_usd * percentage_to_invest / INVESTMENT_INCREMENTS
             )
             if percentage_to_invest > 0
             else 0
