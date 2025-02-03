@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 import logging
-from os import path
 import time
 from typing import List, Tuple
 import numpy as np

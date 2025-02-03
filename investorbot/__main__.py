@@ -11,7 +11,7 @@ from investorbot.app import run_api
 from investorbot.env import is_simulation
 from investorbot.context import bot_context
 from investorbot.db import init_db
-from investorbot.websocket import send_message
+from investorbot.websocket import track_ticker
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
@@ -24,9 +24,9 @@ def main():
             sell_coin_routine,
             refresh_market_analysis_routine,
             bot_context.smtp_service.send_heartbeat,
-            send_message,
             run_api,
             bot_context.crypto_service.get_coin_time_series_data,
+            track_ticker,
         ]
 
         if not is_simulation():

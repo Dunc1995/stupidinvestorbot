@@ -42,6 +42,15 @@
             ]
         },
         {
+            "name": "Track Ticker",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "investorbot",
+            "args": [
+                "track-ticker"
+            ]
+        },
+        {
             "name": "Run Website",
             "type": "debugpy",
             "request": "launch",
