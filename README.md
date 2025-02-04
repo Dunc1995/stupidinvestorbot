@@ -57,8 +57,9 @@ and fix.
 
 If the front-end website styling doesn't look right, the likelihood is that
 `output.css` needs to be recreated (name subject to change). This file can be
-recreated using from the `./web` directory: `npx tailwindcss -i ./src/input.css
--o ./static/output.css`
+recreated by running the following (whilst in the `./web` directory):
+
+`npx tailwindcss -i ./src/input.css -o ./static/output.css`
 
 ## Plan for MVP
 - [ ] Integrate the bot with [thenewsapi](https://www.thenewsapi.com/) if
