@@ -4,15 +4,13 @@ from flask import Flask, abort, render_template, request
 from flask_cors import CORS, cross_origin
 
 from investorbot.context import bot_context
+from investorbot.config import config
 from investorbot.db import init_db
-from investorbot.env import is_crypto_dot_com, is_simulation
 from investorbot import routines
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from investorbot.integrations.simulation.services import SimulatedCryptoService
 from investorbot.models import CashBalance
-
-# from investorbot.smtp import send_test_email
 
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "http://localhost:5371"}})
@@ -68,7 +66,7 @@ def run_api(host="127.0.0.1", port=5000, persist_data=False):
 
     sell_coin_job.modify(next_run_time=datetime.now() + timedelta(seconds=35))
 
-    if is_simulation():
+    if config.is_simulation:
         job = scheduler.add_job(
             func=data_provider.run_in_real_time,
             trigger="interval",
@@ -77,11 +75,12 @@ def run_api(host="127.0.0.1", port=5000, persist_data=False):
         )
         job.modify(next_run_time=datetime.now() + timedelta(seconds=5))
 
-    if not is_crypto_dot_com():
-        scheduler.start()
+    # FIX: Always start the scheduler. Previously this was gated behind `not is_crypto_dot_com()`
+    # which meant the bot would never run scheduled routines on the live API.
+    scheduler.start()
 
-        # Shut down the scheduler when exiting the app
-        atexit.register(lambda: scheduler.shutdown())
+    # Shut down the scheduler when exiting the app
+    atexit.register(lambda: scheduler.shutdown())
 
     app.run(host, port)
 

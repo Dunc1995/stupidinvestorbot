@@ -2,10 +2,7 @@ import logging
 import math
 from typing import List
 from investorbot.integrations.cryptodotcom import mappings
-from investorbot.constants import (
-    DEFAULT_LOGS_NAME,
-    INVESTMENT_INCREMENTS,
-)
+from investorbot.config import config, DEFAULT_LOGS_NAME
 from investorbot.integrations.cryptodotcom.constants import (
     CRYPTO_KEY,
     CRYPTO_SECRET_KEY,
@@ -64,7 +61,7 @@ class CryptoService(ICryptoService):
 
         number_of_coins_to_invest = (
             math.floor(
-                total_estimated_value_usd * percentage_to_invest / INVESTMENT_INCREMENTS
+                total_estimated_value_usd * percentage_to_invest / config.investment_increments
             )
             if percentage_to_invest > 0
             else 0

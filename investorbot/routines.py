@@ -1,25 +1,38 @@
+"""Trading routines — the core scheduled operations of the investorbot.
+
+Each routine accepts an optional BotContext parameter. When not provided, the module-level
+bot_context is used as a fallback. This allows tests to inject mock contexts directly rather
+than monkeypatching module attributes.
+"""
+
 import logging
+from typing import Optional
 
 from argh import arg
 from requests import HTTPError
-from investorbot.context import bot_context
+from investorbot.context import BotContext, bot_context as _default_context
 from investorbot.constants import (
     INVESTMENT_INCREMENTS,
     DEFAULT_LOGS_NAME,
 )
-from investorbot.env import time
 from investorbot.decorators import routine
 from investorbot.models import MarketAnalysis
 from investorbot.structs.egress import CoinPurchase, CoinSale
 import investorbot.analysis as analysis
+import investorbot.strategy as strategy
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
 logging.basicConfig(level=logging.INFO)
 
+# Module-level reference used by the @routine decorator and argh CLI.
+# Tests can monkeypatch this or pass ctx explicitly.
+bot_context = _default_context
 
-def get_initial_ts_summaries(hours_int):
+
+def get_initial_ts_summaries(hours_int: int, ctx: Optional[BotContext] = None):
+    ctx = ctx or bot_context
     ts_summaries = []
-    crypto_service = bot_context.crypto_service
+    crypto_service = ctx.crypto_service
 
     # Get latest trade prices for all instruments being sold at high trading volume and with USD.
     # TODO Parameterize trading currency rather than hardcoding USD. Also parameterize trading
@@ -46,8 +59,9 @@ def get_initial_ts_summaries(hours_int):
     return ts_summaries
 
 
-def get_coins_to_purchase():
-    crypto_service = bot_context.crypto_service
+def get_coins_to_purchase(ctx: Optional[BotContext] = None):
+    ctx = ctx or bot_context
+    crypto_service = ctx.crypto_service
 
     coin_count = crypto_service.get_investable_coin_count()
 
@@ -74,15 +88,17 @@ def get_coins_to_purchase():
     help="The number of hour's worth of data required for the market analysis.",
 )
 @routine("Market Analysis")
-def refresh_market_analysis_routine(hours: int) -> MarketAnalysis:
+def refresh_market_analysis_routine(hours: int, ctx: Optional[BotContext] = None) -> MarketAnalysis:
     """Fetches time series data from the Crypto API and calculates various parameters according to
     each dataset - e.g. median, mean, modes, line-of-best-fit, etc. - these values are then stored
     in the application database via the TimeSeriesSummary models."""
 
-    bot_db = bot_context.db_service
+    ctx = ctx or bot_context
+    bot_db = ctx.db_service
+    time_provider = _get_time_provider()
 
     hours_int = int(hours)
-    initial_ts_summaries = get_initial_ts_summaries(hours_int)
+    initial_ts_summaries = get_initial_ts_summaries(hours_int, ctx)
 
     # Rating thresholds are basically a constant - they only exist in the database to the make the
     # app configurable. FIXME - Rating thresholds are a subset of coin_selection_criteria -
@@ -103,13 +119,13 @@ def refresh_market_analysis_routine(hours: int) -> MarketAnalysis:
     options = bot_db.get_selection_criteria(confidence_rating.value)
 
     # Use selection criteria to apply weightings to each coin's rank.
-    complete_ts_summaries = analysis.assign_weighted_rankings(
+    complete_ts_summaries = strategy.assign_weighted_rankings(
         partially_complete_ts_summaries, options
     )
 
     # Create the final market analysis object to add to the db.
     market_analysis = MarketAnalysis(
-        confidence_rating.value, time.now_in_ms(), complete_ts_summaries
+        confidence_rating.value, time_provider.now_in_ms(), complete_ts_summaries
     )
 
     bot_db.add_item(market_analysis)
@@ -121,16 +137,17 @@ def refresh_market_analysis_routine(hours: int) -> MarketAnalysis:
 
 
 @routine("Coin Purchase")
-def buy_coin_routine():
+def buy_coin_routine(ctx: Optional[BotContext] = None):
     """Fetches precalculated time series statistics for coins the application may decide to invest
     in. Buy orders will be placed for coins that meet the conditions set by a given ruleset.
     Rulesets are to be determined by the app's confidence in the market."""
 
-    bot_db = bot_context.db_service
-    crypto_service = bot_context.crypto_service
+    ctx = ctx or bot_context
+    bot_db = ctx.db_service
+    crypto_service = ctx.crypto_service
 
     purchase_count = 0
-    coin_names = get_coins_to_purchase()
+    coin_names = get_coins_to_purchase(ctx)
     coin_count = len(coin_names)
 
     for coin_name in coin_names:
@@ -157,14 +174,16 @@ def buy_coin_routine():
 
 
 @routine("Sell Coins")
-def sell_coin_routine():
+def sell_coin_routine(ctx: Optional[BotContext] = None):
     """Pulls all BuyOrders from the application database, fetches corresponding data via the Crypto
     API and cross-references this with the user's wallet to verify that a SELL trade can be placed.
     SELL orders will then be placed for coin balances that have met the minimum return threshold -
     e.g. 101 percent of the original BuyOrder value."""
 
-    bot_db = bot_context.db_service
-    crypto_service = bot_context.crypto_service
+    ctx = ctx or bot_context
+    bot_db = ctx.db_service
+    crypto_service = ctx.crypto_service
+    time_provider = _get_time_provider()
 
     # Get all buy orders that have been placed by the app.
     buy_orders = bot_db.get_all_buy_orders()
@@ -183,7 +202,7 @@ def sell_coin_routine():
         # coin_is_sellable is a binary 'True' if the buy order is sellable, 'False' if not.
         # validation_result is used to access reasons as to why the buy order is currently not
         # sellable.
-        coin_is_sellable, validation_result = analysis.is_coin_sellable(
+        coin_is_sellable, validation_result = strategy.is_coin_sellable(
             buy_order, order_detail, coin_balance
         )
 
@@ -204,7 +223,7 @@ def sell_coin_routine():
 
         value_ratio = latest_trade.price / buy_order.price_per_coin
 
-        if not analysis.is_value_ratio_sufficient(value_ratio, order_detail):
+        if not strategy.is_value_ratio_sufficient(value_ratio, order_detail, time_provider):
             logger.info(f"Value ratio {value_ratio} not sufficient.")
             continue
 
@@ -234,3 +253,9 @@ def sell_coin_routine():
 
     cash_balance = crypto_service.get_cash_balance()
     bot_db.add_item(cash_balance)
+
+
+def _get_time_provider():
+    """Get the current time provider from the env module."""
+    from investorbot import env
+    return env.time

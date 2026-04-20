@@ -2,7 +2,6 @@ import json
 from typing import List
 import pytest
 
-from investorbot.enums import AppIntegration
 from investorbot.context import BotContext
 from investorbot.integrations.cryptodotcom.services import CryptoService
 from investorbot.interfaces.services import ICryptoService
@@ -10,11 +9,6 @@ from investorbot.interfaces.services import ICryptoService
 
 @pytest.fixture(autouse=True)
 def set_environment(monkeypatch):
-    monkeypatch.setattr(
-        "investorbot.env.INVESTOR_APP_INTEGRATION",
-        AppIntegration.CRYPTODOTCOM,
-    )
-
     # ! Prevents test suite from attempting to write API response to api/** directory.
     monkeypatch.setattr(
         "investorbot.integrations.cryptodotcom.http.base.INVESTOR_APP_ENVIRONMENT",

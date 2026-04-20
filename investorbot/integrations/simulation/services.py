@@ -7,7 +7,7 @@ import uuid
 import sqlalchemy
 from sqlalchemy import func
 from investorbot import env
-from investorbot.constants import INVESTMENT_INCREMENTS, DEFAULT_LOGS_NAME
+from investorbot.config import config, DEFAULT_LOGS_NAME
 from investorbot.enums import OrderStatus
 
 # region coupling to cryptodotcom integration - ideally want complete decoupling but for the purposes
@@ -225,7 +225,7 @@ New quantity is {new_coin_quantity}
         # FIXME INVESTMENT_INCREMENTS will break tests if changed.
         number_of_coins_to_invest = (
             math.floor(
-                total_estimated_value_usd * percentage_to_invest / INVESTMENT_INCREMENTS
+                total_estimated_value_usd * percentage_to_invest / config.investment_increments
             )
             if percentage_to_invest > 0
             else 0

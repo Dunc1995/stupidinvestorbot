@@ -1,25 +1,16 @@
+"""Application context and dependency wiring.
+
+BotContext is the composition root for the application. It can be constructed with explicit
+dependencies (for testing and flexibility) or will lazily create defaults based on environment
+configuration.
+"""
+
 from dataclasses import dataclass
 import logging
+from typing import Optional
 
-from investorbot.constants import (
-    DEFAULT_LOGS_NAME,
-    INVESTOR_APP_DB_CONNECTION,
-    INVESTOR_APP_ENVIRONMENT,
-)
+from investorbot.config import config, DEFAULT_LOGS_NAME
 from investorbot.enums import AppIntegration
-from investorbot.env import is_crypto_dot_com, is_simulation
-from investorbot.integrations.cryptodotcom.services import CryptoService
-from investorbot.integrations.simulation.constants import SIMULATION_DB_CONNECTION
-from investorbot.integrations.simulation.interfaces import (
-    IDataProvider,
-)
-from investorbot.integrations.simulation.providers import (
-    DataProvider,
-)
-from investorbot.integrations.simulation.services import (
-    SimulatedCryptoService,
-    SimulationDbService,
-)
 from investorbot.interfaces.services import ICryptoService
 from investorbot.services import BotDbService, SmtpService
 
@@ -48,28 +39,43 @@ Your options are {list(str(option) for option in AppIntegration)}
 
 @dataclass
 class BotContext:
-    __bot_db_service: BotDbService = None
-    __crypto_service: ICryptoService = None
-    __smtp_service: SmtpService = None
+    """Composition root for the investorbot application.
+
+    Accepts explicit dependencies for testing. When dependencies are not provided, they are
+    lazily created from environment configuration.
+    """
+
+    _bot_db_service: Optional[BotDbService] = None
+    _crypto_service: Optional[ICryptoService] = None
+    _smtp_service: Optional[SmtpService] = None
 
     @property
     def db_service(self) -> BotDbService:
         """The investorbot application's database service layer."""
+        if self._bot_db_service is not None:
+            return self._bot_db_service
 
-        return (
-            self.__bot_db_service
-            if self.__bot_db_service is not None
-            else BotDbService(INVESTOR_APP_DB_CONNECTION)
-        )
+        self._bot_db_service = BotDbService(config.db_connection)
+        return self._bot_db_service
 
     @property
     def crypto_service(self) -> ICryptoService:
-        if self.__crypto_service is not None:
-            return self.__crypto_service
+        if self._crypto_service is not None:
+            return self._crypto_service
 
         crypto_service = None
 
-        if is_simulation():
+        if config.is_simulation:
+            from investorbot.integrations.simulation.constants import (
+                SIMULATION_DB_CONNECTION,
+            )
+            from investorbot.integrations.simulation.interfaces import IDataProvider
+            from investorbot.integrations.simulation.providers import DataProvider
+            from investorbot.integrations.simulation.services import (
+                SimulatedCryptoService,
+                SimulationDbService,
+            )
+
             simulation_db_service = SimulationDbService(SIMULATION_DB_CONNECTION)
             data_provider: IDataProvider = DataProvider(2000)
 
@@ -78,21 +84,33 @@ class BotContext:
             )
 
             logger.info(SIMULATED_ENVIRONMENT_MESSAGE)
-        elif is_crypto_dot_com():
+        elif config.is_crypto_dot_com:
+            from investorbot.integrations.cryptodotcom.services import CryptoService
+
             crypto_service = CryptoService()
             logger.info(CRYPTO_DOT_COM_ENVIRONMENT_MESSAGE)
 
-        elif INVESTOR_APP_ENVIRONMENT != "Testing":
+        elif not config.is_testing:
             raise EnvironmentError(ENVIRONMENT_ERROR_MESSAGE)
 
-        self.__crypto_service = crypto_service
+        self._crypto_service = crypto_service
 
         return crypto_service
 
     @property
-    def smtp_service(self):
-        return self.__smtp_service if self.__smtp_service is not None else SmtpService()
+    def smtp_service(self) -> SmtpService:
+        if self._smtp_service is not None:
+            return self._smtp_service
+
+        self._smtp_service = SmtpService()
+        return self._smtp_service
 
 
-bot_context = BotContext()
+def create_default_context() -> BotContext:
+    """Factory function to create a BotContext with default (environment-based) configuration."""
+    return BotContext()
+
+
+# Default application context. Can be replaced in tests or overridden at startup.
+bot_context = create_default_context()
 """Describes available services across the investorbot application."""

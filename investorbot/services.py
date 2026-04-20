@@ -11,14 +11,7 @@ from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.orm import DeclarativeBase
 
 from investorbot import env
-from investorbot.integrations.cryptodotcom import mappings
-from investorbot.constants import (
-    DEFAULT_LOGS_NAME,
-    JINJA_ROOT_PATH,
-    RECIPIENT_EMAIL,
-    SENDER_EMAIL,
-    SENDER_PASSWORD,
-)
+from investorbot.config import config, DEFAULT_LOGS_NAME
 from investorbot.structs.internal import (
     RatingThreshold,
 )
@@ -173,7 +166,13 @@ class BotDbService(BaseAppService):
         )
 
         return [
-            mappings.coin_selection_to_rating_threshold(criteria)
+            RatingThreshold(
+                rating_id=criteria.rating_id,
+                rating_upper_threshold=criteria.rating_upper_threshold,
+                rating_upper_unbounded=criteria.rating_upper_unbounded,
+                rating_lower_threshold=criteria.rating_lower_threshold,
+                rating_lower_unbounded=criteria.rating_lower_unbounded,
+            )
             for criteria in coin_selection_criteria
         ]
 
@@ -196,15 +195,17 @@ class SmtpService:
 
     def __init__(
         self,
-        sender_email=SENDER_EMAIL,
-        sender_password=SENDER_PASSWORD,
-        recipient_email=RECIPIENT_EMAIL,
-        jinja_root_path=JINJA_ROOT_PATH,
+        sender_email=None,
+        sender_password=None,
+        recipient_email=None,
+        jinja_root_path=None,
     ):
-        self.environment = Environment(loader=FileSystemLoader(jinja_root_path))
-        self.sender_email = sender_email
-        self.sender_password = sender_password
-        self.recipient_email = recipient_email
+        self.environment = Environment(
+            loader=FileSystemLoader(jinja_root_path or config.jinja_root_path)
+        )
+        self.sender_email = sender_email or config.sender_email
+        self.sender_password = sender_password or config.sender_password
+        self.recipient_email = recipient_email or config.recipient_email
         self.start_time = datetime.now()
 
     def get_template(self, template_name: str) -> str:

@@ -1,7 +1,6 @@
 from datetime import timedelta
 import pytest
 
-from investorbot.enums import AppIntegration
 from investorbot.context import BotContext
 from investorbot.providers import StaticTimeProvider
 from investorbot.integrations.simulation.providers import (
@@ -15,11 +14,10 @@ from investorbot.integrations.simulation.services import (
 
 
 @pytest.fixture(autouse=True)
-def set_environment(monkeypatch):
-    monkeypatch.setattr(
-        "investorbot.env.INVESTOR_APP_INTEGRATION",
-        AppIntegration.SIMULATED,
-    )
+def set_environment():
+    """Simulation tests construct their own BotContext with explicit dependencies, so no
+    environment patching is needed."""
+    pass
 
 
 @pytest.fixture

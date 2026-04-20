@@ -1,3 +1,9 @@
+"""Statistical analysis for time series data.
+
+This module contains pure statistical functions that operate on canonical TimeSeries data.
+Business/trading logic (sell validation, weighted rankings) lives in investorbot.strategy.
+"""
+
 import logging
 import math
 from typing import List, Tuple
@@ -5,7 +11,6 @@ import pandas as pd
 from pandas import DataFrame
 import numpy as np
 
-from investorbot import env
 from investorbot.constants import (
     DEFAULT_LOGS_NAME,
     INVESTOR_APP_FLATNESS_THRESHOLD,
@@ -13,46 +18,24 @@ from investorbot.constants import (
 )
 from investorbot.enums import (
     MarketCharacterization,
-    OrderStatus,
     TrendLineState,
 )
 from investorbot.models import (
-    BuyOrder,
     CoinSelectionCriteria,
     TimeSeriesMode,
     TimeSeriesSummary,
 )
 from investorbot.structs.internal import (
-    OrderDetail,
-    PositionBalance,
     RatingThreshold,
-    SaleValidationResult,
+    TimeSeriesPoint,
+    TimeSeries,
 )
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
 
 
-def __hours_since_order(order: OrderDetail) -> float:
-    t_now = env.time.now_in_ms()
-
-    time_of_order = order.time_created_ms
-    milliseconds_since_order = t_now - time_of_order
-    return milliseconds_since_order / (1000 * 60 * 60)
-
-
-def __get_minimum_acceptable_value_ratio(order: OrderDetail) -> float:
-    # TODO make this configurable as DecayEquationParameters or similar. High confidence in the
-    # market should result in slower decay rate.
-    return 0.99 + 0.03 ** ((0.01 * __hours_since_order(order)) + 1.0)
-
-
-def is_value_ratio_sufficient(value_ratio: float, order: OrderDetail) -> bool:
-    return value_ratio >= __get_minimum_acceptable_value_ratio(order)
-
-
-def convert_ms_time_to_hours(value: int, offset=0):
+def convert_ms_time_to_hours(value: int, offset=0) -> float:
     result = (value - offset) / (1000 * 60 * 60)
-
     return float(result)
 
 
@@ -66,18 +49,14 @@ def get_trend_value(
     trend_line_offset: float | DataFrame,
 ) -> float | DataFrame:
     """Get coin value along a given trend line."""
-    trend_value = trend_line_coefficient * hour_in_time + trend_line_offset
-
-    return trend_value
+    return trend_line_coefficient * hour_in_time + trend_line_offset
 
 
 def get_trend_line_price_percentage_change(
     normalized_gradient: float, data_count: int
 ) -> float:
     hours = ts_data_count_to_hours(data_count)
-
     value_at_now = get_trend_value(normalized_gradient, hours, 1)
-
     return (value_at_now) - 1.0
 
 
@@ -97,21 +76,19 @@ def get_trend_line_state(trend_line_price_percentage_change: float) -> str:
     return state.value
 
 
-# FIXME currently coupled to crypto.com API
-def get_time_series_data_frame(time_series_data: dict) -> Tuple[DataFrame, int]:
-    """Ingests JSON time series data in the format [{ 'v': 1.0 't': 1.0 }, ... ], converts this to a
-    pandas DataFrame and formats the data so that the time axis is measured in hours as oppose to
-    milliseconds.
+def time_series_to_data_frame(time_series: TimeSeries) -> Tuple[DataFrame, int]:
+    """Convert canonical TimeSeries data into a pandas DataFrame with time in hours.
+
+    Accepts the canonical List[TimeSeriesPoint] format. Data is expected to be ordered from most
+    recent to oldest (matching the Crypto.com API convention). The function reverses this to
+    chronological order.
     """
-    df = pd.DataFrame.from_dict(time_series_data)
+    records = [{"t": point.timestamp_ms, "v": point.value} for point in time_series]
+    df = pd.DataFrame.from_records(records)
 
-    time_value_offset = int(
-        df["t"].iat[-1]
-    )  # Relies on data ordered from most recent to x hours ago.
+    time_value_offset = int(df["t"].iat[-1])
 
-    df["t"] = df["t"].apply(
-        lambda x: convert_ms_time_to_hours(x, time_value_offset)
-    )  # Convert to hours.
+    df["t"] = df["t"].apply(lambda x: convert_ms_time_to_hours(x, time_value_offset))
     df["v"] = df["v"].astype(float)
 
     df = df[::-1]
@@ -120,10 +97,30 @@ def get_time_series_data_frame(time_series_data: dict) -> Tuple[DataFrame, int]:
     return df, time_value_offset
 
 
-# FIXME currently coupled to crypto.com API
-def get_line_of_best_fit(df: DataFrame):
-    """Uses numpy to generate simple trend line parameters based on the input DataFrame."""
+# Keep the old name as an alias for backward compatibility with tests that use raw dicts.
+def get_time_series_data_frame(time_series_data: dict | list) -> Tuple[DataFrame, int]:
+    """Legacy adapter: accepts raw dict/list format (e.g. [{'v': 1.0, 't': 1.0}, ...]) and
+    converts to DataFrame. Prefer time_series_to_data_frame() for new code."""
+    if isinstance(time_series_data, list) and len(time_series_data) > 0:
+        if isinstance(time_series_data[0], TimeSeriesPoint):
+            return time_series_to_data_frame(time_series_data)
 
+    # Legacy path: raw dict/list from Crypto.com API format.
+    df = pd.DataFrame.from_dict(time_series_data)
+
+    time_value_offset = int(df["t"].iat[-1])
+
+    df["t"] = df["t"].apply(lambda x: convert_ms_time_to_hours(x, time_value_offset))
+    df["v"] = df["v"].astype(float)
+
+    df = df[::-1]
+    df.reset_index(inplace=True, drop=True)
+
+    return df, time_value_offset
+
+
+def get_line_of_best_fit(df: DataFrame) -> Tuple[float, float]:
+    """Uses numpy to generate simple trend line parameters based on the input DataFrame."""
     time_array = df["t"].to_numpy()
     value_array = df["v"].to_numpy()
 
@@ -132,14 +129,15 @@ def get_line_of_best_fit(df: DataFrame):
     return a, b
 
 
-# FIXME currently coupled to crypto.com API (main entry-point)
 def get_coin_time_series_summary(
     coin_name: str,
-    time_series_data: dict,
+    time_series_data: dict | TimeSeries,
 ) -> TimeSeriesSummary:
-    """Uses pandas to get basic statistical parameters to describe the input JSON time series
-    data."""
+    """Calculate statistical summary for a coin's time series data.
 
+    Accepts either the canonical TimeSeries format or the legacy dict format for backward
+    compatibility.
+    """
     stats, time_offset = get_time_series_data_frame(time_series_data)
 
     a, b = get_line_of_best_fit(stats)
@@ -200,8 +198,6 @@ def get_market_analysis_rating(
         df["line_of_best_fit_coefficient"], 24.0, df["line_of_best_fit_offset"]
     )
 
-    # This algebraic expression applies this equation to all rows in the pandas DataFrame (if you're
-    # not familiar with pandas).
     df["percentage_change"] = (df["value_at_now"] / df["value_at_zero"]) - 1.0
 
     median_value = df["percentage_change"].median()
@@ -228,7 +224,6 @@ def get_outliers_in_time_series_data(
 
     ts_count = len(ordered_data)
 
-    # flooring here to account for zero index.
     first_quartile_index = math.floor(0.25 * ts_count)
     third_quartile_index = math.floor(0.75 * ts_count)
 
@@ -283,61 +278,3 @@ def assign_outlier_properties(
     )
 
     return gradient_outliers + deviation_subset
-
-
-def assign_weighted_rankings(
-    summaries: List[TimeSeriesSummary], options: CoinSelectionCriteria
-) -> int:
-    for summary in summaries:
-        ranking = summary.initial_ranking
-
-        params = [
-            options.coin_should_be_volatile and summary.is_volatile,
-            options.coin_should_be_nominal and not summary.is_outlier_in_gradient,
-            options.coin_should_be_an_outlier and summary.is_outlier_in_gradient,
-            options.trend_line_should_be_falling
-            and summary.trend_state == TrendLineState.FALLING,
-            options.trend_line_should_be_flat
-            and summary.trend_state == TrendLineState.FLAT,
-            options.trend_line_should_be_rising
-            and summary.trend_state == TrendLineState.RISING,
-        ]
-
-        for param in params:
-            if param:
-                ranking += 100
-
-        summary.final_ranking = ranking
-
-    return summaries
-
-
-# TODO not strictly to do with analysis - more app_service related.
-def is_coin_sellable(
-    buy_order: BuyOrder, order_detail: OrderDetail, coin_balance: PositionBalance | None
-) -> Tuple[bool, SaleValidationResult]:
-    no_coin_balance = coin_balance is None or coin_balance.quantity == 0.0
-    order_balance_has_already_been_sold = buy_order.sell_order is not None
-    order_has_been_cancelled = order_detail.status == OrderStatus.CANCELED
-    order_has_not_been_filled = order_detail.status != OrderStatus.COMPLETED
-    wallet_balance_is_not_sufficient = (
-        coin_balance.sellable_quantity < order_detail.order_quantity_minus_fee
-        if coin_balance is not None
-        else True
-    )
-
-    return not any(
-        [
-            no_coin_balance,
-            order_balance_has_already_been_sold,
-            order_has_been_cancelled,
-            order_has_not_been_filled,
-            wallet_balance_is_not_sufficient,
-        ]
-    ), SaleValidationResult(
-        no_coin_balance,
-        order_balance_has_already_been_sold,
-        order_has_been_cancelled,
-        order_has_not_been_filled,
-        wallet_balance_is_not_sufficient,
-    )

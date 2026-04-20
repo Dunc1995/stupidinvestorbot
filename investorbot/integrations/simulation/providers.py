@@ -7,7 +7,7 @@ import pandas as pd
 from pandas import DataFrame
 
 from investorbot import env
-from investorbot.constants import DEFAULT_LOGS_NAME
+from investorbot.config import DEFAULT_LOGS_NAME
 from investorbot.integrations.simulation.data.tickers import TICKERS
 from investorbot.integrations.simulation.interfaces import (
     IDataProvider,

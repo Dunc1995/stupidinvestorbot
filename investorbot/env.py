@@ -1,16 +1,21 @@
-from investorbot.constants import INVESTOR_APP_INTEGRATION
-from investorbot.enums import AppIntegration
-from investorbot.integrations.simulation.providers import SimulatedTimeProvider
+from investorbot.config import config
 from investorbot.interfaces.providers import ITimeProvider
 from investorbot.providers import TimeProvider
 
 
 def is_simulation() -> bool:
-    return INVESTOR_APP_INTEGRATION == AppIntegration.SIMULATED
+    return config.is_simulation
 
 
 def is_crypto_dot_com() -> bool:
-    return INVESTOR_APP_INTEGRATION == AppIntegration.CRYPTODOTCOM
+    return config.is_crypto_dot_com
 
 
-time: ITimeProvider = SimulatedTimeProvider() if is_simulation() else TimeProvider()
+# Module-level time provider for backward compatibility.
+# Uses config to determine which provider to use.
+if config.is_simulation:
+    from investorbot.integrations.simulation.providers import SimulatedTimeProvider
+
+    time: ITimeProvider = SimulatedTimeProvider()
+else:
+    time: ITimeProvider = TimeProvider()

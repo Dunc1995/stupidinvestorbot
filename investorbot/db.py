@@ -3,14 +3,8 @@ from os import path
 import os
 
 from investorbot.context import bot_context
-from investorbot.constants import (
-    DEFAULT_LOGS_NAME,
-    INVESTOR_APP_DB_PATH,
-)
+from investorbot.config import config, DEFAULT_LOGS_NAME
 from investorbot.enums import MarketCharacterization
-from investorbot.env import is_simulation
-from investorbot.integrations.simulation.constants import SIMULATION_DB_PATH
-from investorbot.integrations.simulation.db import init_simulation_db
 from investorbot.models import CoinSelectionCriteria
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
@@ -83,11 +77,17 @@ def init_db():
     app_service = bot_context.db_service
     crypto_service = bot_context.crypto_service
 
-    delete_file_if_exists(INVESTOR_APP_DB_PATH)
+    db_path = config.db_path
+    if db_path:
+        delete_file_if_exists(db_path)
+
     logger.info("Running migration for app service.")
     app_service.run_migration()
 
-    if is_simulation():
+    if config.is_simulation:
+        from investorbot.integrations.simulation.constants import SIMULATION_DB_PATH
+        from investorbot.integrations.simulation.db import init_simulation_db
+
         delete_file_if_exists(SIMULATION_DB_PATH)
         logger.info("Running migration for simulation service.")
         init_simulation_db()

@@ -1,6 +1,6 @@
 import logging
 import argh
-from investorbot.constants import DEFAULT_LOGS_NAME
+from investorbot.config import config, DEFAULT_LOGS_NAME
 from investorbot.routines import (
     get_coins_to_purchase,
     buy_coin_routine,
@@ -8,7 +8,6 @@ from investorbot.routines import (
     refresh_market_analysis_routine,
 )
 from investorbot.app import run_api
-from investorbot.env import is_simulation
 from investorbot.context import bot_context
 from investorbot.db import init_db
 from investorbot.websocket import track_ticker
@@ -29,7 +28,7 @@ def main():
             track_ticker,
         ]
 
-        if not is_simulation():
+        if not config.is_simulation:
             commands.append(init_db)
 
         argh.dispatch_commands(commands)

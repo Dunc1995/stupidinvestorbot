@@ -1,9 +1,23 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import logging
+from typing import List
 from investorbot.constants import DEFAULT_LOGS_NAME
 
 
 logger = logging.getLogger(DEFAULT_LOGS_NAME)
+
+
+@dataclass
+class TimeSeriesPoint:
+    """Canonical time series data point. All integrations must convert their API responses into
+    this format before passing data to the analysis layer."""
+
+    timestamp_ms: int
+    value: float
+
+
+# Type alias for a list of time series points.
+TimeSeries = List[TimeSeriesPoint]
 
 
 @dataclass

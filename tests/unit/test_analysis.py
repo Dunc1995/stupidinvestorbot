@@ -2,6 +2,7 @@ import json
 import math
 import uuid
 from investorbot import analysis
+from investorbot import strategy
 from investorbot.enums import OrderStatus
 from investorbot.models import BuyOrder
 from investorbot.structs.internal import OrderDetail, PositionBalance
@@ -95,7 +96,7 @@ def test_coin_sale_validator_is_ready_to_sell(mock_time):
     )
     position_balance = PositionBalance("TON", 4.88756072, 0.752975, 0.0)
 
-    can_sell, _ = analysis.is_coin_sellable(buy_order, order_detail, position_balance)
+    can_sell, _ = strategy.is_coin_sellable(buy_order, order_detail, position_balance)
 
     assert can_sell
 
@@ -117,7 +118,7 @@ def test_coin_sale_validator_will_not_sell_because_of_wallet_quantity(mock_time)
     )
     position_balance = PositionBalance("TON", 0.056123, 0.01, 0.0)
 
-    can_sell, validator = analysis.is_coin_sellable(
+    can_sell, validator = strategy.is_coin_sellable(
         buy_order, order_detail, position_balance
     )
 
@@ -143,7 +144,7 @@ def test_coin_sale_validator_will_not_break_on_small_coin_balance(mock_time):
     )
     position_balance = PositionBalance("TON", 0.056123, 0.01, 0.0)
 
-    can_sell, validator = analysis.is_coin_sellable(
+    can_sell, validator = strategy.is_coin_sellable(
         buy_order, order_detail, position_balance
     )
 
@@ -169,7 +170,7 @@ def test_coin_sale_validator_will_not_break_on_normal_coin_balance(mock_time):
     )
     position_balance = PositionBalance("TON", 5.3, 0.8, 0.0)
 
-    can_sell, validator = analysis.is_coin_sellable(
+    can_sell, validator = strategy.is_coin_sellable(
         buy_order, order_detail, position_balance
     )
 
